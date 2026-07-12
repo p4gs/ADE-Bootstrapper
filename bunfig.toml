@@ -1,0 +1,10 @@
+# ADE Bootstrapper — test configuration.
+# Coverage floor is a hard gate (owner rule: 95% line + 95% function, meaningful tests only).
+# Coverage is opt-in per run: `bun test --coverage` (the `check` script) enforces the
+# thresholds below; plain `bun test` runs fast without the gate.
+[test]
+coverageThreshold = { lines = 0.95, functions = 0.95 }
+coverageSkipTestFiles = true
+# tests/helpers.ts is test infrastructure (fixture builders/fakes), not product code —
+# the only coverage exclusion in the repo.
+coveragePathIgnorePatterns = ["tests/helpers.ts"]

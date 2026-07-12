@@ -1,0 +1,20 @@
+{
+  "name": "ade-bootstrapper",
+  "version": "0.1.0",
+  "description": "Bootstrap a secure, high-quality, operationally trustworthy Agentic Development Environment (ADE) for AI coding harnesses",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "ade": "src/cli.ts"
+  },
+  "scripts": {
+    "typecheck": "bunx tsc --noEmit",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage",
+    "check": "bun run typecheck && bun test --coverage"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0",
+    "@types/bun": "^1.2.0"
+  }
+}
