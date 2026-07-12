@@ -19,12 +19,15 @@ bun run src/cli.ts init /path/to/your/repo
 - `.ade/policy/*.json` — the policy layer: dependencies, sandbox, approvals, secrets,
   git, budget, context-trust, token-efficiency
 - `.ade/guardrails/*.md` — secure-coding rules wired into every harness
-- `.ade/instructions.md` — ONE canonical instruction source, translated into
+- `.ade/instructions.md` — the generated baseline (module blocks), translated into
   `CLAUDE.md`, `AGENTS.md`, and `.cursor/rules/ade.mdc` inside managed markers
   (your content outside the markers is never touched)
-- `.ade/audit/log.jsonl` — tamper-evident, hash-chained audit log (`ade audit verify`)
+- `.ade/instructions.local.md` — **your** project instructions: created once, never
+  overwritten, appended to every harness's managed block
+- `.ade/audit/log.jsonl` — hash-chained audit log, committed in the lockfile
+  (`ade audit verify` detects edits, truncation, and re-forged chains)
 - `ade.lock.json` — deterministic lockfile making the whole setup verifiable
-  (`ade verify`) on any machine
+  (`ade verify`) on any machine, including files planted into the `.ade/` tree
 - A pre-commit secret scan (TruffleHog) that actually blocks committing verified secrets
 
 ## Commands
@@ -67,6 +70,25 @@ Exit codes: `0` success · `1` failure · `2` usage error.
 
 Every module is individually disableable in `ade.json` (`modules.<id>.enabled: false`) —
 secure-by-default means disabling is the explicit act.
+
+## What the guarantees actually mean
+
+Honesty about scope is a feature; these are the limits of each claim:
+
+- **Audit log — hash-chained + lockfile-committed.** Every entry commits to its
+  predecessor, and `ade apply` pins the chain's length and head hash into
+  `ade.lock.json` (which you commit to git). That makes in-place edits, truncation,
+  tail-dropping, and a chain re-forged from the public genesis anchor all detectable.
+  It is *not* cryptographically signed: an attacker who can rewrite both the log and
+  the committed lockfile can still produce a consistent story. External anchoring is
+  a v0.2 item.
+- **Secret scanning blocks *verified* secrets.** TruffleHog verifies credentials
+  against the live provider; an unverifiable key (offline machine, unreachable
+  endpoint, offline-only key type) is not blocked. This is a deliberate trade against
+  false positives bricking every commit. The hook fails *closed* if it cannot scan.
+- **Enforcement vs. instruction.** Claude Code gets real enforcement (permission
+  rules, hooks, MCP). The other six harnesses get policy files plus instruction
+  blocks — a contract the agent is told to follow, not a mechanism that stops it.
 
 ## Design contract (from the spec)
 

@@ -115,14 +115,24 @@ describe("ade CLI", () => {
     expect(captured.stdout()).toContain("dry-run");
   });
 
-  test("ISC-17: second apply reports unchanged tree (byte-identical)", async () => {
+  test("ISC-17: second apply leaves every generated file byte-identical (audit surface excepted)", async () => {
     await run(["init"], capture());
     const before = await treeSnapshot(dir);
+    const lockBefore = JSON.parse(await Bun.file(join(dir, "ade.lock.json")).text());
     expect(await run(["apply"], capture())).toBe(0);
     const after = await treeSnapshot(dir);
-    const beforeNoAudit = before.split("\n").filter((line) => !line.startsWith(".ade/audit/")).join("\n");
-    const afterNoAudit = after.split("\n").filter((line) => !line.startsWith(".ade/audit/")).join("\n");
-    expect(afterNoAudit).toBe(beforeNoAudit);
+    const lockAfter = JSON.parse(await Bun.file(join(dir, "ade.lock.json")).text());
+
+    // Everything except the audit log and the lockfile (whose audit checkpoint
+    // advances because the second apply was itself logged) is untouched.
+    const strip = (snapshot: string): string =>
+      snapshot
+        .split("\n")
+        .filter((line) => !line.startsWith(".ade/audit/") && !line.startsWith("ade.lock.json:"))
+        .join("\n");
+    expect(strip(after)).toBe(strip(before));
+    expect(lockAfter.files).toEqual(lockBefore.files);
+    expect(lockAfter.audit.length).toBeGreaterThan(lockBefore.audit.length);
   });
 
   test("ISC-19: verify passes clean and fails after tamper, exit codes 0/1", async () => {

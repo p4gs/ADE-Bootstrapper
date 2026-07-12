@@ -95,11 +95,22 @@ export function upsertManagedBlock(existing: string, body: string): UpsertResult
           "managed markers are reversed (end before begin) — refusing to rewrite; fix the markers manually",
       };
     }
-    if (parsed.declaredHash !== null && sha256(parsed.body) !== parsed.declaredHash) {
+    if (parsed.declaredHash === null) {
+      // Every block ADE writes carries a content-hash provenance line. Markers with
+      // no hash are NOT our block — they are user (or foreign-tool) content that
+      // happens to use the same marker strings. Replacing it would destroy content
+      // outside our ownership, which is the one thing this engine must never do.
       return {
         ok: false,
         error:
-          "managed block was hand-edited (content-hash mismatch) — refusing to overwrite; move your changes outside the ade markers (or into .ade/instructions.md) and re-run `ade translate`",
+          "found ade markers with no ADE provenance line — this content was not written by ade; refusing to overwrite it. Remove or rename the markers if you want ade to manage this file.",
+      };
+    }
+    if (sha256(parsed.body) !== parsed.declaredHash) {
+      return {
+        ok: false,
+        error:
+          "managed block was hand-edited (content-hash mismatch) — refusing to overwrite; move your changes outside the ade markers (or into .ade/instructions.local.md) and re-run `ade translate`",
       };
     }
     const before = existing.slice(0, parsed.beginIndex);

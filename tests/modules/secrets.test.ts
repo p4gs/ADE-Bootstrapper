@@ -30,7 +30,8 @@ describe("secrets module", () => {
     expect(result.status).toBe("applied");
     const hook = await Bun.file(join(dir, ".git", "hooks", "pre-commit")).text();
     expect(hook).toContain(HOOK_MARKER);
-    expect(hook).toContain("trufflehog git");
+    expect(hook).toContain("git checkout-index");
+    expect(hook).toContain("trufflehog filesystem");
   });
 
   test("ISC-93: trufflehog absent → degraded with install remediation", async () => {
@@ -129,6 +130,35 @@ describe("secrets module", () => {
     expect(await Bun.file(join(dir, ".git", "hooks", "pre-commit")).exists()).toBe(false);
   });
 
+  test("broken-scanner remediation: existing --since-commit invocations are flagged as errors (apply + verify)", async () => {
+    // Adopted repo with the documented-but-broken pre-commit framework entry.
+    await Bun.write(
+      join(dir, PRECOMMIT_CONFIG_PATH),
+      "repos:\n  - repo: local\n    hooks:\n      - id: trufflehog\n        entry: trufflehog git file://. --since-commit HEAD --fail\n",
+    );
+    const ctx = makeTestCtx(dir, { presentTools: { trufflehog: "3.9.0", "pre-commit": "4.0.0" } });
+    const result = await secretsModule.apply(ctx);
+    expect(result.findings.some((finding) => finding.level === "error" && finding.message.includes("--since-commit"))).toBe(true);
+    const verdict = await secretsModule.verify(ctx);
+    expect(verdict.ok).toBe(false);
+
+    // Rot-guard on the native shim path: a stale shim with the broken invocation fails verify.
+    const bare = await makeTempDir();
+    try {
+      await mkdir(join(bare, ".git", "hooks"), { recursive: true });
+      await Bun.write(
+        join(bare, ".git", "hooks", "pre-commit"),
+        `#!/bin/sh\n${HOOK_MARKER}\ntrufflehog git file://. --since-commit HEAD --fail\n`,
+      );
+      const staleCtx = makeTestCtx(bare, { presentTools: { trufflehog: "3.9.0" } });
+      const staleVerdict = await secretsModule.verify(staleCtx);
+      expect(staleVerdict.ok).toBe(false);
+      expect(staleVerdict.findings.some((finding) => finding.message.includes("--since-commit"))).toBe(true);
+    } finally {
+      await removeDir(bare);
+    }
+  });
+
   test("verify: passes after apply, fails when hook removed", async () => {
     const ctx = makeTestCtx(dir, { presentTools: { trufflehog: "3.90.0" } });
     await secretsModule.apply(ctx);
@@ -144,11 +174,14 @@ describe("secrets module", () => {
     expect(findings.some((finding) => finding.level === "degraded" && finding.message.includes("git"))).toBe(true);
   });
 
-  test("hook script warns-and-passes when trufflehog missing (never bricks commits)", () => {
+  test("hook script scans the STAGED index snapshot and warns-and-passes when trufflehog missing", () => {
     const script = hookScript();
     expect(script).toContain("command -v trufflehog");
     expect(script).toContain("exit 0");
     expect(script).toContain("BLOCKED");
-    expect(preCommitConfig()).toContain("trufflesecurity/trufflehog");
+    // Live-probe-verified: since-commit HEAD scans nothing at pre-commit time.
+    expect(script).not.toContain("--since-commit");
+    expect(script).toContain("git checkout-index");
+    expect(preCommitConfig()).toContain("trufflehog filesystem");
   });
 });

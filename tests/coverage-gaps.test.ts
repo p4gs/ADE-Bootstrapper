@@ -115,6 +115,17 @@ describe("translation edge branches", () => {
     expect(findings.some((finding) => finding.message.includes("missing or corrupt"))).toBe(true);
   });
 
+  test("translate refuses to write over a non-regular file (symlink mount guard)", async () => {
+    const { symlink } = await import("node:fs/promises");
+    const config = testConfig({ harnesses: ["claude-code"] });
+    await Bun.write(join(dir, "elsewhere.md"), "mounted content\n");
+    await symlink(join(dir, "elsewhere.md"), join(dir, "CLAUDE.md"));
+    const results = await translateAll(makeTestCtx(dir, { config }), BODY);
+    expect(results[0]!.ok).toBe(false);
+    expect(results[0]!.error).toContain("not a regular file");
+    expect(await Bun.file(join(dir, "elsewhere.md")).text()).toBe("mounted content\n");
+  });
+
   test("translate refuses on reversed markers without touching the file", async () => {
     const config = testConfig({ harnesses: ["claude-code"] });
     const reversed = `${MARKER_END}\nmiddle\n${MARKER_BEGIN}\n`;

@@ -131,13 +131,23 @@ describe("pipeline orchestration", () => {
     expect(report.lockfile[0]!.message).toContain("ade.lock.json");
   });
 
-  test("ISC-17: double apply is a no-op — tree byte-identical including lockfile", async () => {
+  test("ISC-17: double apply is a no-op for all generated content (audit surface excepted — apply is itself an audited event)", async () => {
     await applyPipeline(makeTestCtx(dir, { config: probeConfig() }), deps, PROBES);
-    const lockFirst = await Bun.file(join(dir, "ade.lock.json")).text();
+    const lockFirst = JSON.parse(await Bun.file(join(dir, "ade.lock.json")).text());
     const claudeFirst = await Bun.file(join(dir, "CLAUDE.md")).text();
     await applyPipeline(makeTestCtx(dir, { config: probeConfig() }), deps, PROBES);
-    expect(await Bun.file(join(dir, "ade.lock.json")).text()).toBe(lockFirst);
+    const lockSecond = JSON.parse(await Bun.file(join(dir, "ade.lock.json")).text());
+
+    // Content hashes, environment, and harnesses are byte-stable...
+    expect(lockSecond.files).toEqual(lockFirst.files);
+    expect(lockSecond.environment).toEqual(lockFirst.environment);
+    expect(lockSecond.harnesses).toEqual(lockFirst.harnesses);
     expect(await Bun.file(join(dir, "CLAUDE.md")).text()).toBe(claudeFirst);
+
+    // ...and the audit checkpoint legitimately advances, because the second apply
+    // was itself logged. A chain that did NOT grow would mean apply went unaudited.
+    expect(lockSecond.audit.length).toBeGreaterThan(lockFirst.audit.length);
+    expect(lockSecond.audit.headHash).not.toBe(lockFirst.audit.headHash);
   });
 
   test("initTarget: creates default config once, reuses it after, refuses invalid", async () => {

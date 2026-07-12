@@ -5,13 +5,20 @@
  * reported as failed and the run continues.
  */
 import { join } from "node:path";
-import { appendEvents, type AuditEventInput } from "./audit.ts";
+import { appendEvents, checkpointOf, parseLog, verifyChain, type AuditEventInput } from "./audit.ts";
 import { CONFIG_FILE, defaultConfig, loadConfig, serializeConfig } from "./config.ts";
 import { buildCtx } from "./context.ts";
-import { writeEnsured } from "./fsutil.ts";
+import { readIfExists, writeEnsured } from "./fsutil.ts";
 import { HARNESS_ADAPTERS } from "./harness/adapters.ts";
-import { collectBlocks, composeInstructions, INSTRUCTIONS_PATH } from "./instructions.ts";
-import { generateLockfile, LOCKFILE_NAME, loadLockfile, serializeLockfile, verifyAgainstLockfile } from "./lockfile.ts";
+import {
+  collectBlocks,
+  composeInstructions,
+  composeManagedBody,
+  INSTRUCTIONS_PATH,
+  LOCAL_INSTRUCTIONS_PATH,
+  LOCAL_INSTRUCTIONS_STUB,
+} from "./instructions.ts";
+import { generateLockfile, LOCKFILE_NAME, loadLockfile, scanAdeTree, serializeLockfile, verifyAgainstLockfile } from "./lockfile.ts";
 import { MODULES, moduleIds } from "./registry.ts";
 import { checkTranslationDrift, translateAll, type TranslateFileResult } from "./translate.ts";
 import type { AdeConfig, AdeModule, Ctx, ExecFn, Finding, ModuleResult, PlannedAction, WhichFn } from "./types.ts";
@@ -44,6 +51,7 @@ export interface ApplyReport {
 export interface VerifyReport {
   ok: boolean;
   lockfile: Finding[];
+  audit: Finding[];
   translation: Finding[];
   modules: Array<{ id: string; ok: boolean; findings: Finding[] }>;
 }
@@ -151,10 +159,18 @@ export async function applyPipeline(ctx: Ctx, deps: PipelineDeps, modules: AdeMo
     });
   }
 
-  // Core-owned: canonical instructions + translation.
+  // Core-owned: canonical instructions + user-owned local instructions + translation.
   const blocks = collectBlocks(modules, enabled);
-  await ctx.artifacts.write(INSTRUCTIONS_PATH, composeInstructions(blocks));
-  const canonicalBody = composeInstructions(blocks);
+  const generated = composeInstructions(blocks);
+  await ctx.artifacts.write(INSTRUCTIONS_PATH, generated);
+
+  // The local file is USER-owned: created once, never overwritten, never hash-locked.
+  const localPath = join(ctx.targetDir, LOCAL_INSTRUCTIONS_PATH);
+  const local = await readIfExists(localPath);
+  if (local === null) {
+    await writeEnsured(localPath, LOCAL_INSTRUCTIONS_STUB);
+  }
+  const canonicalBody = composeManagedBody(generated, local ?? LOCAL_INSTRUCTIONS_STUB);
   const translate = await translateAll(ctx, canonicalBody);
   for (const file of translate) {
     auditEvents.push({
@@ -166,12 +182,16 @@ export async function applyPipeline(ctx: Ctx, deps: PipelineDeps, modules: AdeMo
     });
   }
 
-  // Core-owned: lockfile over ADE-owned artifacts.
-  const lock = await generateLockfile(ctx, lockfileScope(ctx.artifacts.written()));
-  await writeEnsured(join(ctx.targetDir, LOCKFILE_NAME), serializeLockfile(lock));
   auditEvents.push({ ts: now(), actor: "ade", action: "lockfile.write", target: LOCKFILE_NAME, result: "ok" });
+  const logPath = join(ctx.targetDir, AUDIT_LOG_PATH);
+  const appended = await appendEvents(logPath, auditEvents);
 
-  const appended = await appendEvents(join(ctx.targetDir, AUDIT_LOG_PATH), auditEvents);
+  // Core-owned: lockfile over the FULL ADE-owned tree (not just what this run wrote —
+  // otherwise a planted file under .ade/ would be invisible to verify), plus the
+  // audit-chain checkpoint that makes truncation and re-forging detectable.
+  const chain = parseLog((await readIfExists(logPath)) ?? "");
+  const lock = await generateLockfile(ctx, await scanAdeTree(ctx.targetDir), checkpointOf(chain));
+  await writeEnsured(join(ctx.targetDir, LOCKFILE_NAME), serializeLockfile(lock));
 
   const ok =
     moduleReports.every((report) => report.result.status !== "failed") &&
@@ -194,8 +214,37 @@ export async function verifyPipeline(ctx: Ctx, modules: AdeModule[] = MODULES): 
     lockFindings = result.findings;
   }
 
+  // Audit-chain verification against the lockfile checkpoint (catches truncation,
+  // tail-drop, and a chain re-forged from the public genesis anchor).
+  const auditFindings: Finding[] = [];
+  let auditOk = true;
+  const logText = await readIfExists(join(ctx.targetDir, AUDIT_LOG_PATH));
+  if (logText === null) {
+    auditOk = false;
+    auditFindings.push({ level: "error", message: `audit log missing: ${AUDIT_LOG_PATH}`, remediation: "run `ade apply`" });
+  } else {
+    try {
+      const verdict = verifyChain(parseLog(logText), lock?.audit);
+      if (verdict.valid) {
+        auditFindings.push({ level: "ok", message: `audit chain valid (${verdict.length} entries)` });
+      } else {
+        auditOk = false;
+        auditFindings.push({
+          level: "error",
+          message: `audit chain BROKEN (${verdict.reason}${verdict.brokenIndex !== undefined ? ` at entry ${verdict.brokenIndex}` : ""})`,
+          remediation: "investigate tampering — the audit log or its lockfile checkpoint was altered",
+        });
+      }
+    } catch {
+      auditOk = false;
+      auditFindings.push({ level: "error", message: "audit log is not parseable JSONL", remediation: "investigate tampering" });
+    }
+  }
+
   const blocks = collectBlocks(modules, enabled);
-  const translation = await checkTranslationDrift(ctx, composeInstructions(blocks));
+  const generated = composeInstructions(blocks);
+  const local = await readIfExists(join(ctx.targetDir, LOCAL_INSTRUCTIONS_PATH));
+  const translation = await checkTranslationDrift(ctx, composeManagedBody(generated, local));
   const translationOk = translation.every((finding) => finding.level !== "error");
 
   const moduleResults: VerifyReport["modules"] = [];
@@ -216,5 +265,11 @@ export async function verifyPipeline(ctx: Ctx, modules: AdeModule[] = MODULES): 
     }
   }
 
-  return { ok: lockOk && translationOk && modulesOk, lockfile: lockFindings, translation, modules: moduleResults };
+  return {
+    ok: lockOk && auditOk && translationOk && modulesOk,
+    lockfile: lockFindings,
+    audit: auditFindings,
+    translation,
+    modules: moduleResults,
+  };
 }

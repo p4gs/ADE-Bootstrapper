@@ -34,22 +34,41 @@ const GITIGNORE_LINES = [
   ".ade/audit/",
 ];
 
-/** The native pre-commit shim. Warns-and-passes when trufflehog is missing (never bricks commits). */
+/**
+ * The native pre-commit shim. Warns-and-passes when trufflehog is missing
+ * (never bricks commits).
+ *
+ * IMPORTANT (live-probe-verified 2026-07-12): the commonly-documented
+ * `trufflehog git file://. --since-commit HEAD` invocation scans the
+ * COMMITTED range, which is empty at pre-commit time — it blocks nothing.
+ * This shim instead materializes the staged index via `git checkout-index`
+ * and runs `trufflehog filesystem` over the snapshot, so staged secrets are
+ * actually caught before they enter history.
+ */
 export function hookScript(): string {
   return `#!/bin/sh
 ${HOOK_MARKER}
 # Installed by ADE Bootstrapper (secrets module). Chains any pre-existing hook.
-# Blocks commits containing verified secrets using TruffleHog.
+# Blocks commits whose STAGED content contains a verified secret (TruffleHog).
 
 if [ -x "$(dirname "$0")/${CHAINED_HOOK_NAME}" ]; then
   "$(dirname "$0")/${CHAINED_HOOK_NAME}" "$@" || exit $?
 fi
 
 if command -v trufflehog >/dev/null 2>&1; then
-  trufflehog git "file://$(git rev-parse --show-toplevel)" --since-commit HEAD --results=verified --fail --no-update >/dev/null 2>&1
+  # Fail CLOSED: if we cannot stage a snapshot we cannot scan, and an unscanned
+  # commit is exactly what this hook exists to prevent.
+  tmpdir=$(mktemp -d) || {
+    echo "ade: commit BLOCKED — could not create a temp dir to stage the secret scan." >&2
+    exit 1
+  }
+  trap 'rm -rf "$tmpdir"' EXIT
+  # Materialize the staged snapshot (index), then scan the real bytes being committed.
+  git checkout-index --prefix="$tmpdir/" -af
+  trufflehog filesystem "$tmpdir" --results=verified --fail --no-update >/dev/null 2>&1
   status=$?
   if [ $status -ne 0 ]; then
-    echo "ade: commit BLOCKED — TruffleHog found a verified secret in the staged changes." >&2
+    echo "ade: commit BLOCKED — TruffleHog found a verified secret in the staged content." >&2
     echo "ade: remove the secret (and rotate it), then commit again." >&2
     exit 1
   fi
@@ -63,13 +82,14 @@ exit 0
 /** pre-commit framework config (static template — the framework requires YAML). */
 export function preCommitConfig(): string {
   return `# Managed by ADE Bootstrapper (secrets module).
+# Note: scans the files pre-commit passes (staged names, working-tree bytes) —
+# the framework's standard contract for local hooks.
 repos:
-  - repo: https://github.com/trufflesecurity/trufflehog
-    rev: main
+  - repo: local
     hooks:
       - id: trufflehog
         name: TruffleHog secret scan
-        entry: trufflehog git file://. --since-commit HEAD --results=verified --fail
+        entry: trufflehog filesystem --results=verified --fail --no-update
         language: system
         stages: ["pre-commit"]
 `;
@@ -167,7 +187,20 @@ export const secretsModule: AdeModule = {
         wrotePaths.push(PRECOMMIT_CONFIG_PATH);
         findings.push({ level: "ok", message: "wrote .pre-commit-config.yaml with TruffleHog hook (run `pre-commit install`)" });
       } else if (existing.includes("trufflehog")) {
-        findings.push({ level: "ok", message: ".pre-commit-config.yaml already includes a trufflehog hook" });
+        if (existing.includes("--since-commit")) {
+          // A scanner configured to find nothing is the same failure class as a
+          // suppression (live-probe-verified: --since-commit HEAD scans an empty
+          // range at pre-commit time). Flag it loudly; we do not rewrite user YAML.
+          findings.push({
+            level: "error",
+            message:
+              ".pre-commit-config.yaml uses a trufflehog invocation with --since-commit — this scans an EMPTY range at pre-commit time and blocks nothing",
+            remediation:
+              "replace the entry with `trufflehog filesystem --results=verified --fail --no-update` (see .ade/policy/secrets.json)",
+          });
+        } else {
+          findings.push({ level: "ok", message: ".pre-commit-config.yaml already includes a trufflehog hook" });
+        }
       } else {
         findings.push({
           level: "degraded",
@@ -222,8 +255,27 @@ export const secretsModule: AdeModule = {
       if (hook === null || !hook.includes(HOOK_MARKER)) {
         ok = false;
         findings.push({ level: "error", message: "pre-commit secret-scan shim not installed", remediation: "run `ade apply`" });
+      } else if (hook.includes("--since-commit")) {
+        // Rot-guard: an older/foreign shim using the scan-nothing invocation.
+        ok = false;
+        findings.push({
+          level: "error",
+          message: "installed pre-commit shim uses --since-commit (scans an empty range — blocks nothing)",
+          remediation: "run `ade apply` to refresh the shim to the staged-index scan",
+        });
       } else {
-        findings.push({ level: "ok", message: "pre-commit secret-scan shim installed" });
+        findings.push({ level: "ok", message: "pre-commit secret-scan shim installed (staged-index scan)" });
+      }
+    }
+    if (ctx.isGitRepo && ctx.tools["pre-commit"]?.present === true) {
+      const config = await readIfExists(join(ctx.targetDir, PRECOMMIT_CONFIG_PATH));
+      if (config !== null && config.includes("trufflehog") && config.includes("--since-commit")) {
+        ok = false;
+        findings.push({
+          level: "error",
+          message: ".pre-commit-config.yaml trufflehog entry uses --since-commit (scans an empty range — blocks nothing)",
+          remediation: "replace with `trufflehog filesystem --results=verified --fail --no-update`",
+        });
       }
     }
     if (!ctx.isGitRepo) {

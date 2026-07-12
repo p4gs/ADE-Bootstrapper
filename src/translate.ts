@@ -4,6 +4,7 @@
  * markers is preserved byte-for-byte; ambiguous or hand-edited blocks
  * are refused, never clobbered.
  */
+import { lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { getAdapter, renderTarget } from "./harness/adapters.ts";
 import { extractManagedBlock, renderManagedBlock, upsertManagedBlock } from "./managed.ts";
@@ -35,10 +36,34 @@ export function translationTargets(harnessIds: string[]): Array<{ path: string; 
   return [...byPath.values()].sort((a, b) => a.path.localeCompare(b.path));
 }
 
+/**
+ * Guard: only ever write over a regular file (or nothing). FIFOs, sockets,
+ * device nodes, and symlinks in config paths are frequently intentional
+ * secret mounts (1Password/sops) — clobbering one destroys the mount.
+ */
+async function isSafeWriteTarget(absolute: string): Promise<boolean> {
+  try {
+    const stats = await lstat(absolute);
+    return stats.isFile();
+  } catch {
+    return true; // absent → safe to create
+  }
+}
+
 export async function translateAll(ctx: Ctx, canonicalBody: string): Promise<TranslateFileResult[]> {
   const results: TranslateFileResult[] = [];
   for (const target of translationTargets(ctx.config.harnesses)) {
     const absolute = join(ctx.targetDir, target.path);
+    if (!(await isSafeWriteTarget(absolute))) {
+      results.push({
+        path: target.path,
+        harnesses: target.harnesses,
+        ok: false,
+        changed: false,
+        error: "target exists but is not a regular file (symlink/FIFO/socket) — refusing to write; it may be an intentional mount",
+      });
+      continue;
+    }
     const existing = await readIfExists(absolute);
     const base = existing ?? target.freshFilePrefix;
     const upsert = upsertManagedBlock(base, canonicalBody);

@@ -9,9 +9,15 @@ import { loadConfig } from "./config.ts";
 import { detectMachineHarnesses, detectRepoHarnesses, isGitRepo } from "./context.ts";
 import { realExec, realWhich } from "./exec.ts";
 import { HARNESS_ADAPTERS } from "./harness/adapters.ts";
-import { collectBlocks, composeInstructions } from "./instructions.ts";
-import { generateLockfile, LOCKFILE_NAME, serializeLockfile } from "./lockfile.ts";
-import { parseLog, verifyChain } from "./audit.ts";
+import {
+  collectBlocks,
+  composeInstructions,
+  composeManagedBody,
+  INSTRUCTIONS_PATH,
+  LOCAL_INSTRUCTIONS_PATH,
+} from "./instructions.ts";
+import { generateLockfile, LOCKFILE_NAME, loadLockfile, scanAdeTree, serializeLockfile } from "./lockfile.ts";
+import { checkpointOf, parseLog, verifyChain } from "./audit.ts";
 import { readIfExists, writeEnsured } from "./fsutil.ts";
 import { MODULES, moduleIds } from "./registry.ts";
 import {
@@ -204,6 +210,7 @@ export async function main(argv: string[], depsIn?: Partial<CliDeps>): Promise<n
       const human = [
         `ade verify: ${report.ok ? "PASS" : "FAIL"}`,
         summarizeFindings("  lock: ", report.lockfile),
+        summarizeFindings("  audit: ", report.audit),
         summarizeFindings("  instructions: ", report.translation),
         ...report.modules.map((module) => `  ${module.ok ? "✓" : "✗"} ${module.id}\n${summarizeFindings("    ", module.findings)}`),
       ].join("\n");
@@ -280,8 +287,11 @@ export async function main(argv: string[], depsIn?: Partial<CliDeps>): Promise<n
       const ctx = await loadCtx(targetDir, pipelineDeps, io, json);
       if (ctx === null) return 1;
       const enabled = new Set(Object.entries(ctx.config.modules).filter(([, m]) => m.enabled).map(([id]) => id));
-      const body = composeInstructions(collectBlocks(MODULES, enabled));
-      await ctx.artifacts.write(".ade/instructions.md", body);
+      const generated = composeInstructions(collectBlocks(MODULES, enabled));
+      await ctx.artifacts.write(INSTRUCTIONS_PATH, generated);
+      // The local file is user-owned: read it, never overwrite it.
+      const local = await readIfExists(join(targetDir, LOCAL_INSTRUCTIONS_PATH));
+      const body = composeManagedBody(generated, local);
       const results = await translateAll(ctx, body);
       const ok = results.every((result) => result.ok);
       const human = [
@@ -294,12 +304,9 @@ export async function main(argv: string[], depsIn?: Partial<CliDeps>): Promise<n
     case "lock": {
       const ctx = await loadCtx(targetDir, pipelineDeps, io, json);
       if (ctx === null) return 1;
-      const scan = new Bun.Glob("**/*");
-      const adePaths: string[] = [];
-      for await (const path of scan.scan({ cwd: join(targetDir, ".ade"), onlyFiles: true })) {
-        adePaths.push(`.ade/${path}`);
-      }
-      const lock = await generateLockfile(ctx, lockfileScope(adePaths.sort()));
+      const chainText = await readIfExists(join(targetDir, AUDIT_LOG_PATH));
+      const chain = chainText === null ? [] : parseLog(chainText);
+      const lock = await generateLockfile(ctx, await scanAdeTree(targetDir), checkpointOf(chain));
       await writeEnsured(join(targetDir, LOCKFILE_NAME), serializeLockfile(lock));
       emit(io, json, { ok: true, files: Object.keys(lock.files).length }, `ade lock: recorded ${Object.keys(lock.files).length} files`);
       return 0;
@@ -322,14 +329,17 @@ export async function main(argv: string[], depsIn?: Partial<CliDeps>): Promise<n
         emit(io, json, { entries }, entries.map((entry) => `${entry.ts} ${entry.action} ${entry.target} → ${entry.result}`).join("\n"));
         return 0;
       }
-      const verdict = verifyChain(entries);
+      // Verify against the lockfile checkpoint when one exists — internal chain
+      // consistency alone cannot detect truncation or a re-forged chain.
+      const lock = await loadLockfile(targetDir);
+      const verdict = verifyChain(entries, lock?.audit);
       emit(
         io,
         json,
-        verdict,
+        { ...verdict, checkpointUsed: lock?.audit !== undefined },
         verdict.valid
-          ? `ade audit: chain VALID (${verdict.length} entries)`
-          : `ade audit: chain BROKEN at entry ${verdict.brokenIndex} (${verdict.reason})`,
+          ? `ade audit: chain VALID (${verdict.length} entries${lock?.audit !== undefined ? ", checkpoint matched" : ", NO lockfile checkpoint"})`
+          : `ade audit: chain BROKEN (${verdict.reason}${verdict.brokenIndex !== undefined ? ` at entry ${verdict.brokenIndex}` : ""})`,
       );
       return verdict.valid ? 0 : 1;
     }

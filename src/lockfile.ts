@@ -18,6 +18,14 @@ export interface Lockfile {
   adeVersion: string;
   /** Repo-relative path (POSIX separators) → sha256 of file content. */
   files: Record<string, string>;
+  /**
+   * Append-only audit-chain commitment. The log grows after apply (harness hooks
+   * append), so it cannot be content-hashed — instead we pin its length and head
+   * hash at apply time. Verify requires the head hash to still be PRESENT in the
+   * chain and the chain to be at least as long, which is what makes truncation,
+   * tail-dropping, and wholesale re-forging from genesis detectable.
+   */
+  audit: { length: number; headHash: string };
   environment: {
     os: string;
     arch: string;
@@ -27,7 +35,11 @@ export interface Lockfile {
   harnesses: string[];
 }
 
-export async function generateLockfile(ctx: Ctx, generatedPaths: string[]): Promise<Lockfile> {
+export async function generateLockfile(
+  ctx: Ctx,
+  generatedPaths: string[],
+  audit: { length: number; headHash: string },
+): Promise<Lockfile> {
   const files: Record<string, string> = {};
   for (const relPath of [...generatedPaths].sort()) {
     const content = await readIfExists(join(ctx.targetDir, relPath));
@@ -43,9 +55,25 @@ export async function generateLockfile(ctx: Ctx, generatedPaths: string[]): Prom
     schemaVersion: ADE_SCHEMA_VERSION,
     adeVersion: ADE_VERSION,
     files,
+    audit,
     environment: { os: ctx.os, arch: ctx.arch, tools },
     harnesses: [...ctx.config.harnesses].sort(),
   };
+}
+
+/** Every file currently under `.ade/`, excluding the append-only audit log. */
+export async function scanAdeTree(targetDir: string): Promise<string[]> {
+  const glob = new Bun.Glob("**/*");
+  const paths: string[] = [];
+  try {
+    for await (const path of glob.scan({ cwd: join(targetDir, ".ade"), onlyFiles: true, dot: true })) {
+      const rel = `.ade/${path.replaceAll("\\", "/")}`;
+      if (!rel.startsWith(".ade/audit/")) paths.push(rel);
+    }
+  } catch {
+    return [];
+  }
+  return paths.sort();
 }
 
 export function serializeLockfile(lock: Lockfile): string {
@@ -92,6 +120,20 @@ export async function verifyAgainstLockfile(ctx: Ctx, lock: Lockfile): Promise<L
         level: "error",
         message: `generated file modified since lock: ${relPath}`,
         remediation: "run `ade apply` to regenerate, or `ade lock` to accept the change",
+      });
+    }
+  }
+
+  // Unknown files inside the ADE-owned tree are a planted-artifact vector: a rule
+  // file dropped into .ade/guardrails/ is BINDING on the harness but was never
+  // written by ade. Anything under .ade/ that the lockfile doesn't know is an error.
+  for (const relPath of await scanAdeTree(ctx.targetDir)) {
+    if (!(relPath in lock.files)) {
+      ok = false;
+      findings.push({
+        level: "error",
+        message: `unknown file in the ADE-owned tree (not written by ade): ${relPath}`,
+        remediation: "remove it, or run `ade lock` to adopt it deliberately",
       });
     }
   }

@@ -141,8 +141,8 @@ describe("security anti-criteria", () => {
     }
   });
 
-  test("ISC-125: no module source references fetch/network APIs", async () => {
-    const glob = new Bun.Glob("src/modules/*.ts");
+  test("ISC-125: no source file references fetch/network APIs (static offline proof)", async () => {
+    const glob = new Bun.Glob("src/**/*.ts");
     for await (const path of glob.scan({ cwd: REPO_ROOT, onlyFiles: true })) {
       const content = await Bun.file(join(REPO_ROOT, path)).text();
       expect(content).not.toMatch(/\bfetch\s*\(/);
