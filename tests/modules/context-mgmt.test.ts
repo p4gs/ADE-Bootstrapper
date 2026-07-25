@@ -3,15 +3,30 @@ import { join } from "node:path";
 import {
   contextMgmtModule,
   buildCodemap,
+  buildEnginesPolicy,
+  brainOptIn,
+  cocoindexState,
+  openwikiState,
   parseCargoBins,
   snapshotTree,
   CODEMAP_PATH,
+  CONTEXT_ENGINES_PATH,
+  OPENWIKI_INSTALL,
+  COCOINDEX_INSTALL,
+  BRAIN_ACTIVATION,
   REFRESH_SENTENCE,
   SECTION_MARKERS,
   type TreeSnapshot,
 } from "../../src/modules/context-mgmt.ts";
-import { makeTempDir, makeTestCtx, removeDir } from "../helpers.ts";
-import { sha256 } from "../../src/fsutil.ts";
+import { makeTempDir, makeTestCtx, removeDir, testConfig } from "../helpers.ts";
+import { readIfExists, sha256 } from "../../src/fsutil.ts";
+
+/** Parse the written context-engines.json for a target dir. */
+async function readEngines(dir: string): Promise<Record<string, unknown>> {
+  const text = await readIfExists(join(dir, CONTEXT_ENGINES_PATH));
+  if (text === null) throw new Error("context-engines.json not written");
+  return JSON.parse(text) as Record<string, unknown>;
+}
 
 let dir: string;
 
@@ -183,10 +198,14 @@ describe("context module", () => {
   test("detect reports codemap absence with remediation, presence after apply", async () => {
     const ctx = makeTestCtx(dir);
     const before = await contextMgmtModule.detect(ctx);
-    expect(before.some((finding) => finding.remediation?.includes("ade apply"))).toBe(true);
+    // Codemap not yet generated → its finding carries an `ade apply` remediation.
+    expect(before.some((finding) => finding.message.includes(CODEMAP_PATH) && finding.remediation?.includes("ade apply"))).toBe(
+      true,
+    );
     await contextMgmtModule.apply(ctx);
     const after = await contextMgmtModule.detect(ctx);
-    expect(after.every((finding) => finding.level === "ok")).toBe(true);
+    // The codemap finding flips to ok; engine findings stay advisory (engines absent in the test env).
+    expect(after.some((finding) => finding.level === "ok" && finding.message === `${CODEMAP_PATH} present`)).toBe(true);
   });
 
   test("buildCodemap: extension table is capped at top 10, ordered count-desc then extension-asc", () => {
@@ -248,5 +267,124 @@ describe("context module", () => {
       { name: "alpha", path: "src/bin/alpha.rs" },
       { name: "beta", path: null },
     ]);
+  });
+});
+
+describe("context-mgmt: OpenWiki + CocoIndex + Personal Brain integration", () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await makeTempDir();
+  });
+  afterEach(async () => {
+    await removeDir(dir);
+  });
+
+  test("apply writes context-engines.json alongside the codemap; both in wrotePaths", async () => {
+    const ctx = makeTestCtx(dir);
+    const result = await contextMgmtModule.apply(ctx);
+    expect(result.status).toBe("applied");
+    expect(result.wrotePaths).toContain(CODEMAP_PATH);
+    expect(result.wrotePaths).toContain(CONTEXT_ENGINES_PATH);
+    const engines = await readEngines(dir);
+    expect((engines as { fallback: string }).fallback).toBe(CODEMAP_PATH);
+  });
+
+  test("engines absent → all engines disabled, brain off, verify OK (state matches machine)", async () => {
+    const ctx = makeTestCtx(dir); // no tools present
+    await contextMgmtModule.apply(ctx);
+    const policy = buildEnginesPolicy(ctx);
+    expect(policy.engines.codebaseWiki.enabled).toBe(false);
+    expect(policy.engines.semanticIndex.enabled).toBe(false);
+    expect(policy.engines.personalBrain.enabled).toBe(false);
+    expect(policy.engines.personalBrain.optIn).toBe(false);
+    // Install guidance is carried in the policy so the contract is explicit.
+    expect(policy.engines.codebaseWiki.install).toBe(OPENWIKI_INSTALL);
+    expect(policy.engines.semanticIndex.install).toBe(COCOINDEX_INSTALL);
+    const verdict = await contextMgmtModule.verify(ctx);
+    expect(verdict.ok).toBe(true);
+    // detect surfaces advisory (non-error) findings for the absent engines.
+    const detected = await contextMgmtModule.detect(ctx);
+    expect(detected.some((f) => f.level === "degraded" && f.remediation === OPENWIKI_INSTALL)).toBe(true);
+    expect(detected.some((f) => f.level === "degraded" && f.remediation === COCOINDEX_INSTALL)).toBe(true);
+    expect(detected.some((f) => f.remediation === BRAIN_ACTIVATION)).toBe(true);
+  });
+
+  test("OpenWiki present → codebase wiki enabled with version; Personal Brain present-but-off (opt-in default)", async () => {
+    const ctx = makeTestCtx(dir, { presentTools: { openwiki: "openwiki 1.4.0" } });
+    expect(openwikiState(ctx)).toEqual({ present: true, version: "openwiki 1.4.0" });
+    const policy = buildEnginesPolicy(ctx);
+    expect(policy.engines.codebaseWiki.enabled).toBe(true);
+    expect(policy.engines.codebaseWiki.version).toBe("openwiki 1.4.0");
+    // Brain shares the binary (present) but stays disabled until opted in.
+    expect(policy.engines.personalBrain.present).toBe(true);
+    expect(policy.engines.personalBrain.enabled).toBe(false);
+    await contextMgmtModule.apply(ctx);
+    expect((await contextMgmtModule.verify(ctx)).ok).toBe(true);
+    const detected = await contextMgmtModule.detect(ctx);
+    expect(detected.some((f) => f.level === "ok" && f.message.startsWith("OpenWiki codebase wiki wired"))).toBe(true);
+  });
+
+  test("CocoIndex present via the `cocoindex` framework → semantic index enabled", async () => {
+    const ctx = makeTestCtx(dir, { presentTools: { cocoindex: "cocoindex 0.9" } });
+    expect(cocoindexState(ctx)).toEqual({ present: true, version: "cocoindex 0.9" });
+    expect(buildEnginesPolicy(ctx).engines.semanticIndex.enabled).toBe(true);
+  });
+
+  test("CocoIndex present via the `ccc` CLI alias → semantic index enabled (either binary counts)", async () => {
+    const ctx = makeTestCtx(dir, { presentTools: { ccc: "ccc 0.3.2" } });
+    expect(cocoindexState(ctx)).toEqual({ present: true, version: "ccc 0.3.2" });
+    expect(buildEnginesPolicy(ctx).engines.semanticIndex.version).toBe("ccc 0.3.2");
+  });
+
+  test("Personal Brain opt-in + OpenWiki present → enabled; opt-in without OpenWiki → not enabled", async () => {
+    const optIn = testConfig({ modules: { context: { options: { enableBrain: true } } } });
+    const on = makeTestCtx(dir, { config: optIn, presentTools: { openwiki: "openwiki 1.4.0" } });
+    expect(brainOptIn(on)).toBe(true);
+    expect(buildEnginesPolicy(on).engines.personalBrain.enabled).toBe(true);
+
+    const optInNoTool = makeTestCtx(dir, { config: optIn }); // opted in, OpenWiki absent
+    const p = buildEnginesPolicy(optInNoTool);
+    expect(p.engines.personalBrain.optIn).toBe(true);
+    expect(p.engines.personalBrain.enabled).toBe(false);
+    const detected = await contextMgmtModule.detect(optInNoTool);
+    expect(detected.some((f) => f.message.includes("opted-in but OpenWiki absent"))).toBe(true);
+  });
+
+  test("verify FAILS when the recorded engine state drifts from the live machine", async () => {
+    // Apply with no engines, then a tool appears — recorded enabled=false ≠ live present.
+    const applyCtx = makeTestCtx(dir);
+    await contextMgmtModule.apply(applyCtx);
+    const driftedCtx = makeTestCtx(dir, { presentTools: { openwiki: "openwiki 1.4.0" } });
+    const verdict = await contextMgmtModule.verify(driftedCtx);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.findings.some((f) => f.level === "error" && f.remediation?.includes("re-derive"))).toBe(true);
+  });
+
+  test("verify FAILS when context-engines.json is missing after the codemap exists", async () => {
+    const ctx = makeTestCtx(dir);
+    await contextMgmtModule.apply(ctx);
+    await Bun.file(join(dir, CONTEXT_ENGINES_PATH)).unlink();
+    const verdict = await contextMgmtModule.verify(ctx);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.findings.some((f) => f.message.includes(CONTEXT_ENGINES_PATH))).toBe(true);
+  });
+
+  test("plan lists the engines policy and reflects the Brain opt-in in its description", async () => {
+    const off = await contextMgmtModule.plan(makeTestCtx(dir));
+    expect(off.some((a) => a.path === CONTEXT_ENGINES_PATH && !a.description.includes("Personal Brain"))).toBe(true);
+    const onCtx = makeTestCtx(dir, {
+      config: testConfig({ modules: { context: { options: { enableBrain: true } } } }),
+    });
+    const on = await contextMgmtModule.plan(onCtx);
+    expect(on.some((a) => a.path === CONTEXT_ENGINES_PATH && a.description.includes("Personal Brain"))).toBe(true);
+  });
+
+  test("instruction block names all four sources including Personal Brain and the no-secrets rule", () => {
+    const block = contextMgmtModule.instructionBlocks[0];
+    expect(block?.content).toContain("OpenWiki codebase wiki");
+    expect(block?.content).toContain("CocoIndex semantic search");
+    expect(block?.content).toContain("OpenWiki Personal Brain");
+    expect(block?.content).toContain(CODEMAP_PATH);
+    expect(block?.content.toLowerCase()).toContain("never write secrets");
   });
 });

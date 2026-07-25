@@ -166,4 +166,7 @@ export const INTEGRATED_TOOLS = [
   "ocean",
   "nono",
   "osv-scanner",
+  "openwiki",
+  "cocoindex",
+  "ccc",
 ] as const;

@@ -55,7 +55,7 @@ Exit codes: `0` success · `1` failure · `2` usage error.
 | Secure-by-default coding guardrails | `guardrails` | Project CodeGuard-style ruleset |
 | Software supply chain security | `supply-chain` | osv-scanner, lockfile policy, AI-native deps |
 | AI-native sandboxing | `sandbox` | nono, harness permission surfaces |
-| Codebase context management | `context` | generated codemap artifacts |
+| Codebase context management | `context` | OpenWiki (auto-maintained wiki) + CocoIndex (semantic search), codemap fallback |
 | Performance & quality scaffolding | `scaffolding` | PR/testing/commit conventions |
 | Network-syncable agent memory | `memory` | OpenMemory / Mem0 MCP (opt-in) |
 | Prompt injection & context poisoning defenses | `injection-defense` | trust policy + scanner hook |
@@ -67,6 +67,26 @@ Exit codes: `0` success · `1` failure · `2` usage error.
 | Cost & token budget governance | `cost-governance` | budget + model-routing policy |
 | Reproducible environment & lockfiles | `reproducibility` | environment manifest |
 | Token efficiency | `token-efficiency` | RTK at the shell boundary |
+
+### Codebase context: three tiers
+
+The `context` module gives harnesses an always-current understanding layer, wired
+like every other engine integration (detect + wire + install guidance; `ade apply`
+never force-installs):
+
+1. **Codemap** (`.ade/context/codemap.md`) — a zero-dependency structural map,
+   always present, regenerated on every `ade apply`. The fallback that never fails.
+2. **OpenWiki** (MIT) — when installed, an auto-maintained, navigable prose + Mermaid
+   **codebase wiki** (`openwiki/`), refreshed from git diffs. `npm i -g openwiki`.
+3. **CocoIndex** (Apache-2.0) — when installed (`cocoindex` or the `ccc` CLI), AST-based
+   **semantic code search** for natural-language retrieval instead of whole-tree grep.
+
+**OpenWiki Personal Brain** is modeled as a **distinct opt-in sub-capability** of
+OpenWiki (`modules.context.options.enableBrain = true`): general-purpose agent memory
+synthesized from external sources (email, notes, web) — complementary to, and separate
+from, the codebase wiki. Off by default because it reaches outside the repo; never write
+secrets into it. Detected engines and their live state are recorded in
+`.ade/policy/context-engines.json`, which `ade verify` re-derives from the machine.
 
 Every module is individually disableable in `ade.json` (`modules.<id>.enabled: false`) —
 secure-by-default means disabling is the explicit act.

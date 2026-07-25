@@ -17,6 +17,9 @@ const VERSION_ARGS: Record<string, string[]> = {
   ocean: ["--version"],
   nono: ["--version"],
   "osv-scanner": ["--version"],
+  openwiki: ["--version"],
+  cocoindex: ["--version"],
+  ccc: ["--version"],
   bun: ["--version"],
   git: ["--version"],
 };

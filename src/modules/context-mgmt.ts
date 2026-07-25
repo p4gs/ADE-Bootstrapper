@@ -1,19 +1,41 @@
 /**
  * Module: codebase context management.
- * Spec component: "Codebase context management — a generated, always-current
- * codebase map (.ade/context/codemap.md) that gives coding harnesses a cheap
- * structural summary of the repository: top-level layout, file counts by
- * extension, and detected entry points."
+ * Spec component: "Codebase context management — an always-current codebase
+ * understanding layer for coding harnesses."
+ *
+ * Two tiers, following ADE's integrate-before-rebuild convention:
+ *   1. A zero-dependency structural codemap (.ade/context/codemap.md),
+ *      re-derived from the tree on every `ade apply` — always present.
+ *   2. Detected best-of-breed engines, wired in when installed:
+ *        - OpenWiki (Code Brain): an auto-maintained, navigable prose+Mermaid
+ *          codebase wiki (MIT). `openwiki/` dir; refreshes from git diffs.
+ *        - CocoIndex: AST-based semantic code search / retrieval (Apache-2.0).
+ *        - OpenWiki Personal Brain: a DISTINCT opt-in sub-capability of
+ *          OpenWiki — general-purpose agent memory synthesised from external
+ *          sources (email, notes, web), complementary to (not the same as)
+ *          the codebase wiki. Opt-in via options.enableBrain because it
+ *          reaches outside the repo.
  * Boundary controlled: the context/retrieval boundary — token waste from
- * whole-repo scans and stale context from hand-maintained maps. The codemap
- * is re-derived from the tree on every `ade apply`, so harnesses consult a
- * current summary instead of re-walking (and re-tokenizing) the repository.
+ * whole-repo scans and stale context from hand-maintained maps.
+ *
+ * Convention: like RTK/nono/OpenMemory, engines are detected + wired + given
+ * exact install guidance; `ade apply` NEVER force-installs a tool.
  */
 import { join } from "node:path";
 import { readIfExists } from "../fsutil.ts";
-import type { AdeModule, Ctx, Finding } from "../types.ts";
+import { readJson, verifyJsonArtifact, writePolicy } from "./_shared.ts";
+import type { AdeModule, Ctx, Finding, ModuleResult, PlannedAction } from "../types.ts";
 
 export const CODEMAP_PATH = ".ade/context/codemap.md";
+export const CONTEXT_ENGINES_PATH = ".ade/policy/context-engines.json";
+export const OPENWIKI_DIR = "openwiki/";
+
+export const OPENWIKI_INSTALL =
+  "install OpenWiki (`npm install -g openwiki`) for an auto-maintained, navigable codebase wiki — MIT-licensed, BYO model key; init with `openwiki --init`";
+export const COCOINDEX_INSTALL =
+  "install CocoIndex for AST-based semantic code search — `pip install cocoindex` (framework) or the `cocoindex-code` CLI (github.com/cocoindex-io/cocoindex-code); Apache-2.0";
+export const BRAIN_ACTIVATION =
+  "to enable OpenWiki Personal Brain, set modules.context.options.enableBrain = true in ade.json, then run `ade apply`; initialise with `openwiki personal --init`";
 
 /** Directory names excluded from the codemap scan (any path segment). */
 export const SKIPPED_DIRS = ["node_modules", ".git", ".ade", ".claude", ".cursor", "dist", "build", "coverage"] as const;
@@ -220,6 +242,136 @@ export function buildCodemap(tree: TreeSnapshot): string {
   return lines.join("\n");
 }
 
+/** Presence + version of one context engine, resolved from the live machine. */
+interface EngineState {
+  present: boolean;
+  version?: string;
+}
+
+/** OpenWiki (Code Brain + Personal Brain share the one `openwiki` binary). */
+export function openwikiState(ctx: Ctx): EngineState {
+  const info = ctx.tools["openwiki"];
+  return info?.present === true ? { present: true, version: info.version } : { present: false };
+}
+
+/** CocoIndex is present if EITHER the framework (`cocoindex`) or the `ccc` CLI resolves. */
+export function cocoindexState(ctx: Ctx): EngineState {
+  for (const name of ["cocoindex", "ccc"] as const) {
+    const info = ctx.tools[name];
+    if (info?.present === true) return { present: true, version: info.version };
+  }
+  return { present: false };
+}
+
+/** Personal Brain is opt-in (reaches outside the repo) — off unless explicitly enabled. */
+export function brainOptIn(ctx: Ctx): boolean {
+  return ctx.config.modules["context"]?.options?.["enableBrain"] === true;
+}
+
+interface ContextEnginesPolicy {
+  schemaVersion: number;
+  fallback: string;
+  engines: {
+    codebaseWiki: {
+      tool: "openwiki";
+      role: string;
+      present: boolean;
+      enabled: boolean;
+      version?: string;
+      wikiDir: string;
+      autoRefresh: string;
+      install: string;
+    };
+    semanticIndex: {
+      tool: "cocoindex";
+      role: string;
+      present: boolean;
+      enabled: boolean;
+      version?: string;
+      install: string;
+    };
+    personalBrain: {
+      tool: "openwiki";
+      subCapabilityOf: "openwiki";
+      role: string;
+      present: boolean;
+      optIn: boolean;
+      enabled: boolean;
+      install: string;
+      activation: string;
+    };
+  };
+}
+
+/** Build the context-engines policy — deterministic, re-derivable from the live machine. */
+export function buildEnginesPolicy(ctx: Ctx): ContextEnginesPolicy {
+  const wiki = openwikiState(ctx);
+  const coco = cocoindexState(ctx);
+  const brainOn = brainOptIn(ctx);
+  const codebaseWiki: ContextEnginesPolicy["engines"]["codebaseWiki"] = {
+    tool: "openwiki",
+    role: "auto-maintained navigable codebase wiki (prose + Mermaid); read FIRST for architecture understanding",
+    present: wiki.present,
+    enabled: wiki.present,
+    wikiDir: OPENWIKI_DIR,
+    autoRefresh:
+      "regenerates from git diffs on re-run; enable continuous updates via OpenWiki's scheduled GitHub Action (openwiki-update.yml — daily update PR)",
+    install: OPENWIKI_INSTALL,
+  };
+  if (wiki.version !== undefined) codebaseWiki.version = wiki.version;
+  const semanticIndex: ContextEnginesPolicy["engines"]["semanticIndex"] = {
+    tool: "cocoindex",
+    role: "AST-based semantic code search / natural-language retrieval; use instead of whole-tree grep",
+    present: coco.present,
+    enabled: coco.present,
+    install: COCOINDEX_INSTALL,
+  };
+  if (coco.version !== undefined) semanticIndex.version = coco.version;
+  return {
+    schemaVersion: 1,
+    fallback: CODEMAP_PATH,
+    engines: {
+      codebaseWiki,
+      semanticIndex,
+      personalBrain: {
+        tool: "openwiki",
+        subCapabilityOf: "openwiki",
+        role: "general-purpose agent memory synthesised from external sources (email, notes, web); complementary to the codebase wiki, NOT the same thing",
+        present: wiki.present,
+        optIn: brainOn,
+        enabled: wiki.present && brainOn,
+        install: OPENWIKI_INSTALL,
+        activation: BRAIN_ACTIVATION,
+      },
+    },
+  };
+}
+
+/** Advisory findings describing which engines are wired vs. absent. */
+function engineFindings(ctx: Ctx): Finding[] {
+  const policy = buildEnginesPolicy(ctx);
+  const findings: Finding[] = [];
+  const wiki = policy.engines.codebaseWiki;
+  findings.push(
+    wiki.present
+      ? { level: "ok", message: `OpenWiki codebase wiki wired${wiki.version !== undefined ? ` (${wiki.version})` : ""}` }
+      : { level: "degraded", message: "OpenWiki not installed — codebase wiki unavailable; using codemap fallback", remediation: OPENWIKI_INSTALL },
+  );
+  const idx = policy.engines.semanticIndex;
+  findings.push(
+    idx.present
+      ? { level: "ok", message: `CocoIndex semantic search wired${idx.version !== undefined ? ` (${idx.version})` : ""}` }
+      : { level: "degraded", message: "CocoIndex not installed — semantic code search unavailable", remediation: COCOINDEX_INSTALL },
+  );
+  const brain = policy.engines.personalBrain;
+  findings.push({
+    level: "info",
+    message: `OpenWiki Personal Brain ${brain.enabled ? "enabled" : brain.optIn ? "opted-in but OpenWiki absent" : "off (opt-in sub-capability)"}`,
+    remediation: brain.enabled ? undefined : BRAIN_ACTIVATION,
+  });
+  return findings;
+}
+
 export const contextMgmtModule: AdeModule = {
   id: "context",
   title: "Codebase Context Management",
@@ -231,30 +383,25 @@ export const contextMgmtModule: AdeModule = {
       id: "context",
       title: "Codebase Context",
       content: [
-        "A generated codebase map lives at `.ade/context/codemap.md` (top-level layout, file counts by extension, entry points).",
-        "- Consult the codemap BEFORE any whole-repo scan or directory dump.",
-        "- Prefer targeted file reads over directory dumps; read only the files the task needs.",
-        "- The codemap is regenerated on every `ade apply` — after structural changes, run `ade apply` instead of re-walking the tree.",
+        "Codebase-understanding sources, in priority order (see `.ade/policy/context-engines.json` for which are live):",
+        "- **OpenWiki codebase wiki** (`openwiki/`) when present — read it FIRST for prose + Mermaid architecture understanding. It is auto-maintained; never hand-edit generated pages.",
+        "- **CocoIndex semantic search** when present — use natural-language code retrieval instead of grepping the whole tree.",
+        "- **`.ade/context/codemap.md`** — the always-present zero-dependency structural fallback; consult BEFORE any whole-repo scan. Regenerated on every `ade apply`.",
+        "- **OpenWiki Personal Brain** (opt-in, `modules.context.options.enableBrain`) — general-purpose project/research memory across tools (email, notes, web). Distinct from the codebase wiki. NEVER write secrets or credentials into it.",
+        "- Prefer targeted reads over directory dumps; after structural changes run `ade apply` (and re-run OpenWiki) rather than re-walking the tree.",
       ].join("\n"),
     },
   ],
 
   async detect(ctx: Ctx): Promise<Finding[]> {
     const existing = await readIfExists(join(ctx.targetDir, CODEMAP_PATH));
-    if (existing === null) {
-      return [
-        {
-          level: "info",
-          message: `${CODEMAP_PATH} not yet generated`,
-          remediation: "run `ade apply`",
-        },
-      ];
-    }
-    return [{ level: "ok", message: `${CODEMAP_PATH} present` }];
+    const codemap: Finding = existing === null
+      ? { level: "info", message: `${CODEMAP_PATH} not yet generated`, remediation: "run `ade apply`" }
+      : { level: "ok", message: `${CODEMAP_PATH} present` };
+    return [codemap, ...engineFindings(ctx)];
   },
 
-  async plan(ctx: Ctx) {
-    void ctx;
+  async plan(ctx: Ctx): Promise<PlannedAction[]> {
     return [
       {
         kind: "write" as const,
@@ -262,57 +409,79 @@ export const contextMgmtModule: AdeModule = {
         description:
           "generate codebase map (top-level dirs, extension counts, entry points) from the target tree",
       },
+      {
+        kind: "write" as const,
+        path: CONTEXT_ENGINES_PATH,
+        description: `record detected context engines (OpenWiki${brainOptIn(ctx) ? " + Personal Brain" : ""}, CocoIndex) and the codemap fallback`,
+      },
     ];
   },
 
-  async apply(ctx: Ctx) {
+  async apply(ctx: Ctx): Promise<ModuleResult> {
     const tree = await snapshotTree(ctx.targetDir);
     await ctx.artifacts.write(CODEMAP_PATH, buildCodemap(tree));
+    await writePolicy(ctx, CONTEXT_ENGINES_PATH, buildEnginesPolicy(ctx));
     return {
       status: "applied" as const,
       findings: [
-        {
-          level: "ok" as const,
-          message: `wrote ${CODEMAP_PATH} (${tree.files.length} files mapped)`,
-        },
+        { level: "ok" as const, message: `wrote ${CODEMAP_PATH} (${tree.files.length} files mapped)` },
+        { level: "ok" as const, message: `wrote ${CONTEXT_ENGINES_PATH}` },
+        ...engineFindings(ctx),
       ],
-      wrotePaths: [CODEMAP_PATH],
+      wrotePaths: [CODEMAP_PATH, CONTEXT_ENGINES_PATH],
     };
   },
 
   async verify(ctx: Ctx) {
+    const findings: Finding[] = [];
+    let ok = true;
+
     const content = await readIfExists(join(ctx.targetDir, CODEMAP_PATH));
     if (content === null) {
       return {
         ok: false,
-        findings: [
-          {
-            level: "error" as const,
-            message: `${CODEMAP_PATH} missing`,
-            remediation: "run `ade apply`",
-          },
-        ],
+        findings: [{ level: "error", message: `${CODEMAP_PATH} missing`, remediation: "run `ade apply`" }],
       };
     }
     const missing: string[] = SECTION_MARKERS.filter((marker) => !content.includes(marker));
-    if (!content.includes(REFRESH_SENTENCE)) {
-      missing.push(`Refresh contract ("${REFRESH_SENTENCE}")`);
-    }
+    if (!content.includes(REFRESH_SENTENCE)) missing.push(`Refresh contract ("${REFRESH_SENTENCE}")`);
     if (missing.length > 0) {
       return {
         ok: false,
         findings: [
           {
-            level: "error" as const,
+            level: "error",
             message: `${CODEMAP_PATH} missing structure markers: ${missing.join(", ")}`,
             remediation: "run `ade apply` to regenerate",
           },
         ],
       };
     }
-    return {
-      ok: true,
-      findings: [{ level: "ok" as const, message: `${CODEMAP_PATH} present with expected sections` }],
-    };
+    findings.push({ level: "ok", message: `${CODEMAP_PATH} present with expected sections` });
+
+    const engines = await verifyJsonArtifact(ctx, CONTEXT_ENGINES_PATH);
+    findings.push(engines);
+    if (engines.level !== "ok") return { ok: false, findings };
+
+    const parsed = (await readJson(ctx, CONTEXT_ENGINES_PATH)) as ContextEnginesPolicy | null;
+    const expected = buildEnginesPolicy(ctx);
+    const e = parsed?.engines;
+    if (
+      e === undefined ||
+      e.codebaseWiki?.enabled !== expected.engines.codebaseWiki.enabled ||
+      e.semanticIndex?.enabled !== expected.engines.semanticIndex.enabled ||
+      e.personalBrain?.enabled !== expected.engines.personalBrain.enabled
+    ) {
+      ok = false;
+      findings.push({
+        level: "error",
+        message: `${CONTEXT_ENGINES_PATH} engine state does not match the current machine (installed tools / Brain opt-in changed)`,
+        remediation: "run `ade apply` to re-derive the context-engines policy",
+      });
+    } else {
+      findings.push({ level: "ok", message: `${CONTEXT_ENGINES_PATH} matches detected engines` });
+    }
+
+    return { ok, findings };
   },
 };

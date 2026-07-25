@@ -48,10 +48,10 @@ describe("environment detection", () => {
     expect(absent.present).toBe(false);
   });
 
-  test("ISC-18-shape: detectTools covers all seven integrated tools", async () => {
+  test("ISC-18-shape: detectTools covers every integrated tool", async () => {
     const tools = await detectTools(() => null, fakeExec());
     expect(Object.keys(tools).sort()).toEqual(
-      ["gitleaks", "nono", "ocean", "osv-scanner", "pre-commit", "rtk", "trufflehog"].sort(),
+      ["ccc", "cocoindex", "gitleaks", "nono", "ocean", "openwiki", "osv-scanner", "pre-commit", "rtk", "trufflehog"].sort(),
     );
     expect(Object.values(tools).every((tool) => !tool.present)).toBe(true);
   });
@@ -86,7 +86,7 @@ describe("environment detection", () => {
     });
     expect(ctx.adeDir).toBe(join(dir, ".ade"));
     expect(ctx.isGitRepo).toBe(true);
-    expect(Object.keys(ctx.tools).length).toBe(7);
+    expect(Object.keys(ctx.tools).length).toBe(10);
     expect(ctx.config.harnesses).toEqual(["codex"]);
     ctx.log("no-op logger works");
   });

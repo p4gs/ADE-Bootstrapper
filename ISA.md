@@ -5,10 +5,10 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: classifier
 phase: complete
-progress: 160/160
+progress: 168/168
 mode: interactive
 started: 2026-07-12T08:49:30Z
-updated: 2026-07-12T10:20:00Z
+updated: 2026-07-25T00:00:00Z
 ---
 
 # ADE Bootstrapper — Project ISA
@@ -352,6 +352,7 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - 2026-07-12T10:05Z — **refined: ISC-17 (idempotency) now excepts the audit surface.** A second `ade apply` leaves every generated file byte-identical, but the audit log grows and the lockfile's `audit` checkpoint advances — because the second apply *is itself an audited event*. A chain that did not grow would mean apply went unaudited. The probes assert byte-stability of `files`/`environment`/`harnesses` and a strictly-advancing checkpoint.
 - 2026-07-12T10:05Z — **Advisor's pre-completion findings adopted:** non-regular-file guard on managed-block writes (symlink/FIFO/socket = possible secret mount); the broken `--since-commit` scanner invocation is now *remediated* on adoption (error from apply + verify), not merely avoided in greenfield; live-vs-fixture harness split stated in DESIGN; atomicity/rollback and `ade remove` documented as known v0.1 limitations rather than implied. Advisor's "no remote = not shipped" noted: no remote exists for this repo and none was authorized.
 - 2026-07-12T09:05Z — **Scope held at 15 real modules** (advisor suggested 5 + stubs): most modules are policy-file writers over the same helpers — the heavy interface risk the advisor priced in is concentrated in the 2 probe modules I hand-write first. If fan-out quality fails gates, fallback is stub-and-defer per module.
+- 2026-07-25T00:00Z — **Codebase-context engines wired: OpenWiki + CocoIndex, Personal Brain as a distinct opt-in sub-capability** (owner request). Extended the existing `context` module rather than adding a 16th — the codemap is the always-on fallback, and OpenWiki/CocoIndex are additive engine tiers, so this is the same shape as sandbox(nono)/token-efficiency(rtk)/memory(openmemory). Chose **detect-wire-guide over literal auto-install**: no ADE module force-installs at apply-time (determinism + secure-by-default); the module detects the engine, writes `.ade/policy/context-engines.json`, and emits exact install commands. OpenWiki has one binary serving two brains — **Code Brain** (the codebase wiki, enabled whenever `openwiki` is present) and **Personal Brain** (general-purpose external-source memory, `options.enableBrain`, off by default because it reaches outside the repo, mirroring memory's `enableMcp` opt-in). CocoIndex is present if EITHER `cocoindex` or the `ccc` CLI resolves. `ade verify` re-derives engine state from the live machine and fails on drift (same contract as token-efficiency's enabled==present check). Licensing captured for the internal-commercial use case: OpenWiki MIT + CocoIndex Apache-2.0 are both free-for-commercial and safe to bundle; Repowise (AGPL core, paid wiki tier) deliberately NOT wired.
 
 ## Changelog
 
@@ -409,6 +410,16 @@ All evidence gathered 2026-07-12 on this machine (macOS, bun 1.3.10, git 2.50.1)
 - ISC-147/147.1: hook fails closed on `mktemp` failure (exit 1 + BLOCKED message); translate refuses to write over a symlink/FIFO/socket target and preserves it (unit-probed).
 - ISC-148: adopting a repo whose `.pre-commit-config.yaml` uses `trufflehog … --since-commit` → apply emits an **error** finding and verify **fails**, rather than silently trusting a scanner that scans an empty range.
 - ISC-149: README "What the guarantees actually mean" + DESIGN threat-model notes now state the residual limits (unsigned chain; verified-only secret blocking; enforcement vs. instruction per harness).
+
+**Context engines — OpenWiki + CocoIndex + Personal Brain (2026-07-25, all live-probed via the real CLI):**
+- ISC-150 [x] OpenWiki detection: `openwiki` absent → `context-engines.json` `codebaseWiki.enabled=false` + install guidance carried in the policy; present (fixture `openwiki 1.4.0`) → `enabled=true` with the version recorded; detect surfaces a `degraded` finding + `OPENWIKI_INSTALL` remediation when absent, `ok` when wired.
+- ISC-151 [x] CocoIndex either-binary detection: present via the `cocoindex` framework OR the `ccc` CLI → `semanticIndex.enabled=true` with that binary's version. Live proof: on THIS machine `ade doctor` reports `cocoindex`/`ccc` and a fresh `ade init` wrote `semanticIndex.enabled=true, present=true` (CocoIndex is genuinely installed here) — the detection is real, not a fixture.
+- ISC-152 [x] Personal Brain as a **distinct opt-in sub-capability**: `personalBrain.subCapabilityOf="openwiki"`; enabled ONLY when `options.enableBrain=true` AND OpenWiki present. Opted-in without the binary → `enabled=false` + detect finding "opted-in but OpenWiki absent"; opted-in with the binary → `enabled=true`. Off by default proven on a plain `ade init`.
+- ISC-153 [x] `.ade/policy/context-engines.json` is deterministic: re-`ade apply` left it byte-identical (sha256 before==after) and it is picked up by the full-tree lockfile scan (recorded in `ade.lock.json`, so a later planted edit trips ISC-146).
+- ISC-154 [x] verify re-derives from the live machine and FAILS on drift: apply with no engines, then a run where `openwiki` appears → `ade verify` error "engine state does not match the current machine … run `ade apply` to re-derive". Deleting the engines file after the codemap exists also fails verify.
+- ISC-155 [x] codemap fallback unchanged + instruction block names all four sources (OpenWiki wiki, CocoIndex search, codemap fallback, Personal Brain) and carries the "NEVER write secrets … into it" rule; `ade verify` on a fresh init returns the three context findings all `[ok]`.
+- ISC-156 [x] `ade doctor --json` reports 10 tools including `openwiki`, `cocoindex`, `ccc` (was 7).
+- ISC-157 [x] no force-install: `apply` execs no installer — the only module `ctx.exec` calls remain the git-config read (git-hygiene) and version probes (reproducibility); grep confirms zero install execs. 377 tests pass, context-mgmt.ts 100% line / 99.71% func, whole-suite gate green.
 - Gates after remediation: `bunx tsc --noEmit` exit 0; **367 tests pass / 0 fail**; `bun test --coverage` exit **0** at 99.62% lines / 99.92% functions.
 
 **Method note (honest):** the audit ran three adversarial lenses (security, spec-fidelity, correctness) as an in-family panel — codex/Cato and Anvil were both unavailable on this machine (TF-CATO). It returned fail/fail/concerns with six distinct confirmed defects, every one reproduced with a live probe before I fixed it. Two of those defects (marker clobber, instructions overwrite) were silent data destruction on the documented happy path; two more (audit truncation, planted binding rule) defeated the exact tamper-detection the tool advertises. The v0.1 test suite was green through all of them — which is the finding worth remembering.
