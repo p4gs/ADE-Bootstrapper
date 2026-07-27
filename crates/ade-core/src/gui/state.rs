@@ -13,7 +13,7 @@ pub const GUI_STATE_SCHEMA_VERSION: u64 = 1;
 pub const GUI_STATE_FILE: &str = "gui.json";
 pub const JOBS_FILE: &str = "jobs.json";
 
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GuiState {
     /// Capability ids disabled machine-wide (GUI preference, not project policy).
     pub disabled: BTreeSet<String>,
@@ -21,6 +21,45 @@ pub struct GuiState {
     pub projects: Vec<String>,
     /// Control Center view preference: group tools by capability (ISC-206).
     pub group_by_capability: bool,
+    /// Navigation section the window was last on — a capability-group id, or
+    /// one of the reserved scopes below. Restored on launch so the app opens
+    /// where the owner left it.
+    pub scope: String,
+    /// Capability id last selected in the content list, so the inspector can
+    /// come back the way it was left.
+    pub selection: Option<String>,
+}
+
+/// The reserved (non-capability-group) navigation scopes.
+pub const SCOPE_OVERVIEW: &str = "overview";
+pub const SCOPE_PROJECTS: &str = "projects";
+pub const SCOPE_ACTIVITY: &str = "activity";
+
+/// A scope is valid if it names a real capability group or a reserved section.
+/// An unknown scope — a stale id after a capability is retired, or a hand-edited
+/// file — falls back to the Overview rather than showing an empty window.
+pub fn resolve_scope(raw: &str) -> String {
+    let known = raw == SCOPE_OVERVIEW
+        || raw == SCOPE_PROJECTS
+        || raw == SCOPE_ACTIVITY
+        || crate::gui::inventory::get_group(raw).is_some();
+    if known {
+        raw.to_string()
+    } else {
+        SCOPE_OVERVIEW.to_string()
+    }
+}
+
+impl Default for GuiState {
+    fn default() -> Self {
+        GuiState {
+            disabled: BTreeSet::new(),
+            projects: Vec::new(),
+            group_by_capability: false,
+            scope: SCOPE_OVERVIEW.to_string(),
+            selection: None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -106,11 +145,23 @@ pub fn load_gui_state(home: &Path) -> GuiStateLoad {
         .get("groupByCapability")
         .and_then(|value| value.as_bool())
         .unwrap_or(false);
+    let scope = resolve_scope(
+        obj.get("scope")
+            .and_then(|value| value.as_str())
+            .unwrap_or(""),
+    );
+    let selection = obj
+        .get("selection")
+        .and_then(|value| value.as_str())
+        .filter(|id| crate::gui::inventory::get_capability(id).is_some())
+        .map(String::from);
     GuiStateLoad {
         state: GuiState {
             disabled: disabled.into_iter().collect(),
             projects,
             group_by_capability,
+            scope,
+            selection,
         },
         warning: None,
     }
@@ -129,6 +180,8 @@ pub fn save_gui_state(home: &Path, state: &GuiState) -> std::io::Result<()> {
         "disabled": state.disabled.iter().collect::<Vec<_>>(),
         "projects": projects_dedup,
         "groupByCapability": state.group_by_capability,
+        "scope": resolve_scope(&state.scope),
+        "selection": state.selection,
     });
     write_ensured(&home.join(GUI_STATE_FILE), &stable_stringify(&value))?;
     Ok(())
@@ -186,6 +239,39 @@ mod tests {
         save_gui_state(&home, &load.state).unwrap();
         let second = read_if_exists(&home.join(GUI_STATE_FILE)).unwrap();
         assert_eq!(first, second);
+        let _ = std::fs::remove_dir_all(&home);
+    }
+
+    #[test]
+    fn navigation_state_round_trips_and_rejects_ids_that_no_longer_exist() {
+        let home = make_temp_dir("gui-state-nav");
+        let mut state = GuiState::default();
+        assert_eq!(state.scope, SCOPE_OVERVIEW, "defaults open on the Overview");
+        assert!(state.selection.is_none());
+        state.scope = "secret-scanning".into();
+        state.selection = Some("trufflehog".into());
+        save_gui_state(&home, &state).unwrap();
+        let load = load_gui_state(&home);
+        assert_eq!(load.state.scope, "secret-scanning");
+        assert_eq!(load.state.selection.as_deref(), Some("trufflehog"));
+
+        // A capability retired between releases must not strand the window on
+        // an empty section or a row that cannot be drawn.
+        std::fs::write(
+            home.join(GUI_STATE_FILE),
+            r#"{"schemaVersion":1,"scope":"telepathy","selection":"retired-tool"}"#,
+        )
+        .unwrap();
+        let stale = load_gui_state(&home);
+        assert!(stale.warning.is_none(), "a stale id is not a corrupt file");
+        assert_eq!(stale.state.scope, SCOPE_OVERVIEW);
+        assert!(stale.state.selection.is_none());
+
+        for scope in [SCOPE_OVERVIEW, SCOPE_PROJECTS, SCOPE_ACTIVITY] {
+            assert_eq!(resolve_scope(scope), scope);
+        }
+        assert_eq!(resolve_scope("coding-harness"), "coding-harness");
+        assert_eq!(resolve_scope(""), SCOPE_OVERVIEW);
         let _ = std::fs::remove_dir_all(&home);
     }
 

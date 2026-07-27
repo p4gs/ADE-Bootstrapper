@@ -1,8 +1,13 @@
 //! Menu-bar payload — core-formatted status for the tray (ISC-189).
 //! The core formats EVERYTHING (glyphs, labels, counts) so adding a
 //! capability never requires touching the tray binary (the Pulse lesson).
+//!
+//! The rollup itself comes from `gui::verdict`, which the Control Center also
+//! uses. The tray reported "1 err" while the Control Center said "2 errors"
+//! once already; a shared derivation is the fix that holds.
 
 use crate::gui::inventory::CapabilityStatus;
+use crate::gui::verdict::{build_verdict, HealthVerdict, Verdict};
 use crate::types::{Finding, FindingLevel};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,38 +67,28 @@ pub fn build_menubar_payload(
     capabilities: &[CapabilityStatus],
     running_jobs: u32,
 ) -> MenubarPayload {
-    let enabled: Vec<&CapabilityStatus> = capabilities.iter().filter(|cap| cap.enabled).collect();
-    let errors = enabled
-        .iter()
-        .filter(|cap| {
-            cap.issues
-                .iter()
-                .any(|issue| issue.level == FindingLevel::Error)
-        })
-        .count() as u32;
-    let warnings = enabled
-        .iter()
-        .filter(|cap| {
-            !cap.issues
-                .iter()
-                .any(|issue| issue.level == FindingLevel::Error)
-                && cap.issues.iter().any(|issue| {
-                    issue.level == FindingLevel::Warn || issue.level == FindingLevel::Degraded
-                })
-        })
-        .count() as u32;
-    let missing = enabled.iter().filter(|cap| !cap.installed).count() as u32;
-    let ok = enabled
-        .iter()
-        .filter(|cap| cap.installed && worst_level(&cap.issues) != FindingLevel::Error)
-        .count() as u32;
-    let status = if errors > 0 {
-        AggregateStatus::Error
-    } else if warnings > 0 {
-        AggregateStatus::Warn
-    } else {
-        AggregateStatus::Ok
-    };
+    build_menubar_from_verdict(&build_verdict(capabilities), capabilities, running_jobs)
+}
+
+/// The tray's aggregate glyph, derived from the shared verdict.
+pub fn aggregate_status(verdict: Verdict) -> AggregateStatus {
+    match verdict {
+        Verdict::NotWorking => AggregateStatus::Error,
+        Verdict::NeedsAttention => AggregateStatus::Warn,
+        Verdict::Sound | Verdict::Unknown => AggregateStatus::Ok,
+    }
+}
+
+/// Format the payload against an already-computed verdict, so a caller that
+/// needs both surfaces pays for the rollup once.
+pub fn build_menubar_from_verdict(
+    health: &HealthVerdict,
+    capabilities: &[CapabilityStatus],
+    running_jobs: u32,
+) -> MenubarPayload {
+    let enabled_total = capabilities.iter().filter(|cap| cap.enabled).count();
+    let counts = health.counts;
+    let status = aggregate_status(health.verdict);
 
     let mut items: Vec<MenubarItem> = capabilities
         .iter()
@@ -142,14 +137,14 @@ pub fn build_menubar_payload(
     MenubarPayload {
         status,
         label: format!(
-            "{ok}/{} healthy · {warnings} warn · {errors} err",
-            enabled.len()
+            "{}/{enabled_total} healthy · {} warn · {} err",
+            counts.ok, counts.warnings, counts.errors
         ),
         counts: MenubarCounts {
-            ok,
-            warnings,
-            errors,
-            missing,
+            ok: counts.ok,
+            warnings: counts.warnings,
+            errors: counts.errors,
+            missing: counts.missing,
             running_jobs,
         },
         items,
@@ -178,6 +173,7 @@ mod tests {
             } else {
                 None
             },
+            reports_version: true,
             running: None,
             enabled,
             latest_version: None,
@@ -230,6 +226,54 @@ mod tests {
         assert_eq!(payload.status, AggregateStatus::Ok);
         assert_eq!(payload.label, "2/2 healthy · 0 warn · 0 err");
         assert!(payload.items.iter().all(|item| item.glyph == "✓"));
+    }
+
+    #[test]
+    fn the_tray_and_the_control_center_read_from_one_rollup() {
+        // This is the bug that shipped twice: the tray said "1 err" while the
+        // Control Center said "2 errors", because each counted for itself.
+        // Both now derive from build_verdict, and this asserts it.
+        let caps = vec![
+            cap("trufflehog", true, true, vec![]),
+            cap(
+                "gitleaks",
+                true,
+                true,
+                vec![Finding::error("version probe failed")],
+            ),
+            cap(
+                "nono",
+                true,
+                false,
+                vec![Finding::warn("not installed", "see nono.sh")],
+            ),
+        ];
+        let health = crate::gui::verdict::build_verdict(&caps);
+        let payload = build_menubar_payload(&caps, 0);
+        assert_eq!(payload.counts.errors, health.counts.errors);
+        assert_eq!(payload.counts.warnings, health.counts.warnings);
+        assert_eq!(payload.counts.ok, health.counts.ok);
+        assert_eq!(payload.counts.missing, health.counts.missing);
+        assert_eq!(payload.status, aggregate_status(health.verdict));
+        assert_eq!(payload.status, AggregateStatus::Error);
+        // Same verdict in, same payload out — the two entry points agree.
+        assert_eq!(payload, build_menubar_from_verdict(&health, &caps, 0));
+    }
+
+    #[test]
+    fn aggregate_status_maps_every_verdict() {
+        assert_eq!(
+            aggregate_status(Verdict::NotWorking),
+            AggregateStatus::Error
+        );
+        assert_eq!(
+            aggregate_status(Verdict::NeedsAttention),
+            AggregateStatus::Warn
+        );
+        assert_eq!(aggregate_status(Verdict::Sound), AggregateStatus::Ok);
+        // Pre-detection is not a failure state — the tray shows calm, and the
+        // label carries the "checking" text.
+        assert_eq!(aggregate_status(Verdict::Unknown), AggregateStatus::Ok);
     }
 
     #[test]

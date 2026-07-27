@@ -82,7 +82,9 @@ pub struct CapabilityDef {
     pub description: &'static str,
     /// CLI names probed for presence (first `which` hit wins).
     pub bins: &'static [&'static str],
-    /// Version argv appended to the resolved binary.
+    /// Version argv appended to the resolved binary. EMPTY means the tool has
+    /// no version command at all — a real case, not an oversight. Probing one
+    /// anyway reports a permanent failure for a question the tool cannot answer.
     pub version_args: &'static [&'static str],
     pub method: LifecycleMethod,
     /// brew formula / cask / npm package (non-manual only).
@@ -106,7 +108,9 @@ pub const CAPABILITIES: [CapabilityDef; 17] = [
     CapabilityDef { id: "osv-scanner", name: "OSV-Scanner", kind: CapabilityKind::Tool, capability: "dependency-scanning", description: "Dependency vulnerability scanner (supply-chain module)", bins: &["osv-scanner"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("osv-scanner"), guidance: None, process_names: &[] },
     CapabilityDef { id: "openwiki", name: "OpenWiki", kind: CapabilityKind::Tool, capability: "codebase-wiki", description: "Auto-maintained codebase wiki + opt-in Personal Brain (context module)", bins: &["openwiki"], version_args: V, method: LifecycleMethod::Npm, pkg: Some("openwiki"), guidance: None, process_names: &[] },
     CapabilityDef { id: "cocoindex", name: "CocoIndex", kind: CapabilityKind::Tool, capability: "semantic-search", description: "AST-based semantic code search framework (context module)", bins: &["cocoindex"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://cocoindex.io (Python framework — pip/uv)"), process_names: &[] },
-    CapabilityDef { id: "ccc", name: "CocoIndex Code CLI (ccc)", kind: CapabilityKind::Tool, capability: "semantic-search", description: "cocoindex-code CLI — alternate CocoIndex entry point (context module)", bins: &["ccc"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://github.com/cocoindex-io/cocoindex-code"), process_names: &[] },
+    // ccc exposes no version command (verified against the shipped CLI: its
+    // only global flags are --install-completion/--show-completion/--help).
+    CapabilityDef { id: "ccc", name: "CocoIndex Code CLI (ccc)", kind: CapabilityKind::Tool, capability: "semantic-search", description: "cocoindex-code CLI — alternate CocoIndex entry point (context module)", bins: &["ccc"], version_args: &[], method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://github.com/cocoindex-io/cocoindex-code"), process_names: &[] },
     // ── Harness CLIs (mirrors HARNESS_ADAPTERS — asserted by test) ──
     CapabilityDef { id: "claude-code", name: "Claude Code", kind: CapabilityKind::Harness, capability: "coding-harness", description: "Anthropic's coding harness CLI", bins: &["claude"], version_args: V, method: LifecycleMethod::Npm, pkg: Some("@anthropic-ai/claude-code"), guidance: None, process_names: &["claude"] },
     CapabilityDef { id: "codex", name: "Codex", kind: CapabilityKind::Harness, capability: "coding-harness", description: "OpenAI's coding harness CLI", bins: &["codex"], version_args: V, method: LifecycleMethod::BrewCask, pkg: Some("codex"), guidance: None, process_names: &["codex"] },
@@ -177,6 +181,91 @@ pub const CAPABILITY_GROUPS: [CapabilityGroup; 9] = [
 
 pub fn get_group(id: &str) -> Option<&'static CapabilityGroup> {
     CAPABILITY_GROUPS.iter().find(|group| group.id == id)
+}
+
+/// "A", "A and B", "A, B and C" — no Oxford comma, matching Apple's copy.
+pub(crate) fn join_human(parts: &[String]) -> String {
+    match parts {
+        [] => String::new(),
+        [one] => one.clone(),
+        [first, second] => format!("{first} and {second}"),
+        [rest @ .., last] => format!("{} and {last}", rest.join(", ")),
+    }
+}
+
+/// One provider's contribution to its capability group's coverage.
+pub struct ProviderFact<'a> {
+    pub group: &'a str,
+    pub id: &'a str,
+    pub name: &'a str,
+    pub works: bool,
+}
+
+/// Which capability groups actually have a working provider.
+///
+/// Defined once, here, because both the detection pass and the health verdict
+/// need it — and a second definition is exactly how the tray and the Control
+/// Center learned to disagree with each other.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct GroupCoverage {
+    working: std::collections::BTreeMap<String, Vec<String>>,
+}
+
+impl GroupCoverage {
+    /// The one definition of "this provider is actually working": the owner
+    /// left it enabled, it resolved on PATH, and its version story is sound —
+    /// it either answered a version probe or has no version command to answer
+    /// with. A tool that is asked what it is and cannot say does not count as
+    /// coverage; that is the case where the environment is lying to you.
+    pub fn provider_works(enabled: bool, installed: bool, version_ok: bool) -> bool {
+        enabled && installed && version_ok
+    }
+
+    pub fn compute<'a>(providers: impl IntoIterator<Item = ProviderFact<'a>>) -> Self {
+        let mut working: std::collections::BTreeMap<String, Vec<(usize, String)>> =
+            std::collections::BTreeMap::new();
+        for fact in providers {
+            let entry = working.entry(fact.group.to_string()).or_default();
+            if fact.works {
+                let order = CAPABILITIES
+                    .iter()
+                    .position(|def| def.id == fact.id)
+                    .unwrap_or(usize::MAX);
+                entry.push((order, fact.name.to_string()));
+            }
+        }
+        GroupCoverage {
+            // Taxonomy order, so the input's order cannot change the output.
+            working: working
+                .into_iter()
+                .map(|(group, mut names)| {
+                    names.sort_by_key(|(order, _)| *order);
+                    (group, names.into_iter().map(|(_, name)| name).collect())
+                })
+                .collect(),
+        }
+    }
+
+    pub fn from_statuses(capabilities: &[CapabilityStatus]) -> Self {
+        Self::compute(capabilities.iter().map(|cap| ProviderFact {
+            group: cap.capability.as_str(),
+            id: cap.id.as_str(),
+            name: cap.name.as_str(),
+            works: Self::provider_works(cap.enabled, cap.installed, cap.version_ok()),
+        }))
+    }
+
+    pub fn is_covered(&self, group: &str) -> bool {
+        !self.working(group).is_empty()
+    }
+
+    /// Names of the working providers in a group, in taxonomy order.
+    pub fn working(&self, group: &str) -> &[String] {
+        self.working
+            .get(group)
+            .map(Vec::as_slice)
+            .unwrap_or_default()
+    }
 }
 
 pub fn get_capability(id: &str) -> Option<&'static CapabilityDef> {
@@ -322,12 +411,23 @@ pub struct CapabilityStatus {
     pub installed: bool,
     pub path: Option<String>,
     pub version: Option<String>,
+    /// False when the tool has no version command, so a missing `version` is
+    /// expected rather than a fault.
+    pub reports_version: bool,
     /// Only Some for capabilities with a process signature.
     pub running: Option<bool>,
     pub enabled: bool,
     pub latest_version: Option<String>,
     pub update_available: bool,
     pub issues: Vec<Finding>,
+}
+
+impl CapabilityStatus {
+    /// Whether the version story is satisfactory: either the tool reported one,
+    /// or it has no version command to report with.
+    pub fn version_ok(&self) -> bool {
+        self.version.is_some() || !self.reports_version
+    }
 }
 
 pub struct DetectOptions<'a> {
@@ -343,7 +443,21 @@ pub struct DetectOptions<'a> {
     pub probe_timeout: Duration,
 }
 
-fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> CapabilityStatus {
+/// What a probe learned about one capability, before any judgement is applied.
+/// Splitting the facts from the verdict is what lets severity be coverage-aware:
+/// no single capability can know whether its group is already covered, so the
+/// judgement has to happen after every probe has reported.
+struct CapabilityFacts {
+    enabled: bool,
+    installed: bool,
+    path: Option<String>,
+    version: Option<String>,
+    running: Option<bool>,
+    latest_version: Option<String>,
+    update_available: bool,
+}
+
+fn probe_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> CapabilityFacts {
     let enabled = !opts.disabled.contains(def.id);
     let mut path: Option<String> = None;
     for bin in def.bins {
@@ -354,7 +468,7 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
     }
     let installed = path.is_some();
     let mut version: Option<String> = None;
-    if let Some(bin_path) = &path {
+    if let (Some(bin_path), false) = (&path, def.version_args.is_empty()) {
         let mut argv: Vec<String> = vec![bin_path.clone()];
         argv.extend(def.version_args.iter().map(|arg| arg.to_string()));
         let result = (opts.exec)(&argv, &ExecOpts::default());
@@ -386,6 +500,34 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
         _ => false,
     };
 
+    CapabilityFacts {
+        enabled,
+        installed,
+        path,
+        version,
+        running,
+        latest_version,
+        update_available,
+    }
+}
+
+/// Turn probe facts into findings. Pure — no I/O, no clock, no environment.
+fn assess(
+    def: &'static CapabilityDef,
+    facts: CapabilityFacts,
+    coverage: &GroupCoverage,
+    last_jobs: &std::collections::BTreeMap<String, LastJobSummary>,
+) -> CapabilityStatus {
+    let CapabilityFacts {
+        enabled,
+        installed,
+        path,
+        version,
+        running,
+        latest_version,
+        update_available,
+    } = facts;
+
     let mut issues: Vec<Finding> = Vec::new();
     if !enabled {
         issues.push(Finding::info(
@@ -393,7 +535,7 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
         ));
     } else {
         if !installed {
-            let remediation = match action_argvs(def, LifecycleAction::Install) {
+            let how = match action_argvs(def, LifecycleAction::Install) {
                 Some(argvs) => format!(
                     "Use Install here, or run: {}",
                     argvs
@@ -406,12 +548,28 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
                     "no automated install recipe — see the project's documentation".to_string()
                 }),
             };
-            issues.push(Finding::warn(
-                format!("{} is not installed", def.name),
-                remediation,
-            ));
+            // A missing provider whose capability is already covered is a spare
+            // tyre, not a hole in the floor. Ranking the two identically is what
+            // made the old warning list unreadable — the urgent items were
+            // indistinguishable from the optional ones.
+            let covered_by = coverage.working(def.capability);
+            if covered_by.is_empty() {
+                issues.push(Finding::warn(format!("{} is not installed", def.name), how));
+            } else {
+                let group_name = get_group(def.capability)
+                    .map(|group| group.name)
+                    .unwrap_or("This capability");
+                issues.push(Finding {
+                    level: crate::types::FindingLevel::Info,
+                    message: format!("{} is not installed", def.name),
+                    remediation: Some(format!(
+                        "{group_name} is already covered by {}. {how}",
+                        join_human(covered_by)
+                    )),
+                });
+            }
         }
-        if installed && version.is_none() {
+        if installed && version.is_none() && !def.version_args.is_empty() {
             issues.push(Finding::error_with(
                 format!("{} is on PATH but its version probe failed", def.name),
                 format!(
@@ -421,7 +579,7 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
                 ),
             ));
         }
-        if let Some(last) = opts.last_jobs.get(def.id) {
+        if let Some(last) = last_jobs.get(def.id) {
             if last.failed {
                 issues.push(Finding::error_with(
                     format!(
@@ -464,6 +622,7 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
         installed,
         path,
         version,
+        reports_version: !def.version_args.is_empty(),
         running,
         enabled,
         latest_version,
@@ -473,6 +632,8 @@ fn detect_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabili
 }
 
 /// Detect all capabilities concurrently; each probe is timeout-bounded (ISC-170).
+/// Probes run in parallel, then coverage is computed across the whole taxonomy,
+/// then each capability is judged against it.
 pub fn detect_capabilities(opts: &DetectOptions<'_>) -> Vec<CapabilityStatus> {
     let bounded = DetectOptions {
         exec: with_timeout(opts.exec.clone(), opts.probe_timeout),
@@ -483,16 +644,37 @@ pub fn detect_capabilities(opts: &DetectOptions<'_>) -> Vec<CapabilityStatus> {
         probe_running: opts.probe_running,
         probe_timeout: opts.probe_timeout,
     };
-    std::thread::scope(|scope| {
+    let facts: Vec<CapabilityFacts> = std::thread::scope(|scope| {
         let handles: Vec<_> = CAPABILITIES
             .iter()
-            .map(|def| scope.spawn(|| detect_one(def, &bounded)))
+            .map(|def| scope.spawn(|| probe_one(def, &bounded)))
             .collect();
         handles
             .into_iter()
             .map(|handle| handle.join().expect("detect thread"))
             .collect()
-    })
+    });
+    let coverage =
+        GroupCoverage::compute(
+            CAPABILITIES
+                .iter()
+                .zip(&facts)
+                .map(|(def, fact)| ProviderFact {
+                    group: def.capability,
+                    id: def.id,
+                    name: def.name,
+                    works: GroupCoverage::provider_works(
+                        fact.enabled,
+                        fact.installed,
+                        fact.version.is_some() || def.version_args.is_empty(),
+                    ),
+                }),
+        );
+    CAPABILITIES
+        .iter()
+        .zip(facts)
+        .map(|(def, fact)| assess(def, fact, &coverage, opts.last_jobs))
+        .collect()
 }
 
 #[cfg(test)]
@@ -857,6 +1039,169 @@ mod tests {
                 .running,
             None
         );
+    }
+
+    #[test]
+    fn a_missing_provider_only_warns_when_its_capability_has_no_cover() {
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[(
+                "/fake/bin/trufflehog --version",
+                (0, "trufflehog 3.95.9\n", ""),
+            )]),
+            fake_which(&["trufflehog"]),
+        ));
+        // Spare tyre: TruffleHog is already scanning, so a missing Gitleaks is
+        // informational and says what covers it.
+        let gitleaks = caps.iter().find(|cap| cap.id == "gitleaks").unwrap();
+        let spare = &gitleaks.issues[0];
+        assert_eq!(spare.level, FindingLevel::Info);
+        assert!(spare.message.contains("Gitleaks is not installed"));
+        let remediation = spare.remediation.as_deref().unwrap();
+        assert!(remediation.starts_with("Secret Scanning is already covered by TruffleHog."));
+        assert!(
+            remediation.contains("brew install gitleaks"),
+            "the recipe stays available even when it is optional"
+        );
+        // Hole in the floor: nothing else provides sandboxing.
+        let nono = caps.iter().find(|cap| cap.id == "nono").unwrap();
+        assert_eq!(nono.issues[0].level, FindingLevel::Warn);
+    }
+
+    #[test]
+    fn an_installed_provider_that_cannot_report_a_version_does_not_count_as_cover() {
+        // The dangerous case: TruffleHog is on PATH, so a naive check calls
+        // Secret Scanning covered — but it fails its own version probe, so it
+        // may not be scanning anything. A missing Gitleaks must stay a warning.
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[("/fake/bin/trufflehog --version", (1, "", "killed"))]),
+            fake_which(&["trufflehog"]),
+        ));
+        let trufflehog = caps.iter().find(|cap| cap.id == "trufflehog").unwrap();
+        assert!(trufflehog.installed && trufflehog.version.is_none());
+        let gitleaks = caps.iter().find(|cap| cap.id == "gitleaks").unwrap();
+        assert_eq!(gitleaks.issues[0].level, FindingLevel::Warn);
+        assert!(gitleaks.issues[0]
+            .remediation
+            .as_deref()
+            .unwrap()
+            .starts_with("Use Install here"));
+    }
+
+    #[test]
+    fn a_disabled_provider_never_counts_as_cover_for_its_capability() {
+        let mut disabled = BTreeSet::new();
+        disabled.insert("trufflehog".to_string());
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[(
+                "/fake/bin/trufflehog --version",
+                (0, "trufflehog 3.95.9\n", ""),
+            )]),
+            fake_which(&["trufflehog"]),
+        ));
+        let gitleaks = caps.iter().find(|cap| cap.id == "gitleaks").unwrap();
+        assert_eq!(
+            gitleaks.issues[0].level,
+            FindingLevel::Warn,
+            "a capability the owner switched off cannot silently cover the gap"
+        );
+    }
+
+    #[test]
+    fn a_tool_with_no_version_command_is_working_not_broken() {
+        // Found on a real machine: `ccc` has no --version at all (its only
+        // global flags are --install-completion/--show-completion/--help), so
+        // probing one reported a permanent failure for a question the tool
+        // cannot answer — and Semantic Code Search read "installed but not
+        // working" while ccc was installed and fine.
+        let ccc = get_capability("ccc").unwrap();
+        assert!(
+            ccc.version_args.is_empty(),
+            "ccc declares no version command"
+        );
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            // Any exec call for ccc would be a bug: there is nothing to run.
+            fake_exec(&[]),
+            fake_which(&["ccc"]),
+        ));
+        let status = caps.iter().find(|cap| cap.id == "ccc").unwrap();
+        assert!(status.installed);
+        assert!(status.version.is_none());
+        assert!(!status.reports_version);
+        assert!(status.version_ok(), "a missing version is expected here");
+        assert!(
+            status.issues.is_empty(),
+            "no fault to report, got {:?}",
+            status.issues
+        );
+        assert!(GroupCoverage::from_statuses(&caps).is_covered("semantic-search"));
+        // Every other capability still expects a version, so the exemption
+        // cannot be claimed by accident.
+        for def in &CAPABILITIES {
+            if def.id != "ccc" {
+                assert!(!def.version_args.is_empty(), "{} lost its probe", def.id);
+            }
+        }
+    }
+
+    #[test]
+    fn coverage_is_computed_the_same_way_from_facts_and_from_statuses() {
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[
+                ("/fake/bin/trufflehog --version", (0, "3.95.9\n", "")),
+                ("/fake/bin/gitleaks version", (0, "8.30.0\n", "")),
+                ("/fake/bin/claude --version", (0, "2.1.220\n", "")),
+            ]),
+            fake_which(&["trufflehog", "gitleaks", "claude"]),
+        ));
+        let from_statuses = GroupCoverage::from_statuses(&caps);
+        let from_facts = GroupCoverage::compute(caps.iter().map(|cap| ProviderFact {
+            group: cap.capability.as_str(),
+            id: cap.id.as_str(),
+            name: cap.name.as_str(),
+            works: GroupCoverage::provider_works(cap.enabled, cap.installed, cap.version.is_some()),
+        }));
+        assert_eq!(from_statuses, from_facts);
+        assert!(from_statuses.is_covered("secret-scanning"));
+        assert!(!from_statuses.is_covered("sandboxing"));
+        assert_eq!(
+            from_statuses.working("secret-scanning"),
+            ["TruffleHog".to_string(), "Gitleaks".to_string()],
+            "providers list in taxonomy order, primary first"
+        );
+        assert!(from_statuses.working("nothing-like-this").is_empty());
+        // Input order must not change the answer.
+        let mut reversed = caps.clone();
+        reversed.reverse();
+        assert_eq!(GroupCoverage::from_statuses(&reversed), from_statuses);
     }
 
     #[test]

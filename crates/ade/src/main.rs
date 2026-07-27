@@ -8,7 +8,10 @@ use ade_core::config::load_config;
 use ade_core::exec::{real_exec, real_which};
 use ade_core::fsutil::{read_if_exists, write_ensured};
 use ade_core::gui::install::{gui_install, gui_status, gui_uninstall, InstallDeps};
-use ade_core::gui::state::ade_home_from_env;
+use ade_core::gui::inventory::{detect_capabilities, DetectOptions};
+use ade_core::gui::jobs::read_last_finished;
+use ade_core::gui::state::{ade_home_from_env, load_gui_state};
+use ade_core::gui::verdict::{build_verdict, render_health_text};
 use ade_core::harness::adapters::HARNESS_ADAPTERS;
 use ade_core::hook::hook_append;
 use ade_core::instructions::{
@@ -77,6 +80,10 @@ const COMMANDS: &[(&str, &str)] = &[
     ),
     ("gui uninstall", "remove the ADE apps and tray agent"),
     ("gui status", "report the tray agent's launchd state"),
+    (
+        "gui health",
+        "state whether this machine's agent environment is sound, and what needs doing",
+    ),
     (
         "hook append",
         "append a harness hook event to the audit chain (stdin JSON)",
@@ -809,6 +816,53 @@ fn run(argv: &[String]) -> i32 {
             }
             Some("uninstall") => {
                 install_report_output("uninstall", &gui_uninstall(&install_deps()), json)
+            }
+            Some("health") => {
+                let home = ade_home_from_env();
+                let state = load_gui_state(&home).state;
+                let last_jobs = read_last_finished(&home);
+                let latest = std::collections::BTreeMap::new();
+                let capabilities = detect_capabilities(&DetectOptions {
+                    exec: real_exec(),
+                    which: real_which(),
+                    disabled: &state.disabled,
+                    last_jobs: &last_jobs,
+                    latest_versions: &latest,
+                    probe_running: true,
+                    probe_timeout: std::time::Duration::from_secs(10),
+                });
+                let health = build_verdict(&capabilities);
+                let payload = serde_json::json!({
+                    "verdict": format!("{:?}", health.verdict),
+                    "headline": health.headline,
+                    "detail": health.detail,
+                    "counts": {
+                        "groupsTotal": health.counts.groups_total,
+                        "groupsCovered": health.counts.groups_covered,
+                        "ok": health.counts.ok,
+                        "warnings": health.counts.warnings,
+                        "errors": health.counts.errors,
+                        "missing": health.counts.missing,
+                    },
+                    "coverage": health.coverage.iter().map(|row| serde_json::json!({
+                        "group": row.group_id, "name": row.group_name,
+                        "state": format!("{:?}", row.state),
+                        "working": row.working, "enabledTotal": row.enabled_total,
+                    })).collect::<Vec<_>>(),
+                    "attention": health.attention.iter().map(|item| serde_json::json!({
+                        "rank": format!("{:?}", item.rank),
+                        "group": item.group_id, "capability": item.capability_id,
+                        "title": item.title, "why": item.why,
+                        "action": item.action.as_ref().map(|action| serde_json::json!({
+                            "label": action.label, "capability": action.capability_id,
+                            "lifecycle": action.lifecycle.as_str(), "guidance": action.guidance,
+                        })),
+                    })).collect::<Vec<_>>(),
+                });
+                emit(json, &payload, &render_health_text(&health));
+                // Health is a report, not a gate: a broken environment is
+                // still a successful description of one.
+                0
             }
             Some("status") => {
                 let agents = gui_status(&install_deps());

@@ -382,6 +382,19 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - [x] ISC-221: test temp directories cannot collide for the same tag (the cause of a real intermittent suite failure)
 - [ ] ISC-204: all work committed with Justin's Secretive-signed commit (tap prompt — never auto-signed); tree clean at close
 
+#### macOS 26 facelift — Phase 1: core intelligence (`ade-core`, no UI change)
+
+- [x] ISC-222: a single `gui::verdict::build_verdict` answers "is this environment sound, and what should I do about it?" — returning a verdict, a headline, a detail sentence that NAMES what is wrong, a ranked attention list, and one coverage row per capability group
+- [x] ISC-223: severity is coverage-aware — a provider missing from a capability that already has a working provider is `Info`/`Spare`, while a provider missing from a capability with nothing is `Warn`/`Uncovered`; the demotion is proven at BOTH layers (`detect_one`'s finding level and the attention rank)
+- [x] ISC-224: an installed provider that cannot report a version does NOT count as coverage — the case where the environment is lying to you is not silently treated as healthy
+- [x] ISC-225: a capability whose providers are all disabled machine-wide cannot manufacture a false "sound" verdict — the state is `Off`, and the detail sentence names what was switched off
+- [x] ISC-226: attention ordering is stable and total — rank (broken → uncovered → spare → update), then taxonomy order; reordering the input cannot reorder the output, so a 4-second poll never reshuffles the list
+- [x] ISC-227: the tray and the Control Center derive their rollup from the same function — asserted by equality on identical input, closing the class of bug that shipped twice (tray "1 err" vs header "2 errors")
+- [x] ISC-228: `GuiState` carries `scope` + `selection` so the window reopens where it was left; an id that no longer exists degrades to the Overview rather than stranding the window on an empty section
+- [x] ISC-229: `ade gui health` renders the verdict for a terminal (human + `--json`), so the model is verifiable against machine truth without the GUI; the rendering lives in core and is tested
+- [x] ISC-230: a tool with no version command at all (`ccc`) is modelled as such rather than probed and reported permanently broken — an empty `version_args` means "does not report a version", and every other capability still requires one
+- [x] ISC-231: a failed install of an ABSENT tool is one problem, not two — it does not raise both a "broken" row and an "uncovered" row, and the failure is carried as the reason the gap is still open
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -574,7 +587,7 @@ All evidence gathered 2026-07-12 on this machine (macOS, bun 1.3.10, git 2.50.1)
 **E2E drive — COMPLETED (2026-07-26, real HID clicks through the bridge; evidence in `scratchpad/evidence/e2e-08..20`):**
 
 - **ISC-195 (full lifecycle ✓)** — every stage a real click on the native UI, each confirmed against the machine, not just the pixels: Install → job-1 ok (`which pre-commit` → 4.6.1); **Update** → job-3 ok exit 0, log `brew upgrade pre-commit` → "Warning: pre-commit 4.6.1 already installed" (honest no-op, not a fake success); **Reinstall** → job-4 ok exit 0, a genuine reinstall (`Pouring pre-commit--4.6.1.arm64_tahoe.bottle.tar.gz`, 358 files); **Uninstall** → two-step guard armed a red "Confirm uninstall" + "Cancel" and started NO job (verified: top job still job-4), then Confirm → job-5 ok, `brew uninstall` removed 442 files, `which pre-commit` absent, `brew list` "No such keg". Header counters moved live 12/17→11/17 installed and 4→5 warnings; the row flipped back to hollow-dot / "not installed" / Install.
-- **ISC-197 (errors + warnings, both levels ✓ in the Control Center)** — INFO panel: "update available: codex-cli 0.144.5 → 0.145.0 — Use Update here to move to the latest version"; ERROR panel: "CocoIndex Code CLI (ccc) is on PATH but its version probe failed — Run `/Users/p4gs/.local/bin/ccc --version` in a terminal to inspect". Both expanded from the `+ N issue` disclosure (glyph flips + → −), both carrying concrete remediation.
+- **ISC-197 (errors + warnings, both levels ✓ in the Control Center)** — INFO panel: "update available: codex-cli 0.144.5 → 0.145.0 — Use Update here to move to the latest version"; ERROR panel: "CocoIndex Code CLI (ccc) is on PATH but its version probe failed — Run `~/.local/bin/ccc --version` in a terminal to inspect". Both expanded from the `+ N issue` disclosure (glyph flips + → −), both carrying concrete remediation.
 - **ISC-207 (tooltip ✓)** — hovering the CODING HARNESS `(i)` revealed: "The agent itself. ADE treats harnesses as swappable: one governed environment with consistent guardrails and instructions, whichever CLI you run today." Delivery required the window to be *active* (an inactive egui window receives no mouse-moved events, so no tooltip) plus a warp-dwell.
 - **ISC-206 (toggle ✓)** — clicking "Group by capability" flipped `~/.ade/gui.json` `groupByCapability` true→false and the view to the flat TOOLS list with capability chips retained; toggled back. **The first capture after the click showed the OLD frame — a stale-frame race in my capture, not a UI bug** (re-capture 2s later showed the correct flat view). Recorded because it nearly became a false defect report.
 - **ISC-174/185/198 (projects ✓)** — registered the bootstrapped fixture by path through the UI (toast + `gui.json` `projects` entry), Inspect loaded "verify PASS" + all 15 module toggles, toggled `memory` off → toast "module memory disabled — apply OK, verify PASS", `ade.json` `memory.enabled` true→false on disk, and an independent `ade verify` exit 0 with `ade audit verify` → "chain VALID (36 entries, checkpoint matched)". Toggled back on, re-verified green.
@@ -748,3 +761,86 @@ it is the genuine record of the actions I ran, and the openwiki entry (from a
 scroll-drift mis-click) is why the dashboards read 2 errors. Deleting it to make
 the UI look green would be exactly the dishonesty this project argues against;
 `rm ~/.ade/jobs.json` clears it if you'd rather start clean.
+
+---
+
+## Phase 1 — core intelligence (2026-07-26)
+
+Every capability list in this product answered the wrong question. It told you
+*what is installed*; you wanted to know *whether your environment is sound*.
+The gap between those two is where the real defect lived: `detect_one` emitted a
+flat `Finding::warn("{name} is not installed")` with no idea whether the
+capability was already covered. So "Gitleaks isn't installed" — while TruffleHog
+was actively scanning — ranked identically to "nono isn't installed" with
+nothing sandboxing at all. A spare tyre and a hole in the floor, same colour.
+No amount of visual polish fixes that, which is why it is Phase 1 and not
+Phase 6.
+
+**`gui/verdict.rs` is now the single answer.** It returns a verdict, a headline,
+a detail sentence that *names* what is wrong (the old header counted "2 errors"
+and then refused to say which two), a ranked attention list, and one coverage
+row per capability group. `build_menubar_payload` became a caller of it, so the
+tray and the Control Center can no longer disagree — the exact bug that shipped
+twice this week. Asserted by equality on identical input, not by inspection.
+
+**Severity is coverage-aware in both layers.** `detect_one` split into a parallel
+`probe_one` (all the I/O) and a pure `assess` (all the judgement), because no
+single capability can know whether its group is covered — that has to be decided
+after every probe reports. `GroupCoverage` defines "this provider actually works"
+exactly once, and both the detection pass and the verdict call it.
+
+**Three real defects surfaced by running it against this machine, not by
+reading it.** The unit tests were green before any of them showed up:
+
+1. **A phantom permanent error.** `ccc` has no `--version` — its only global
+   flags are `--install-completion`, `--show-completion`, `--help`. The
+   inventory probed one anyway, so Semantic Code Search read *"installed but not
+   working"* while ccc sat there working fine. Fixed at the model, not the data:
+   an empty `version_args` now means "this tool does not report a version", the
+   probe is skipped, and it counts as coverage. Every other capability still
+   requires one, asserted so the exemption cannot be claimed by accident.
+2. **One problem counted twice.** OpenWiki's install had failed and it is the
+   only Codebase Wiki provider, so it appeared both as a broken tool and as an
+   uncovered capability — and the headline said *five* things needed attention
+   when four did. "Broken" now means *installed and not working*; a tool that
+   never arrived cannot be broken, and its failure becomes the reason the gap is
+   still open rather than a second row.
+3. **A fragment where a sentence belonged.** The attention list rendered
+   `last install failed (exit 1)` with no subject, because that message was
+   written to be read directly under the capability's own name. Titles are now
+   self-contained sentences.
+
+There was also an inconsistency I only saw once the other two were fixed: the
+overall verdict was red while no row was. A gap the owner already tried to close
+is worse than one never attempted, so it now renders red too — the icon and the
+list cannot disagree about the same fact.
+
+**`ade gui health` was added** because Phase 1 was otherwise unverifiable against
+machine truth until the Overview lands in Phase 3. The rendering lives in core
+and is tested; the CLI arm is a dispatch. It is a report, not a gate — a broken
+environment is still a successful description of one, so it exits 0.
+
+**Verified against machine truth, not just pixels.** `command -v` on all 17
+capabilities matches the verdict exactly: pre-commit/nono/openwiki absent (three
+gaps), cocoindex absent but ccc present (covered), cursor/antigravity absent out
+of seven harnesses (spares, correctly not attention), trufflehog+gitleaks both
+present (2 of 2). `ccc --version` exits 2 with "No such option", confirming the
+model fix rather than assuming it. The live tray reads
+`ADE — 11/17 healthy · 2 warn · 1 err`, byte-identical to the CLI's counts.
+
+**Gates:** fmt · clippy `-D warnings` · 406 tests · coverage 96.03% line /
+96.67% function · `cargo deny check` all ok · parity PASS. `verdict.rs` itself
+is 98.72% line / 98.89% function.
+
+**Verification-method note, fourth occurrence.** `interceptor macos find` for
+the tray label returned empty, and so did a positive control on a known
+menu-bar item ("Wi-Fi") — the probe does not reach menu-bar extras, the tray was
+never missing. `tree --app "ADE Status"` returned the full menu immediately. The
+standing rule held: never accept an absence until the same probe confirms a
+known-present control.
+
+**Follow-up, not fixed here:** the tray's per-item glyph still shows `·` (not
+installed) for OpenWiki even though that row is an error, because the tray's
+glyph rule checks `installed` before severity. It is the same class of
+inconsistency fixed in the verdict, but changing tray glyph semantics belongs
+with the SF Symbol status icon in Phase 2, not smuggled into Phase 1.
