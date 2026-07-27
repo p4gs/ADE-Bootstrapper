@@ -6,8 +6,8 @@
  */
 import { resolve, join } from "node:path";
 import { loadConfig } from "./config.ts";
-import { detectMachineHarnesses, detectRepoHarnesses, isGitRepo } from "./context.ts";
 import { realExec, realWhich } from "./exec.ts";
+import { doctorReport, statusReport } from "./report.ts";
 import { HARNESS_ADAPTERS } from "./harness/adapters.ts";
 import {
   collectBlocks,
@@ -220,46 +220,28 @@ export async function main(argv: string[], depsIn?: Partial<CliDeps>): Promise<n
     case "status": {
       const ctx = await loadCtx(targetDir, pipelineDeps, io, json);
       if (ctx === null) return 1;
-      const rows: Array<{ id: string; title: string; enabled: boolean; state: string }> = [];
-      for (const module of MODULES) {
-        const enabled = ctx.config.modules[module.id]?.enabled === true;
-        if (!enabled) {
-          rows.push({ id: module.id, title: module.title, enabled, state: "disabled" });
-          continue;
-        }
-        const verdict = await module.verify(ctx);
-        const degraded = verdict.findings.some((finding) => finding.level === "degraded");
-        rows.push({ id: module.id, title: module.title, enabled, state: verdict.ok ? (degraded ? "degraded" : "applied") : "not-applied" });
-      }
+      // Shared report path (ISC-174); findings are stripped to keep the v0.1 --json shape.
+      const rows = (await statusReport(ctx)).map((row) => ({
+        id: row.id,
+        title: row.title,
+        enabled: row.enabled,
+        state: row.state as string,
+      }));
       const human = ["ade status:", ...rows.map((row) => `  ${row.state.padEnd(12)} ${row.id} — ${row.title}`)].join("\n");
       emit(io, json, { modules: rows }, human);
       return 0;
     }
     case "doctor": {
-      const { detectTools } = await import("./context.ts");
-      const tools = await detectTools(deps.which, deps.exec);
-      const repoHarnesses = await detectRepoHarnesses(targetDir);
-      const machineHarnesses = detectMachineHarnesses(deps.which);
-      const git = await isGitRepo(targetDir, deps.exec);
-      const payload = {
-        targetDir,
-        gitRepo: git,
-        tools: Object.values(tools),
-        harnesses: {
-          repo: repoHarnesses,
-          machine: machineHarnesses,
-          supported: HARNESS_ADAPTERS.map((adapter) => adapter.id),
-        },
-      };
+      const payload = await doctorReport(targetDir, deps.which, deps.exec);
       const human = [
         `ade doctor — ${targetDir}`,
-        `  git repository: ${git ? "yes" : "NO — run git init"}`,
+        `  git repository: ${payload.gitRepo ? "yes" : "NO — run git init"}`,
         "  tools:",
-        ...Object.values(tools).map(
+        ...payload.tools.map(
           (tool) => `    ${tool.present ? "✓" : "✗"} ${tool.name}${tool.version !== undefined ? ` (${tool.version})` : ""}`,
         ),
-        `  harnesses configured in repo: ${repoHarnesses.join(", ") || "none"}`,
-        `  harness CLIs on machine: ${machineHarnesses.join(", ") || "none"}`,
+        `  harnesses configured in repo: ${payload.harnesses.repo.join(", ") || "none"}`,
+        `  harness CLIs on machine: ${payload.harnesses.machine.join(", ") || "none"}`,
       ].join("\n");
       emit(io, json, payload, human);
       return 0;

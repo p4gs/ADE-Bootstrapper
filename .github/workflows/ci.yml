@@ -9,7 +9,32 @@ permissions:
   contents: read
 
 jobs:
-  gates:
+  # The Rust workspace is the product (ade-core + ade CLI + native apps).
+  rust:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy (deny warnings)
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Tests
+        run: cargo test --workspace
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
+      - name: Supply chain (licenses, advisories, sources, bans)
+        run: cargo deny check
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Coverage gate (95% line / 95% function)
+        run: bash scripts/coverage-check.sh --summary-only
+
+  # The TS tree is the executable specification (oracle) — it must stay green
+  # until parity retirement is decided (ISC-180/200).
+  oracle:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,3 +47,17 @@ jobs:
         run: bunx tsc --noEmit
       - name: Tests with coverage gate (95% line / 95% function)
         run: bun test --coverage
+
+  # Cross-implementation differential: Rust output vs the TS oracle.
+  parity:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Build ade
+        run: cargo build -p ade
+      - name: Parity harness
+        run: bash scripts/parity-check.sh target/debug/ade

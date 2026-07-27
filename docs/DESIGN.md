@@ -1,9 +1,72 @@
 # ADE Bootstrapper — Design
 
-This document records the v0.1 architecture. The spec (`ADE Bootstrapper.md`) defines
+This document records the architecture. The spec (`ADE Bootstrapper.md`) defines
 *what*; this defines *how*. The project ISA (`ISA.md`) is the verifiable system of record.
 
-## Shape
+## v0.2 — the all-Rust product (2026-07-25)
+
+v0.2 ports the entire product to Rust (owner-ratified): a single static `ade` binary,
+a native egui Control Center, and a menu-bar helper, all sharing one `ade-core` crate.
+Motivations, in honest priority order: single-binary install (the v0.1 "first install
+Bun" opener contradicted the product's own promise), Windows reach, the hooks hot path
+(per-commit/per-tool-call hooks are now `ade hook …` at native speed and target repos
+need no JS runtime), runtime-free attack surface + cargo-vet/deny supply-chain
+attestation, and portfolio coherence. Raw compute speed was NOT a motivation — a
+config-file generator is I/O-bound and the TS version was already instant.
+
+- `crates/ade-core` — the engine (modules, pipelines, audit chain, managed blocks,
+  translation, detection, reports, GUI data layer). ~96%+ line/function coverage.
+- `crates/ade` — the CLI (surface-compatible with v0.1: commands, flags, exit codes,
+  `--json` shapes) plus `gui install|uninstall|status` and `hook append|scan`.
+- `crates/ade-control-center` — native GUI. **No server, no webview, nothing listens
+  on any port**: the app links ade-core and calls it in-process; actions run as
+  supervised in-process jobs persisted to `~/.ade/jobs.json` (which is also how the
+  tray sees activity — file-based, no IPC).
+- `crates/ade-status` — menu-bar helper (direct AppKit via objc2; detection on a
+  bounded budget so the menu bar can never hang).
+
+**The TypeScript v0.1 tree (`src/`, `tests/`) is retained as the executable
+specification.** `scripts/parity-check.sh` byte-compares full bootstrap trees against
+it (closed divergence allowlist: audit timestamps, the two runtime-free hook shims,
+one bun→sh instruction line + its content-hash echo, the settings hook command, and
+the lockfile fields derived from those), and proves a v0.1-bootstrapped repo migrates
+under the Rust binary with the audit chain validated ACROSS implementations. The v0.1
+adversarial-audit attacks (truncation, tail-drop, genesis re-forge, marker clobber,
+planted files) are replayed against the Rust CLI in tests and live probes.
+
+Gates on the Rust side: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`,
+`cargo test --workspace`, `cargo deny check` (licenses/advisories/sources/bans — see
+`deny.toml`, which also documents why the graph is evaluated for the macOS targets the
+v0.2 apps ship for), and `scripts/coverage-check.sh` (95% line + 95% function over
+`ade-core` + `ade`; the two UI crates are excluded because they are render/run loops and
+every decision they display is computed in `ade-core::gui`, which is covered). CI runs
+all of them plus the oracle and parity jobs.
+
+### `ade remove` — the way out
+
+A tool that writes into your repo owes you a clean exit, so `ade remove` is the
+inverse of `init` + `apply`: it restores the tree byte-for-byte (a round-trip
+test asserts exactly that, directories included). It is driven by the lockfile,
+which already enumerates the ADE-owned tree with content hashes, so "did we write
+this, and is it still what we wrote?" is answered per file rather than guessed
+from paths.
+
+The governing rule is the one `apply` follows, pointed the other way: **never
+destroy what we cannot prove we wrote.** Hand-edited ADE files, blocks with no ADE
+provenance line, files planted under `.ade/`, and an edited
+`instructions.local.md` are all KEPT and reported. Co-owned JSON
+(`.claude/settings.json`, `.mcp.json`) is un-merged by subtracting exactly the
+values ADE would write, leaving user entries — and any value the user changed —
+alone. A pre-existing git hook that `apply` chained aside is moved back, because
+deleting our shim and orphaning `pre-commit.pre-ade` would silently disable a gate
+the user relied on. Empty directories are pruned bottom-up, never recursively
+deleted. Without `--yes` the command prints its full plan and writes nothing.
+
+Machine-level GUI state lives in `$ADE_HOME` (`~/.ade/`) — never inside a project's
+lockfile-enumerated `.ade/` tree. Machine-level capability disable is a display/health
+preference; the enforcing lever remains each repo's `ade.json`.
+
+## v0.1 architecture (the reference implementation below)
 
 A zero-runtime-dependency Bun/TypeScript CLI (`ade`) that bootstraps, governs, and
 verifies an Agentic Development Environment inside a target repository. Everything the
@@ -133,11 +196,13 @@ by convention, and the docs say so honestly rather than pretending enforcement e
 
 ## Known v0.1 limitations (honest ledger)
 
-- **Atomicity:** `apply` writes files one at a time (whole-content per write). An
-  interruption mid-apply leaves a partial state — `ade verify` detects it and a
-  re-run of `ade apply` (idempotent) completes it, but there is no staged-then-swap
-  transaction or rollback. Planned for v0.2, as is `ade remove` (clean uninstall of
-  managed blocks and generated artifacts).
+- **Atomicity:** every individual write is atomic as of v0.2 (`write_ensured`
+  writes to a sibling temp file and renames, so a file is never observed empty or
+  half-written — the failure this fixed was real, and produced an intermittent
+  parse error in the test suite). What remains is *cross-file* transactionality:
+  an interruption partway through `apply` leaves some files updated and others
+  not. `ade verify` detects that and a re-run of `ade apply` (idempotent)
+  completes it, but there is no all-files-or-none rollback.
 - **Harness coverage split:** claude-code is exercised live (hooks, permissions,
   MCP merges, real machine probes). The other six harnesses are covered by
   fixture-based tests of their instruction-file surfaces only.

@@ -6,11 +6,22 @@ Antigravity, Hermes, and Pi.
 
 One command stands up opinionated, secure-by-default guardrails, governance, and
 verification around your coding harness — as plain files in your repo, with no control
-plane and no network calls.
+plane, no telemetry, and nothing listening on any port.
+
+**v0.2 is a single static Rust binary** plus two native macOS apps:
+
+- **`ade`** — the CLI (~3 MB, no runtime, no interpreter, no dependencies to install)
+- **ADE Control Center.app** — a native GUI (egui) to see every capability on your
+  machine: what's installed, what's running, versions, warnings/errors — and to
+  install / uninstall / reinstall / update each one, toggle capabilities, and manage
+  per-project modules
+- **ADE Status.app** — a menu-bar helper showing live aggregate health with a
+  per-capability dropdown
 
 ```
-bun install        # dev deps only — the tool itself has ZERO runtime dependencies
-bun run src/cli.ts init /path/to/your/repo
+cargo build --release          # or grab a release binary
+./target/release/ade init /path/to/your/repo
+./target/release/ade gui install   # macOS: apps + menu-bar agent + ~/.local/bin/ade
 ```
 
 ## What you get from `ade init`
@@ -24,11 +35,14 @@ bun run src/cli.ts init /path/to/your/repo
   (your content outside the markers is never touched)
 - `.ade/instructions.local.md` — **your** project instructions: created once, never
   overwritten, appended to every harness's managed block
-- `.ade/audit/log.jsonl` — hash-chained audit log, committed in the lockfile
+- `.ade/audit/log.jsonl` — hash-chained audit log, checkpointed in the lockfile
   (`ade audit verify` detects edits, truncation, and re-forged chains)
 - `ade.lock.json` — deterministic lockfile making the whole setup verifiable
   (`ade verify`) on any machine, including files planted into the `.ade/` tree
 - A pre-commit secret scan (TruffleHog) that actually blocks committing verified secrets
+- **Runtime-free hooks**: harness hooks (audit logging, injection scanning) invoke the
+  `ade` binary directly — target repos need no JS runtime, and each hook costs
+  milliseconds on the paths that run per-commit and per-tool-call
 
 ## Commands
 
@@ -44,9 +58,44 @@ bun run src/cli.ts init /path/to/your/repo
 | `ade translate` | Regenerate harness instruction files from `.ade/instructions.md` |
 | `ade lock` | Regenerate the lockfile |
 | `ade audit verify` | Validate the audit log hash chain |
+| `ade remove` | Withdraw ade from the repo — prints the plan; `--yes` carries it out |
+| `ade gui install` | macOS: install the Control Center + menu-bar apps and agent |
+| `ade gui uninstall` | Remove the apps and agent |
+| `ade gui status` | Menu-bar agent launchd state |
+| `ade hook append` | (wired by modules) append a harness hook event to the audit chain |
+| `ade hook scan` | (wired by modules) scan stdin for prompt-injection patterns |
 
 All commands accept `--dir <path>` and `--json` (pure JSON on stdout, logs on stderr).
 Exit codes: `0` success · `1` failure · `2` usage error.
+
+## The Control Center
+
+The GUI is a **native Rust app** (egui — no webview, no browser, no Electron) driven
+entirely in-process by the same `ade-core` engine as the CLI. **Nothing listens on any
+port**: there is no local server, no HTTP, no IPC daemon.
+
+- **Capabilities** — every integrated tool and harness CLI: installed state, version,
+  latest available version (checked only when you click *Check for Updates* — never
+  automatically), running state, and per-capability warnings/errors with concrete
+  remediation. Install / Update / Reinstall / Uninstall run as supervised jobs with
+  captured logs (uninstall asks for confirmation). Tools without a trustworthy
+  automated recipe are honestly labeled *manual* with guidance instead of guessing
+  package names.
+- **Machine-level enable/disable** — a per-capability toggle persisted in
+  `~/.ade/gui.json`. Honest semantics: this greys the capability and mutes its
+  warnings machine-wide; the *enforcing* toggle remains each repo's `ade.json`.
+- **Projects** — register any ade-bootstrapped repo: per-module toggles (a toggle
+  edits `ade.json` through the validated loader, re-applies, re-locks, and re-verifies),
+  module findings, and verify results.
+- **Activity** — every job with live status and full captured output.
+- **A clean exit** — `ade remove` (and *Remove ADE…* on a project) restores the
+  repo to exactly how it was before `ade init`: files deleted, managed blocks
+  excised, co-owned JSON un-merged, a chained git hook put back. Anything ade
+  cannot prove it wrote — your edits, your files — is kept and reported instead.
+
+The menu-bar helper refreshes detection on a bounded budget (it can never hang the
+menu bar), renders a status dot (green/amber/red), and lists every capability with
+core-formatted labels — adding a capability never requires touching the apps.
 
 ## The 15 modules (spec component → module id)
 
@@ -55,7 +104,7 @@ Exit codes: `0` success · `1` failure · `2` usage error.
 | Secure-by-default coding guardrails | `guardrails` | Project CodeGuard-style ruleset |
 | Software supply chain security | `supply-chain` | osv-scanner, lockfile policy, AI-native deps |
 | AI-native sandboxing | `sandbox` | nono, harness permission surfaces |
-| Codebase context management | `context` | OpenWiki (auto-maintained wiki) + CocoIndex (semantic search), codemap fallback |
+| Codebase context management | `context` | OpenWiki + CocoIndex, codemap fallback |
 | Performance & quality scaffolding | `scaffolding` | PR/testing/commit conventions |
 | Network-syncable agent memory | `memory` | OpenMemory / Mem0 MCP (opt-in) |
 | Prompt injection & context poisoning defenses | `injection-defense` | trust policy + scanner hook |
@@ -68,71 +117,44 @@ Exit codes: `0` success · `1` failure · `2` usage error.
 | Reproducible environment & lockfiles | `reproducibility` | environment manifest |
 | Token efficiency | `token-efficiency` | RTK at the shell boundary |
 
-### Codebase context: three tiers
-
-The `context` module gives harnesses an always-current understanding layer, wired
-like every other engine integration (detect + wire + install guidance; `ade apply`
-never force-installs):
-
-1. **Codemap** (`.ade/context/codemap.md`) — a zero-dependency structural map,
-   always present, regenerated on every `ade apply`. The fallback that never fails.
-2. **OpenWiki** (MIT) — when installed, an auto-maintained, navigable prose + Mermaid
-   **codebase wiki** (`openwiki/`), refreshed from git diffs. `npm i -g openwiki`.
-3. **CocoIndex** (Apache-2.0) — when installed (`cocoindex` or the `ccc` CLI), AST-based
-   **semantic code search** for natural-language retrieval instead of whole-tree grep.
-
-**OpenWiki Personal Brain** is modeled as a **distinct opt-in sub-capability** of
-OpenWiki (`modules.context.options.enableBrain = true`): general-purpose agent memory
-synthesized from external sources (email, notes, web) — complementary to, and separate
-from, the codebase wiki. Off by default because it reaches outside the repo; never write
-secrets into it. Detected engines and their live state are recorded in
-`.ade/policy/context-engines.json`, which `ade verify` re-derives from the machine.
-
 Every module is individually disableable in `ade.json` (`modules.<id>.enabled: false`) —
 secure-by-default means disabling is the explicit act.
+
+## Architecture (v0.2)
+
+```
+crates/
+  ade-core/            the engine: config, lockfile, audit chain, managed blocks,
+                       instructions/translate, 15 modules, 7 harness adapters,
+                       pipelines, reports, GUI data layer (inventory/jobs/state)
+  ade/                 the CLI binary
+  ade-control-center/  native GUI (egui/eframe + AccessKit)
+  ade-status/          menu-bar helper
+src/ + tests/          the TypeScript v0.1 reference implementation — kept as the
+                       EXECUTABLE SPECIFICATION; scripts/parity-check.sh proves the
+                       Rust port produces byte-identical artifacts (modulo a closed,
+                       documented allowlist) and that v0.1-bootstrapped repos migrate
+                       cleanly under the Rust binary
+```
+
+The port is verified three ways: a differential harness (byte-comparing full bootstrap
+trees against the oracle), replays of the v0.1 adversarial-audit attacks (audit-log
+truncation/tail-drop/re-forge, managed-marker clobbering, planted-file detection), and
+cross-version interop (the Rust binary appends to and verifies TS-written audit chains).
 
 ## What the guarantees actually mean
 
 Honesty about scope is a feature; these are the limits of each claim:
 
-- **Audit log — hash-chained + lockfile-committed.** Every entry commits to its
+- **Audit log — hash-chained + lockfile-checkpointed.** Every entry commits to its
   predecessor, and `ade apply` pins the chain's length and head hash into
-  `ade.lock.json` (which you commit to git). That makes in-place edits, truncation,
-  tail-dropping, and a chain re-forged from the public genesis anchor all detectable.
-  It is *not* cryptographically signed: an attacker who can rewrite both the log and
-  the committed lockfile can still produce a consistent story. External anchoring is
-  a v0.2 item.
-- **Secret scanning blocks *verified* secrets.** TruffleHog verifies credentials
-  against the live provider; an unverifiable key (offline machine, unreachable
-  endpoint, offline-only key type) is not blocked. This is a deliberate trade against
-  false positives bricking every commit. The hook fails *closed* if it cannot scan.
-- **Enforcement vs. instruction.** Claude Code gets real enforcement (permission
-  rules, hooks, MCP). The other six harnesses get policy files plus instruction
-  blocks — a contract the agent is told to follow, not a mechanism that stops it.
-
-## Design contract (from the spec)
-
-**Opinionated** defaults · **Modular** enable/disable/swap · **Composable** — integrates
-best-in-class open source (TruffleHog, RTK, OCEAN, nono, OpenMemory, CodeGuard) rather
-than reimplementing it · **Harness-native** abstractions (config surfaces, tool
-boundaries, hooks) · **Local-first** — plain files, no hosted control plane ·
-**Secure-by-default** with explicit opt-outs · **Cross-platform-aware** (verified on
-macOS/Linux in v0.1).
-
-### Non-goals
-
-- Building a general-purpose agent framework.
-- Building a custom multi-agent runtime or orchestration SDK.
-- Building an ADK for creating bespoke agents from scratch.
-- Replacing the coding harness itself.
-- Replacing existing best-of-breed open-source tools when integration is the better path.
-
-## Development
-
-```
-bun run check      # typecheck + tests with the 95%/95% coverage gate
-bun test           # fast test run
-```
-
-Architecture: [`docs/DESIGN.md`](docs/DESIGN.md). Verifiable system of record:
-[`ISA.md`](ISA.md). Source spec: `ADE Bootstrapper.md`.
+  `ade.lock.json` (which you commit to git). In-place edits, truncation, tail-drops,
+  and chains re-forged from the public genesis anchor are all detected. Residual
+  limit: an attacker who rewrites the log *and* the committed lockfile together.
+- **Secret blocking is verified-findings only.** The pre-commit gate blocks secrets
+  TruffleHog can *verify*; unverifiable candidates warn.
+- **Enforcement differs per harness.** Harnesses with permission/hook surfaces
+  (Claude Code) get real wiring; the rest get policy files + instruction blocks, and
+  the docs say which is which.
+- **The GUI never acts on its own.** No auto-updates, no scheduled jobs, no network
+  calls except the package-manager subprocesses you explicitly trigger.

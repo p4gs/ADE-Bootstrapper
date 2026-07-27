@@ -1,0 +1,11 @@
+[package]
+name = "ade-control-center"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ade-core = { version = "0.2.0", path = "../ade-core" }
+eframe = "0.35.0"
+egui = "0.35.0"
+serde_json = "1.0.151"

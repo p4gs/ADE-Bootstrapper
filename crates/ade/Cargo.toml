@@ -1,0 +1,9 @@
+[package]
+name = "ade"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ade-core = { version = "0.2.0", path = "../ade-core" }
+serde_json = "1.0.151"

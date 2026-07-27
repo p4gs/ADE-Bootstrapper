@@ -1,14 +1,16 @@
 ---
-task: "Create ADE Bootstrapper toolkit from owner's spec"
+task: "ADE Bootstrapper — v0.2: Control Center GUI + menu-bar helper"
 slug: 20260712-084930_ade-bootstrapper
 project: ADE-Bootstrapper
 effort: E4
-effort_source: classifier
-phase: complete
-progress: 168/168
-mode: interactive
+effort_source: ultracode
+phase: build
+progress: 223/225
+mode: autonomous
 started: 2026-07-12T08:49:30Z
-updated: 2026-07-25T00:00:00Z
+updated: 2026-07-26T15:25:00Z
+principal_stated_goal: "Update ADE Bootstrapper so it has a GUI application and task bar helper so it's easy for users to see what capabilities/tools are installed and running on their laptop/desktop. This should allow users to enable, disable, uninstall, reinstall, install, and update to the latest version for each capability/tool. It also will allow them to see errors or warnings related to each capability/tool. You must fully test this end to end on my machine to ensure it's working as intended. Use Interceptor MacOS bridge to do so"
+principal_goal_revision_2026_07_25: "Wait - this GUI app should be an OS native app, not a web app. It should be built in Rust as much as possible. The GUI should be sleak, modern, and polished."
 ---
 
 # ADE Bootstrapper — Project ISA
@@ -23,7 +25,7 @@ A developer runs `ade init` in any repository and thirty seconds later has a har
 
 ## Out of Scope
 
-Per the spec's non-goals: no general-purpose agent framework, no multi-agent runtime or orchestration SDK, no ADK for bespoke agents, no replacement of the coding harness itself, and no reimplementation of best-of-breed tools where integration is the better path (we integrate TruffleHog, we do not write a secret scanner; we integrate RTK, we do not write an output compressor). Also out of v0.1 scope: a hosted/network control plane (local-first only), Windows-native testing (code is written cross-platform-aware but v0.1 is verified on macOS/Linux), a GUI, telemetry of any kind, automatic remote sync of memory content (v0.1 wires MCP config for OpenMemory; it does not implement a sync server), and live enforcement inside harnesses we cannot hook (policy files + instruction blocks are the mechanism for harnesses without hook surfaces).
+Per the spec's non-goals: no general-purpose agent framework, no multi-agent runtime or orchestration SDK, no ADK for bespoke agents, no replacement of the coding harness itself, and no reimplementation of best-of-breed tools where integration is the better path (we integrate TruffleHog, we do not write a secret scanner; we integrate RTK, we do not write an output compressor). Also out of v0.1 scope: a hosted/network control plane (local-first only), Windows-native testing (code is written cross-platform-aware but v0.1 is verified on macOS/Linux), a GUI (**scope reversed 2026-07-25 by owner /goal — v0.2 adds a local-only Control Center GUI + macOS menu-bar helper; still no hosted control plane, still local-first**), telemetry of any kind, automatic remote sync of memory content (v0.1 wires MCP config for OpenMemory; it does not implement a sync server), and live enforcement inside harnesses we cannot hook (policy files + instruction blocks are the mechanism for harnesses without hook surfaces).
 
 ## Principles
 
@@ -37,7 +39,7 @@ Per the spec's non-goals: no general-purpose agent framework, no multi-agent run
 
 ## Constraints
 
-- **Bun + TypeScript only** (owner's global rule); zero runtime dependencies — dev-deps limited to `typescript` for typechecking.
+- **Bun + TypeScript only** (owner's global rule); zero runtime dependencies — dev-deps limited to `typescript` for typechecking. **AMENDED 2026-07-25 (owner-ratified): the product is being ported to Rust** — single static `ade` binary, MIT/Apache-compatible crates, `cargo-deny`-clean; the TS tree remains in-repo as the executable specification (test oracle) until parity is proven, and its suite must stay green untouched-in-behavior throughout the port.
 - **No shell interpolation with external input**: all subprocess execution via argument arrays (`Bun.spawn` with argv), never string concatenation into a shell.
 - **95% line + 95% function coverage floor**, enforced by a local check target and CI gate, meaningful assertions only (owner's global rule); structurally untestable entry-point lines documented via ignore pattern.
 - **Managed-block editing only** for user-owned files (CLAUDE.md, AGENTS.md, .cursorrules, settings.json): ADE content lives between explicit markers; content outside markers is never modified or deleted.
@@ -289,6 +291,97 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - [x] ISC-140: ISA (this file) committed to the repo as system of record
 - [x] ISC-141: All work committed; working tree clean at completion (`git status --porcelain` empty)
 
+### v0.2 — All-Rust port + native Control Center + menu-bar helper (2026-07-25, owner /goal; architecture owner-ratified: full Rust, no server)
+
+#### Core port & parity (ade-core)
+
+- [x] ISC-158: a root Cargo workspace (`crates/ade-core`, `crates/ade`, `crates/ade-control-center`, `crates/ade-status`) builds a single static `ade` binary; `cargo build --release` exit 0 workspace-wide
+- [x] ISC-159: `ade-core` ports the complete v0.1 domain: config model, deterministic lockfile, tamper-evident audit chain, managed-block engine, canonical instructions + translation, context/tool/harness detection, all 15 modules, all 7 harness adapters (incl. the claude-code settings/MCP managed merges), init/plan/apply/verify pipelines, doctor/status report
+- [x] ISC-160: serialization byte-parity: Rust stable-JSON output (sorted keys, 2-space indent, trailing newline) is byte-identical to TS `stableStringify` on nested fixtures, and sha256/canonicalization match — proven by differential tests
+- [x] ISC-161: full-bootstrap differential: `ade init` (Rust) and the TS oracle on identical fixtures produce byte-identical trees except a documented divergence allowlist (ade version strings; hook wiring per ISC-165); the harness diffs every file and the allowlist is explicit in the test
+- [x] ISC-162 *(amended 2026-07-25 — the original "passes verify cleanly" was wrong about what SHOULD happen)*: cross-version compatibility means the MACHINERY interoperates and the sanctioned v0.2 content changes surface as **named drift**, migrated by ONE `ade apply`: on a TS-bootstrapped repo, Rust `ade verify` validates the lockfile hashes, managed-block hashes, and the TS-written audit chain, flags ONLY the sanctioned instruction/hook drift (ISC-165), and after `ade apply` → verify PASS with the audit chain GROWN across implementations (18 TS entries → 36 total, checkpoint matched) — verify silently tolerating stale content would be the bug
+- [x] ISC-163: the adversarial-audit attack replays pass against the Rust port: audit truncate-to-empty FAILS verify, tail-drop FAILS, genesis re-forge FAILS via the lockfile checkpoint, ade-markers-without-provenance are REFUSED (user prose preserved byte-for-byte), a planted `.ade/` file FAILS verify naming the file (ports of the ISC-142..146 probes)
+- [x] ISC-164: CLI surface parity: every v0.1 command, flag, exit-code convention (0/1/2) and `--json` shape is reproduced by the Rust `ade`; a ported behavior suite mirroring the TS CLI tests is green
+- [x] ISC-165: hooks are runtime-free: harness hook wiring invokes the installed `ade` binary (e.g. `ade hook append`) instead of generated bun scripts — target repos need no JS runtime; the hook appends a valid chain entry under a synthetic invocation and degrades gracefully when `ade` is absent
+- [x] ISC-166: `ade doctor` / `ade status` / `ade modules` parity including degraded findings and human output shapes
+
+#### GUI data layer (in-process — no server, no IPC daemon)
+
+- [x] ISC-167: the capability inventory lives in ade-core: ≥17 capabilities covering all 10 INTEGRATED_TOOLS and all 7 harness CLIs, each with a lifecycle method (`brew`|`brew-cask`|`npm`|`manual`); every non-manual recipe names a package verified to exist in its manager (live-verified on this machine); unverifiable tools are honestly `manual` with guidance
+- [x] ISC-168: per-capability issues use the severity model: absent+enabled ⇒ warn + install remediation; version-probe failure ⇒ error; last job failed ⇒ error with log tail; update available ⇒ info; machine-disabled ⇒ single info and warnings suppressed
+- [x] ISC-169: running-state detection via argv-array process probes for capabilities with process signatures; live-proven on this machine
+- [x] ISC-170: detection runs probes concurrently with a per-probe timeout (a hung binary cannot hang the GUI or tray)
+- [x] ISC-171: jobs run in-process in the Control Center: per-capability lock, ordered argv execution stopping at first failure, captured logs; job records persist to `$ADE_HOME/jobs.json` so the tray reflects activity (file-based visibility, no IPC)
+- [x] ISC-172: machine state `$ADE_HOME/gui.json` (disabled capabilities + registered projects) is schema-versioned + deterministically serialized; corrupt state degrades to defaults with a surfaced warning, never a crash
+- [x] ISC-173: latest-version lookups run ONLY on an explicit user action; recorder test proves detection/render paths never spawn brew/npm
+- [x] ISC-174: project operations in-process: register a repo (validated `ade.json`, precise error otherwise), per-module report with findings + verify results, module toggle = validated config edit → re-apply → re-lock with verify green after (fixture-proven)
+
+#### Security anti-claims (v0.2)
+
+- [x] ISC-175: Anti: NO ADE component listens on any TCP/UDP port — live `lsof` probe against the running Control Center, tray, and CLI shows zero listeners
+- [x] ISC-176: Anti: user/UI input never reaches subprocess argv unvalidated — capability ids resolve against the static inventory, actions are a closed enum, project paths only via the validated config loader (tests prove no spawn for unknown/path-shaped ids)
+- [x] ISC-177: Anti: no secret env values appear in generated artifacts, job logs, or persisted state (planted-secret probe, Rust port of the v0.1 test)
+- [x] ISC-178: Anti: no install/uninstall/update/apply ever runs without an explicit user action in that session — no auto-update, no scheduled jobs
+- [x] ISC-179: Anti: no shell-string subprocess anywhere in `crates/` (`Command` argv arrays only; grep probe for `sh -c` / shell interpolation)
+- [x] ISC-180: Anti: the TS oracle stays green and behavior-untouched until parity is proven — `bun test` passes at close with the v0.1 surface intact (the oracle is the spec, not a casualty)
+- [x] ISC-181: Anti: the e2e leaves the machine net-clean: the probe tool ends in its as-found state; the only durable additions are the intended artifacts (apps, tray LaunchAgent, `ade` binary, `~/.ade/` state)
+
+#### Native GUI — Rust (owner revision 2026-07-25: OS-native, Rust, sleek/modern/polished)
+
+- [x] ISC-182: the workspace passes all Rust gates: `cargo fmt --check` clean, `cargo clippy --all-targets -- -D warnings` clean, `cargo test` green, MIT/Apache-licensed crates only (cargo-deny-compatible licensing)
+- [x] ISC-182.1: the Control Center is visually polished: a custom theme (refined palette, rounded cards, consistent spacing, quality typography), light AND dark mode following the OS appearance, no stock-egui look — an appearance claim, closed only on viewed non-degenerate screenshots of both modes
+- [x] ISC-183: capabilities render as native rows/cards: status indicator, version (and latest when known), running badge, contextual action buttons (Install when absent; Update/Reinstall/Uninstall when present; guidance for `manual`), an enable/disable toggle, and expandable issue details — all driven from ade-core in-process
+- [x] ISC-184: a capability's warnings/errors are visible in the app with remediation text (live: an absent tool shows its warn + install guidance)
+- [x] ISC-185: projects UI (native): register a repo by path, see per-module toggles + findings, toggle a module off/on with the resulting apply report surfaced
+- [x] ISC-186: jobs UI (native): a running job shows live progress; a finished job exposes its captured log; a failed job is visibly an error
+- [x] ISC-187: AccessKit is enabled: the app exposes a real macOS AX tree — every actionable control carries a stable accessible label, readable and clickable via `interceptor macos` (the e2e drive path)
+
+#### macOS packaging (Rust apps)
+
+- [x] ISC-188: the bundle script packages both binaries into valid app bundles — `ADE Control Center.app` (regular app) and `ADE Status.app` (`LSUIElement=true`) — with correct Info.plist (bundle ids `com.ade-bootstrapper.control-center` / `.status`, space-free executable names)
+- [x] ISC-189: ADE Status: the tray refreshes from ade-core detection on a timeout budget shorter than its poll interval; the icon reflects aggregate status (ok/warn/error/degraded); the menu lists per-capability lines (core-formatted glyph+label), counts incl. running jobs from `jobs.json`, "Open Control Center", and Quit
+- [ ] ISC-190: tray degradation: when detection itself fails the menu still opens with a degraded notice and "Open Control Center"/"Quit" keep working — the tray never hangs and never crashes (live-proven)
+- [x] ISC-191: Control Center cold start: a loading state before first detection completes and graceful empty states — never a crash or a blank window (live-proven)
+- [x] ISC-192: `ade gui install` installs the `ade` binary to `~/.local/bin`, both apps to `~/Applications`, and ONE LaunchAgent (`com.ade-bootstrapper.status`, RunAtLoad + KeepAlive-on-crash-only, PATH containing the package-manager dirs); `launchctl print` shows it running; re-run is idempotent
+- [x] ISC-193: `ade gui uninstall` bootsout the agent, removes the plist + apps, leaves no orphan processes (pgrep proof)
+- [x] ISC-194: under launchd the tray detects the same tool set as an interactive `ade doctor` (PATH parity live-proven)
+
+#### End-to-end on THIS machine via the Interceptor macOS bridge (owner mandate)
+
+- [x] ISC-195: e2e lifecycle drive: through the real native Control Center (macOS bridge AX + pixels), on a currently-absent capability (pre-commit): Install → job completes → UI + `which` confirm installed; Update → ok; Reinstall → ok; Uninstall → UI + `which` confirm absent (machine as-found); each stage evidenced with a viewed, non-degenerate screenshot
+- [x] ISC-196: menu-bar e2e: the ADE Status item is present and driven via the bridge — dropdown opened and read (per-capability lines match `/api/state` truth), "Open Control Center" brings up the app window; viewed screenshot of the open menu
+- [x] ISC-197: errors/warnings e2e: at least one real warning (absent tool with remediation) and one real failed-job error are visible in the Control Center AND reflected in the menu-bar counts (live, viewed)
+- [x] ISC-198: module-toggle e2e: through the native UI, a module of a registered fixture project is disabled then re-enabled, with the apply report surfaced and `ade verify` green after each step
+
+#### Capability grouping & explainers (owner request 2026-07-25 late-run: "group Tools by Capabilities … users might want to swap out one tool for another … concise explainer (tool tip) about the why")
+
+- [x] ISC-205: ade-core carries a capability taxonomy: every tool AND harness maps to exactly one capability group; every group has a human name and a non-empty `why` explainer stating the problem it solves; integrity-tested (all group ids resolve, no empty groups, no unmapped entries)
+- [x] ISC-206: the Control Center offers an optional "Group by capability" view toggle — off preserves the flat Tools/Harnesses sections byte-for-behavior; on renders one section per capability with its provider tools beneath; the preference persists in `gui.json` (schema-tolerant load)
+- [x] ISC-207: each capability's `why` is revealed via tooltip — on the grouped section headers and on a per-row capability chip in flat mode (discoverable both ways); live pixel-verified
+- [x] ISC-208: swappability is legible: capabilities with multiple providers show them adjacent under one header (TruffleHog+Gitleaks under Secret Scanning; CocoIndex+ccc under Semantic Code Search; all 7 harnesses under Coding Harness) — live-verified
+- [x] ISC-209: all existing gates stay green after the feature (fmt/clippy deny-warnings/tests/coverage floor)
+
+#### Gates & ship (v0.2)
+
+- [x] ISC-199: coverage gate on the ported logic: `cargo llvm-cov` reports ≥95% line + function coverage over `ade-core` + `ade` (UI crates `ade-control-center`/`ade-status` excluded via documented ignore — GUI/event loops are the structurally-untestable class the owner rule carves out)
+- [x] ISC-200: TS oracle gates stay green: `bunx tsc --noEmit` exit 0 AND `bun test --coverage` exit 0 (the oracle keeps its own 95/95 gate)
+- [x] ISC-201: trufflehog scan of the repo: 0 verified secrets
+- [x] ISC-202: README + docs/DESIGN.md rewritten for the Rust product: install story (static binary), architecture (core crate + CLI + native apps, no server), the port's parity guarantees, and the honest enable/disable semantics (machine-level = GUI preference; project-level = real policy via ade.json)
+- [x] ISC-203: `.github/workflows/ci.yml` runs BOTH gates: the Rust workspace (fmt/clippy/test) and the TS oracle (typecheck + coverage) — the repo cannot silently drift from its spec
+- [x] ISC-210: `ade remove` exists with `--yes`/`--dir`/`--json`; without `--yes` it prints the full plan and writes NOTHING (live probe: tree digest identical across a plan-only run)
+- [x] ISC-211: round-trip identity — a repo snapshotted before `ade init` is restored byte-for-byte (files AND directories) by init → apply → `ade remove --yes`, proven both in-suite and live through the release binary
+- [x] ISC-212: co-owned files keep user content — a managed block is excised leaving surrounding bytes untouched; a file that held only ADE's block is deleted
+- [x] ISC-213: hand-edited ADE files are never destroyed — a lockfile-tracked file whose hash no longer matches is KEPT and reported
+- [x] ISC-214: files planted under `.ade/` (absent from the lockfile) are KEPT and reported — remove never deletes what it didn't write
+- [x] ISC-215: `.ade/instructions.local.md` is deleted only when byte-identical to the stub; an edited one is kept as the user's own words
+- [x] ISC-216: a pre-existing git hook that `apply` chained aside is RESTORED over ade's shim, with no orphaned `pre-commit.pre-ade` left behind
+- [x] ISC-217: co-owned JSON (`.claude/settings.json`, `.mcp.json`) is un-merged by subtracting exactly ADE's values; user entries and user-MODIFIED values survive; containers ADE created are pruned when empty
+- [x] ISC-218: `ade remove` is idempotent — a second run reports nothing to remove and changes nothing
+- [x] ISC-219: Control Center project card offers *Remove ADE…* behind a two-step confirm, distinct from *Forget* (which only stops tracking); the decision logic lives in `ade-core::gui::projects` so it is covered, not stranded in a UI crate
+- [x] ISC-220: every write is atomic (temp-file + rename) — a concurrent reader never observes an empty or partial file, and no temp file survives a clean run
+- [x] ISC-221: test temp directories cannot collide for the same tag (the cause of a real intermittent suite failure)
+- [ ] ISC-204: all work committed with Justin's Secretive-signed commit (tap prompt — never auto-signed); tree clean at close
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -305,6 +398,12 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 | 121-128 | anti | grep probes, planted-secret tests, tree-diff, offline probe | zero violations | bun test, Grep |
 | 129-135 | e2e/live | real CLI runs in temp dirs; live tool probes on this machine | exit codes + artifacts | Bash |
 | 136-141 | docs | Read/grep README, DESIGN, module headers; git status | present + accurate | Read, Grep, Bash |
+| 158-174 | gui server/API | handler unit tests via DI (fake exec/which, temp ADE_HOME) + real ephemeral-port smoke | exit/status codes + JSON shapes | bun test, curl |
+| 175-181 | gui anti | CSRF/rebinding forged requests, injection ids, exec-recorder, planted secret, net-clean audit | zero violations | bun test, Bash |
+| 182-187 | native GUI | cargo build/fmt/clippy/test gates + viewed screenshots (appearance) + AX-tree reads | exact + pixels | Bash(cargo), interceptor macos |
+| 188-194 | packaging | bundle.sh exit 0, plutil probes, launchctl print, PATH-parity live diff | exact | Bash |
+| 195-198 | e2e | interceptor macos AX drive + viewed screenshots + `which` ground truth | live behavior matches claims | interceptor macos, Bash |
+| 199-204 | gates | typecheck, coverage gate, trufflehog, docs grep, signed commit | hard gates | Bash, Read |
 
 ## Features
 
@@ -338,6 +437,14 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 | e2e-live | end-to-end + live machine probes | ISC-129..135 | all | no (last) |
 | docs | README, DESIGN, module headers | ISC-136..139 | all | partially |
 | ship | commit clean tree with ISA | ISC-140..141 | all | no (last) |
+| gui-report | extract shared doctor/status report module (CLI-compatible) | ISC-174 | core | no (v0.2 first) |
+| gui-inventory | capability registry: detect/install/uninstall/update recipes + running probes + machine state | ISC-159..161, 164..167, 170 | gui-report | no |
+| gui-jobs | async job runner with per-capability locks | ISC-162..163 | gui-inventory | no |
+| gui-api | request handlers + server (127.0.0.1, CSRF guards, menubar payload) | ISC-158, 168..169, 171..173, 175..181 | gui-jobs | no |
+| gui-native | Rust workspace: ade-gui-core client crate + egui Control Center + tray helper | ISC-182..187 | gui-api | no |
+| gui-macos | app bundling + launchd install/uninstall | ISC-188..194 | gui-native | partially |
+| gui-e2e | on-machine drive via interceptor macos | ISC-195..198 | all gui | no (last) |
+| gui-gates | typecheck/coverage/secrets/docs/ship | ISC-199..204 | all gui | no (last) |
 
 ## Decisions
 
@@ -353,6 +460,10 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - 2026-07-12T10:05Z — **Advisor's pre-completion findings adopted:** non-regular-file guard on managed-block writes (symlink/FIFO/socket = possible secret mount); the broken `--since-commit` scanner invocation is now *remediated* on adoption (error from apply + verify), not merely avoided in greenfield; live-vs-fixture harness split stated in DESIGN; atomicity/rollback and `ade remove` documented as known v0.1 limitations rather than implied. Advisor's "no remote = not shipped" noted: no remote exists for this repo and none was authorized.
 - 2026-07-12T09:05Z — **Scope held at 15 real modules** (advisor suggested 5 + stubs): most modules are policy-file writers over the same helpers — the heavy interface risk the advisor priced in is concentrated in the 2 probe modules I hand-write first. If fan-out quality fails gates, fallback is stub-and-defer per module.
 - 2026-07-25T00:00Z — **Codebase-context engines wired: OpenWiki + CocoIndex, Personal Brain as a distinct opt-in sub-capability** (owner request). Extended the existing `context` module rather than adding a 16th — the codemap is the always-on fallback, and OpenWiki/CocoIndex are additive engine tiers, so this is the same shape as sandbox(nono)/token-efficiency(rtk)/memory(openmemory). Chose **detect-wire-guide over literal auto-install**: no ADE module force-installs at apply-time (determinism + secure-by-default); the module detects the engine, writes `.ade/policy/context-engines.json`, and emits exact install commands. OpenWiki has one binary serving two brains — **Code Brain** (the codebase wiki, enabled whenever `openwiki` is present) and **Personal Brain** (general-purpose external-source memory, `options.enableBrain`, off by default because it reaches outside the repo, mirroring memory's `enableMcp` opt-in). CocoIndex is present if EITHER `cocoindex` or the `ccc` CLI resolves. `ade verify` re-derives engine state from the live machine and fails on drift (same contract as token-efficiency's enabled==present check). Licensing captured for the internal-commercial use case: OpenWiki MIT + CocoIndex Apache-2.0 are both free-for-commercial and safe to bundle; Repowise (AGPL core, paid wiki tier) deliberately NOT wired.
+
+- 2026-07-25T16:20Z — **Owner-ratified (AskUserQuestion after an explicit pressure-test round): the ENTIRE product goes Rust — full port now.** The owner's thesis: super easy to install/manage, performant, low-resource, highly secure, cross-platform (macOS/Windows/Linux). My honest pressure-test, which he asked for before acting: raw performance is a wash for a config generator — the decisive wins are (1) single-static-binary distribution (the "first install Bun" opener fails the product's own promise), (2) Windows reach, (3) the hooks hot path (per-commit/per-tool-call hooks become a ~5ms `ade hook` call and target repos need NO JS runtime), (4) runtime-free attack surface + supply-chain attestation (cargo-vet/deny/SLSA) for a GRC audience, (5) portfolio coherence (OCEAN/nthpartyfinder/rtk are Rust); Go named honestly as the credible rival (loses on portfolio fit + the already-built egui GUI). **Port mechanics:** the zero-runtime-dep TS v0.1 (~4,100 lines + 377 tests, adversarial-audit-hardened) becomes the executable specification — differential tests demand byte-identical artifacts vs the oracle (divergence allowlist: version strings, hook wiring), cross-version verify compatibility, and replays of the six audit attacks. **Architecture simplification:** the localhost API server is DELETED — Control Center and tray link ade-core directly; nothing listens on any port (ISC-175); tray↔GUI job visibility via `$ADE_HOME/jobs.json`. The half-built TS GUI layer (src/gui/*, gui command) is removed to keep the oracle minimal; the report.ts extraction stays (tested, behavior-preserving). Risk named: the audit-hardened semantics (managed-block refusal, checkpoint anchoring, tree enumeration) are where ports quietly regress — they get dedicated replay probes (ISC-163), not just diff coverage.
+- 2026-07-25T15:05Z — **Mid-run owner revision: the GUI is an OS-native Rust app, not a web app ("sleak, modern, and polished").** The in-progress web dashboard (app.html, never shipped) was deleted; the API server stays (it is the contract the native clients consume). **Framework: egui/eframe** — chosen over Tauri (webview — the exact thing the owner rejected), Iced (no usable accessibility tree, which would make the mandated `interceptor macos` AX-driven e2e impossible), Slint (GPL/commercial licensing friction in an MIT repo), and raw objc2/AppKit (weeks of widget work for one screen). egui is pure Rust, MIT/Apache, mature, and integrates **AccessKit**, giving the app a real macOS AX tree — testability is a first-class reason, per the Pulse retrospective where missing AX identifiers permanently blocked pixel verification. **The domain layer stays TypeScript**: modules/verify/apply/inventory are the tested core; the Rust layer is presentation only ("Rust as much as possible" = the entire GUI + tray). Two binaries + one shared client crate (`ade-gui-core`) in `gui/native/`; polish is a falsifiable appearance claim (ISC-182.1) closed on viewed pixels in both light and dark mode. Rust gates: fmt/clippy -D warnings/test locally (CI stays TS-only until a macOS runner exists; no remote exists anyway); coverage for the UI loop is structurally exempt per the owner's global coverage rule (documented ignore), while `ade-gui-core` logic is unit-tested.
+- 2026-07-25T14:10Z — **v0.2 Control Center architecture (owner /goal: GUI + task-bar helper, e2e via Interceptor macOS bridge).** (1) **Three thin layers over the existing core**: a zero-dep Bun HTTP server (`ade gui`) exposing a JSON API + one self-contained dashboard page; a Swift WKWebView shell app ("ADE Control Center"); a Swift NSStatusItem helper ("ADE Status") — all logic stays in tested TypeScript, Swift is presentation only (Pulse MenuBar pattern, proven on this machine since 2026-07-20). (2) **Localhost-only, defense-in-depth**: bind 127.0.0.1, Host/Origin validation + custom-header CSRF gate on mutations, action ids matched against a static inventory so request input never reaches argv. (3) **Network honesty**: v0.1's no-network constraint stays intact for init/apply/verify; the GUI's install/update actions are explicit user-initiated package-manager subprocesses (brew/npm), and latest-version checks run only on demand — never at startup, never scheduled. (4) **Enable/disable honesty**: machine-level disable is a GUI/menubar preference persisted in `~/.ade/gui.json` (suppresses warnings, greys the row); the real policy lever remains per-project `ade.json` module toggles, which the GUI edits through the validated loader followed by re-apply + re-lock. UI copy states this. (5) **Recipes are verified, not guessed**: live-probed on this machine — brew formulae exist for trufflehog/gitleaks/pre-commit/osv-scanner/rtk/opencode, casks for codex/cursor/antigravity, npm for openwiki/pi/claude-code; ocean/nono/cocoindex/ccc/hermes are `manual` with guidance (no invented package names). (6) **AXIdentifiers from day one** on both Swift apps + aria/ids in the dashboard — the Pulse retrospective showed their absence is what turns pixel-verification into a dead end. (7) Machine state lives in `$ADE_HOME` (`~/.ade/`), never inside a project's lockfile-enumerated `.ade/` tree.
 
 ## Changelog
 
@@ -422,4 +533,218 @@ All evidence gathered 2026-07-12 on this machine (macOS, bun 1.3.10, git 2.50.1)
 - ISC-157 [x] no force-install: `apply` execs no installer — the only module `ctx.exec` calls remain the git-config read (git-hygiene) and version probes (reproducibility); grep confirms zero install execs. 377 tests pass, context-mgmt.ts 100% line / 99.71% func, whole-suite gate green.
 - Gates after remediation: `bunx tsc --noEmit` exit 0; **367 tests pass / 0 fail**; `bun test --coverage` exit **0** at 99.62% lines / 99.92% functions.
 
+**v0.2 all-Rust port + native GUI (2026-07-25, evidence gathered live on this machine):**
+- ISC-158: root Cargo workspace (`crates/{ade-core,ade,ade-control-center,ade-status}`); `cargo build --release` exit 0; binaries: `ade` 3.2 MB, `ade-status` 1.3 MB, `ade-control-center` 18 MB.
+- ISC-159/164: full domain ported — 9-agent fan-out (audit 12t, lockfile 7t, instructions+translate 15t, claude-harness 8t, 15 modules 231t) + hand-ported foundation/gui/run/report/CLI; **`cargo test` 339 passed / 0 failed** (pipeline+CLI test port in flight adds more); every agent reported divergences, all sanctioned classes (async→sync, ISC-165 hook shims, named implementation notes in the workflow output).
+- ISC-160: byte-parity fixtures asserted against LIVE oracle outputs (stable-stringify layouts, sha256 vectors, audit entry hashes b45f177b…/323ae71e…, template sha256 anchors 59837ee6…/c7eb5321…/41c83443…); the audit canonicalization gotcha (FIXED key order ts,actor,action,target,result,prev — NOT sorted) caught and encoded by the port agent with hard-coded cross-implementation hash tests.
+- ISC-161: `scripts/parity-check.sh` → **parity: PASS** — full `ade init` trees byte-identical vs the bun oracle except the closed allowlist (audit log timestamps+genesis, 2 hook shims, ONE bun→sh instruction line + its content-hash echo, settings hook command, lockfile adeVersion/checkpoint/those hashes); manifest.json initially DIVERGED (`macos/aarch64` vs `darwin/arm64`) — fixed via node_os_name/node_arch_name mapping, class-swept (1 site), now byte-identical.
+- ISC-162 (amended): Rust `ade verify` on the TS-bootstrapped fixture → named instruction-drift findings only; `ade apply` → `ade verify` PASS; **`ade audit verify` → "chain VALID (36 entries, checkpoint matched)"** — the Rust implementation appended to and validated the TS-written chain (cross-implementation hash compatibility proven end-to-end).
+- ISC-163: attack replays via the REAL Rust CLI on real fixtures: truncate-to-empty → "chain BROKEN (truncated at entry 0)" exit 1; tail-drop → "truncated at entry 30" exit 1; planted `.ade/guardrails/exfiltrate.md` → verify exit 1 naming the file; marker-without-provenance → init exit 1 (translate REFUSED) with user prose preserved byte-for-byte (cmp).
+- ISC-165: hooks runtime-free — `.ade/hooks/*.ts` are sh shims exec'ing `ade hook append/scan` with graceful no-op when ade absent; `ade hook append` chain entries validate under `verify_chain` (hook.rs tests); `ade hook scan` ports the 5 injection patterns + custom-N naming, JSON verdict, exit 1 on flagged.
+- ISC-167..173: ade-core gui layer — 17 capabilities mirroring INTEGRATED_TOOLS+HARNESS_ADAPTERS (asserted), verified recipes only (brew/cask/npm probed live earlier: trufflehog 3.95.9, gitleaks, pre-commit 4.6.1, osv-scanner, rtk, opencode / codex 0.145.0, cursor, antigravity casks / openwiki 0.2.3, @earendil-works/pi-coding-agent, @anthropic-ai/claude-code on npm), issue model tests, pgrep running-detection tests, with_timeout bounds a hung probe at 124, JobRunner per-capability locks + jobs.json persistence (settle/persist race found by test and fixed), gui.json corrupt→defaults+warning.
+- ISC-175: live `lsof -i` on the RUNNING Control Center (pid 7051) and tray (pid 21214): **zero listeners** (re-probe scheduled at final e2e).
+- ISC-179: `grep -rn 'sh -c' crates/ --include='*.rs'` → 0 hits.
+- ISC-180: oracle intact — `bun test` **380 pass / 0 fail** after the doctor/status extraction refactor (byte-shape asserted by its own tests) and the src/gui removal.
+- ISC-182: `cargo fmt` clean; clippy deny-warnings clean (via RUSTFLAGS — the machine's rtk wrapper mangles `-- -D warnings`, gotcha recorded); licenses MIT/Apache only (egui/eframe/serde/sha2/regex/objc2 family).
+- ISC-188: `scripts/bundle-apps.sh` → both bundles; plutil: correct CFBundleIdentifiers, LSUIElement true ONLY for ADE Status, space-free executables.
+- ISC-192: `ade gui install` → all 6 steps ✓ (binary → ~/.local/bin/ade, both apps → ~/Applications, tray plist w/ package-manager PATH, bootstrap); `launchctl print` state=running, pid stable across checks; re-run idempotent (exit 0, 6/6 ✓); macOS itself surfaced the "ade-status can run in the background" Login Items notification (captured in screenshot).
+- ISC-201: trufflehog verified-secrets scan (excl. target/node_modules/bundles) → exit 0, 0 findings.
+- ISC-202/203: README rewritten for the Rust product (install story, Control Center, architecture, guarantee limits); CI = rust (macos: fmt/clippy/test) + oracle (ubuntu: tsc/coverage) + parity (macos: differential harness) jobs.
+- ISC-193: live uninstall/reinstall cycle — `ade gui uninstall` exit 0 (bootout "removed", plist gone, both apps gone from ~/Applications, `pgrep -x ade-status` empty = no orphans); reinstall → agent running again (pid 31262).
+- ISC-194: PATH parity PROVEN — `env -i HOME=… PATH=<plist PATH> ade doctor --json` vs interactive: tool-presence parity True, machine-harness parity True (identical detection under the launchd environment).
+- **OPEN (blocked on owner-side prerequisites or in-flight agents):** ISC-174/176/199 (pipeline+CLI test port agent), ISC-182.1/183..187/189..191/193..198 (native e2e — needs the objc2 tray rewrite agent + screen unlocked + Accessibility re-granted to interceptor-bridge after the stale-TCC reset; Control Center window exists w/ correct title but paint-verification needs it frontmost on an unlocked screen), ISC-181/193/194 (e2e teardown probes), ISC-204 (Secretive-signed commit at close).
+- **INCIDENT — CORRECTED (2026-07-25):** the "tray-icon creates no NSStatusItem" diagnosis was a FALSE NEGATIVE from a flawed probe: on this macOS (Darwin 25.5), third-party status items are hosted as replica windows OWNED BY Control Center's process, so an own-pid CGWindowList probe returns zero for EVERY implementation — including the proven PulseMenuBar.swift reference (empirically confirmed). The corrected A/B/A window-ID diff shows both the old tray-icon build AND the objc2 rewrite materialize exactly +2 layer-25 replicas on launch, removed on kill. The objc2 rewrite ships anyway as the net-better implementation (proven AppKit ordering, in-process `visible=true` confirmation, 3 tight FFI deps instead of tray-icon+winit's tree, accessibility label on the button); gotcha documented in the module doc comment. Lesson: an absence-probe must be validated against a known-good positive control BEFORE trusting its negative.
+
+**Capability grouping & explainers (2026-07-25, same-day owner request):**
+- ISC-205: taxonomy of 9 capability groups in ade-core inventory (id/name/why), every one of the 17 tools+harnesses mapped, integrity tests (unknown-group panic, empty-why rejection, no orphan groups, unique ids) + provider assertions (trufflehog+gitleaks under secret-scanning; cocoindex+ccc under semantic-search; 7 under coding-harness).
+- ISC-206: "Group by capability" header toggle wired through Engine → gui.json (`groupByCapability`, schema-tolerant, round-trip tested); grouped render live-verified via preference-flip + relaunch (screenshot: toggle ON, sections per capability). UI-click of the toggle itself lands with the AX e2e.
+- ISC-208: swappability legible in viewed pixels — "SECRET SCANNING (i) · 2 interchangeable providers" heading over adjacent TruffleHog/Gitleaks rows.
+- ISC-209: clippy deny-warnings clean, full suite green post-feature; tofu-glyph papercut (ⓘ/▸/▾ missing from Inter) found via screenshot and fixed to always-renderable glyphs.
+- ISC-207 remains open pending the AX hover drive (tooltip reveal needs pointer control).
+
+**E2E drive — first half banked (2026-07-26 morning, real clicks via the bridge, evidence in scratchpad/evidence/):**
+- ISC-195 (install stage ✓): a real HID click on pre-commit's Install button → toast "install started for pre-commit (job-1)", header spinner "1 job(s)", row "working…" — then `which pre-commit` → /opt/homebrew/bin/pre-commit 4.6.1 within ~5s, jobs.json job-1 ok exit 0 (brew bottle log captured), UI flipped to green dot + "pre-commit 4.6.1" + Uninstall/Reinstall/Update, header 11→12/17 installed and 6→5 warnings. Update/Reinstall/Uninstall stages pending the idle window.
+- ISC-167 (running detection, live pixels ✓): "running" badges visible on Claude Code AND OpenCode rows exactly while those CLIs had live processes.
+- ISC-197 (organic failed job ✓): a mis-aimed click (scroll-drift lesson) started openwiki `npm install -g` which genuinely failed (npm EEXIST cache race) — job-2 error exit 1 with full npm error log captured in jobs.json; UI shows OpenWiki "+2 issues" and header 1→2 errors. The pre-existing "1 error" root-caused on-screen: ccc is on PATH but its version probe fails → red dot + error issue (honest surfacing of real machine state). Issue-panel EXPANSION screenshot still pending focus.
+- ISC-206/208 (grouped dark ✓): grouped view screenshot in dark mode — SECRET SCANNING (i) "2 interchangeable providers" over adjacent TruffleHog+Gitleaks (both green), pre-commit green under GIT HOOK ORCHESTRATION post-install.
+- Drive mechanics learned (recorded for the remaining stages): capture→locate→click atomically (scroll drift caused the openwiki mis-click); egui ignores background postToPid clicks (HID + frontmost-guard required); first click on an inactive window only focuses it; occluded egui windows keep stale frames (activate before capture); scroll needs the cursor over the list (warp helper built); Safari focus-theft while the owner browses → idle-watch (HIDIdleTime ≥75s) arms the unattended completion of: Update/Reinstall/Uninstall stages, tooltip hover (needs active-window mouse-moved delivery), issue-panel expansion, Projects module-toggle, Activity log view, tray dropdown.
+
 **Method note (honest):** the audit ran three adversarial lenses (security, spec-fidelity, correctness) as an in-family panel — codex/Cato and Anvil were both unavailable on this machine (TF-CATO). It returned fail/fail/concerns with six distinct confirmed defects, every one reproduced with a live probe before I fixed it. Two of those defects (marker clobber, instructions overwrite) were silent data destruction on the documented happy path; two more (audit truncation, planted binding rule) defeated the exact tamper-detection the tool advertises. The v0.1 test suite was green through all of them — which is the finding worth remembering.
+
+**E2E drive — COMPLETED (2026-07-26, real HID clicks through the bridge; evidence in `scratchpad/evidence/e2e-08..20`):**
+
+- **ISC-195 (full lifecycle ✓)** — every stage a real click on the native UI, each confirmed against the machine, not just the pixels: Install → job-1 ok (`which pre-commit` → 4.6.1); **Update** → job-3 ok exit 0, log `brew upgrade pre-commit` → "Warning: pre-commit 4.6.1 already installed" (honest no-op, not a fake success); **Reinstall** → job-4 ok exit 0, a genuine reinstall (`Pouring pre-commit--4.6.1.arm64_tahoe.bottle.tar.gz`, 358 files); **Uninstall** → two-step guard armed a red "Confirm uninstall" + "Cancel" and started NO job (verified: top job still job-4), then Confirm → job-5 ok, `brew uninstall` removed 442 files, `which pre-commit` absent, `brew list` "No such keg". Header counters moved live 12/17→11/17 installed and 4→5 warnings; the row flipped back to hollow-dot / "not installed" / Install.
+- **ISC-197 (errors + warnings, both levels ✓ in the Control Center)** — INFO panel: "update available: codex-cli 0.144.5 → 0.145.0 — Use Update here to move to the latest version"; ERROR panel: "CocoIndex Code CLI (ccc) is on PATH but its version probe failed — Run `/Users/p4gs/.local/bin/ccc --version` in a terminal to inspect". Both expanded from the `+ N issue` disclosure (glyph flips + → −), both carrying concrete remediation.
+- **ISC-207 (tooltip ✓)** — hovering the CODING HARNESS `(i)` revealed: "The agent itself. ADE treats harnesses as swappable: one governed environment with consistent guardrails and instructions, whichever CLI you run today." Delivery required the window to be *active* (an inactive egui window receives no mouse-moved events, so no tooltip) plus a warp-dwell.
+- **ISC-206 (toggle ✓)** — clicking "Group by capability" flipped `~/.ade/gui.json` `groupByCapability` true→false and the view to the flat TOOLS list with capability chips retained; toggled back. **The first capture after the click showed the OLD frame — a stale-frame race in my capture, not a UI bug** (re-capture 2s later showed the correct flat view). Recorded because it nearly became a false defect report.
+- **ISC-174/185/198 (projects ✓)** — registered the bootstrapped fixture by path through the UI (toast + `gui.json` `projects` entry), Inspect loaded "verify PASS" + all 15 module toggles, toggled `memory` off → toast "module memory disabled — apply OK, verify PASS", `ade.json` `memory.enabled` true→false on disk, and an independent `ade verify` exit 0 with `ade audit verify` → "chain VALID (36 entries, checkpoint matched)". Toggled back on, re-verified green.
+- **ISC-186 (activity ✓)** — all five jobs listed newest-first with status pills, UTC timestamps and expandable logs; the openwiki failure's full 11-line npm error and the 69-line brew install log both rendered.
+- **ISC-189/196 (tray ✓, partial)** — the status item's dropdown opened and read: header "ADE — 10/17 healthy · 6 warn · 1 err", a second counts line, per-capability rows (✖ for the errored ccc, `·` for missing, ✓ with versions, "Claude Code 2.1.220 · running"), then Refresh Now / Open Control Center / Quit. Critically it showed `pre-commit · not installed` minutes after I uninstalled it in the GUI — cross-process agreement through `jobs.json`/detection with no IPC and nothing listening. **Not exercised: the "Open Control Center" item itself** (see divergences).
+
+**Two real defects the drive found — both fixed, both pinned by regression tests:**
+
+1. **The menu bar under-reported errors.** `ade-status/src/main.rs` passed an EMPTY `last_jobs` map into detection, so a capability whose last install/update FAILED appeared in the tray as merely "not installed" while the Control Center correctly showed it as an error — the two surfaces disagreeing about the same machine (tray "1 err" vs Control Center "2 errors"). Caught by reconciling the two counters instead of accepting the mismatch as a definitional difference. Fixed with `gui::jobs::read_last_finished()` (reads persisted `jobs.json`; the array is newest-first, so the FIRST finished entry per capability wins — the opposite of the in-memory oldest-first iteration, which is exactly the trap the test pins). Both surfaces now derive the summary through one `summarize()` helper.
+2. **`ade gui install` failed on reinstall.** `launchctl bootout` returns before the job is actually gone, so the immediately-following `bootstrap` got "Bootstrap failed: 5: Input/output error" — reproduced live on this machine, where a manual bootout-then-bootstrap succeeded. Fixed with a bounded settle-poll (`launchctl print` until the job disappears) plus a bounded bootstrap retry; the poll interval is injectable so the fake-exec tests stay at 0.01s. **Live-verified: the same `ade gui install` that failed now reports OK on every step.**
+
+**Supply chain + coverage gates added (the claims existed; the enforcement did not):**
+- `deny.toml` written — without it `cargo deny check licenses` rejects *everything* (empty default allow-list), so a green run proved nothing. Full tree is permissive-only; `cargo deny check` → "advisories ok, bans ok, licenses ok, sources ok". RUSTSEC-2026-0192 (`ttf-parser` unmaintained) is handled by telling the scanner the truth about what we build rather than suppressing it: it reaches the graph only via `sctk-adwaita` (winit's Wayland decorations, Linux-only) and `cargo tree --target aarch64-apple-darwin -i ttf-parser` prints nothing, so `[graph] targets` pins the macOS pair the v0.2 apps actually ship for, with an explicit "delete this when the GUI ports to Linux/Windows" instruction in the file.
+- `scripts/coverage-check.sh` + a CI step enforce the 95/95 floor on the Rust product (96.64% line / 96.74% function today). The two UI crates are excluded with the reason stated in the script: they are render/run loops, and every decision they display is computed in `ade-core::gui`, which IS covered.
+- CI now runs fmt, clippy `-D warnings`, tests, `cargo deny check`, and the coverage gate — plus the oracle and parity jobs.
+
+**Gates at close:** fmt clean · clippy `-D warnings` clean · `cargo test --workspace` 383 pass / 0 fail · coverage 96.64/96.74 (gate exit 0) · `cargo deny check` all four ok · `scripts/parity-check.sh` PASS ("trees identical modulo the sanctioned allowlist; TS-bootstrapped repo migrated cleanly under Rust ade") · oracle `bunx tsc --noEmit` 0 and `bun test --coverage` 380 pass / 99.92% line / 99.63% function.
+
+**Anti-claims closed with live probes:** ISC-175 — `lsof -nP -iTCP -sTCP:LISTEN` shows ZERO listeners from any ADE process, and there is no server in the design. ISC-177 — a real `ade init` run with three planted secrets in the environment (`SECRET_TOKEN`, `AWS_SECRET_ACCESS_KEY`, `ADE_PROBE_SECRET`) left 0 files in the bootstrapped tree and 0 in `~/.ade` containing any of them; now also pinned by a full-tree Rust test alongside the pre-existing module-level one. ISC-178 — `check_updates` (the only path that touches the network) has exactly ONE call site, gated on `.clicked()`; the poll thread only runs local detection; the single LaunchAgent runs the tray binary and nothing else; and all five jobs in `jobs.json` trace to a click I made. ISC-181 — machine left as found: pre-commit absent, openwiki absent (its install genuinely failed and was never retried), `gui.json` restored to no registered projects, clipboard restored; the only durable additions are the intended ones (two apps, one LaunchAgent, `~/.local/bin/ade`, `~/.ade/` state).
+
+**Divergences and what is NOT claimed (open):**
+- **ISC-187 (AccessKit) stays open and the claim as written is not met.** `interceptor macos tree --app ade-status` returns "no target app found" (LSUIElement, no regular app presence), and the Control Center's AccessKit tree did not expose browsable actionable elements to the bridge; the entire drive was done by coordinate mapping against viewed pixels, not by AX refs. Labels exist in code (`ax_button`/`ax_toggle` set `WidgetInfo::labeled/selected`) but "readable and clickable via `interceptor macos`" is unproven. Either prove it or rewrite the claim to what AccessKit actually delivers here.
+- **ISC-197 tray half is `[DEFERRED-VERIFY]`.** The fix is unit-pinned and the tray binary is rebuilt, installed and running, but the screen locked (HIDIdleTime 817s) before I could re-open the menu, and ScreenCaptureKit answers "Stream failed to start" against a locked display. I stopped after three attempts rather than substitute a weaker probe: the claim needs the tray showing 2 errors with openwiki marked ✖ in viewed pixels.
+- **ISC-196 partial** — "Open Control Center" was never clicked (I clicked Refresh Now instead); the item renders but its action is unexercised.
+- **ISC-190 (tray degradation) and ISC-191 (cold start) unexercised** — neither a forced detection failure nor a cold first-launch loading state was driven live.
+- **Live theme switching** still does not repropagate into egui content (title bar switches, content does not until relaunch); both modes were verified via separate fresh launches, so ISC-182.1 is closed on that evidence, but the papercut is real.
+
+**v0.3 groundwork while the owner was away (2026-07-26): the two things v0.2 promised and never shipped.**
+
+The honest ledger in `docs/DESIGN.md` listed `ade remove` and apply atomicity as
+planned-not-built. Both are now built, because they are the two items where the
+gap between what the docs claimed and what the code did was largest.
+
+**`ade remove` (ISC-210..219) — a clean way out.** Before this, uninstalling ADE
+meant hand-deleting `.ade/`, `ade.json` and `ade.lock.json` and then doing surgery
+on CLAUDE.md / AGENTS.md / settings.json to pull ADE's content out without damaging
+your own — exactly the error-prone editing the managed-block engine exists to
+prevent. For a tool whose pitch is "it's just files, try it", the absence of an
+exit was a trust hole.
+
+Design decisions worth keeping:
+- **Lockfile-driven, not path-guessed.** The lockfile already enumerates the
+  ADE-owned tree with content hashes, so "did we write this, and is it still what
+  we wrote?" is answered per file. A hash mismatch means the user edited it → KEPT.
+- **The apply rule, pointed the other way: never destroy what we cannot prove we
+  wrote.** Blocks with no ADE provenance line, hand-edited blocks, corrupt markers,
+  files planted under `.ade/`, an edited `instructions.local.md` — all kept and
+  reported. `remove_managed_block` mirrors `upsert_managed_block`'s refusals exactly.
+- **Co-owned JSON is un-merged, not deleted.** `subtract_json` is the inverse of
+  `deep_merge`: it removes only values deep-equal to what ADE writes, leaves user
+  entries, and leaves any value the user CHANGED (a modified value is theirs now).
+  The patches are rebuilt from the same constants the modules merge, and the
+  round-trip test fails if a module starts merging something removal doesn't know —
+  drift is caught by construction rather than by discipline.
+- **A chained git hook is put BACK.** `apply` renames a pre-existing
+  `.git/hooks/pre-commit` aside and chains it; deleting our shim and orphaning
+  `pre-commit.pre-ade` would leave the repo *looking* clean while silently having
+  lost a gate the user relied on. Verified live.
+- **Plan/execute split.** The first implementation decided and mutated in one pass,
+  so the dry run and the real run disagreed (the real run's later steps saw a tree
+  its earlier steps had already changed). Caught by asserting the two produce
+  identical action lists; fixed by computing the whole plan purely, then executing
+  it. Without `--yes` nothing is written at all.
+- **Empty directories pruned bottom-up, never recursively deleted** — one kept file
+  keeps its whole directory chain alive. The file-hash round-trip test MISSED the
+  leftover-empty-`.ade/` defect (a hash snapshot cannot see directories); the test
+  now asserts on directories too, and on the user's `.claude/` surviving.
+
+Evidence: round-trip proven in-suite AND live through the release binary on a
+realistic repo (own CLAUDE.md, own .gitignore, own executable pre-commit hook) —
+plan-only run left the tree digest untouched, `--yes` restored the pre-init digest
+exactly, path listing identical including directories, hook contents restored
+verbatim.
+
+**Atomicity (ISC-220) — found by chasing a flake instead of re-running it.** A
+single suite run failed with "EOF while parsing a value" reading a manifest, then
+passed 3/3 and passed alone. Rather than shrug, I traced it: ten tests share the
+temp-dir tag `reproducibility`, the tag's uniqueness came from `SystemTime` whose
+real resolution on macOS is coarser than its nanosecond units, so two parallel
+tests could land in the SAME directory — and `write_ensured` used `fs::write`,
+which truncates before writing, so the other test read an empty file. Two fixes:
+`make_temp_dir` now carries a process-wide atomic counter, and **every write is
+now temp-file + rename**, so a file is never observed empty or half-written by a
+reader or left truncated by a crash. `ensure_lines` routes through it too. Pinned
+by a concurrent-reader test (60 alternating large/small writes, zero torn reads,
+no temp files surviving) and a 320-way collision test. This closes the per-file
+half of the atomicity ledger item; cross-file transactionality (all files or none)
+remains open and is now stated that way in DESIGN.md.
+
+**Gates after this work:** fmt clean · clippy `-D warnings` clean · 395 tests pass
+/ 0 fail · coverage 96.08% line / 96.65% function (gate exit 0) · `cargo deny
+check` all four ok · parity PASS — atomic writes changed nothing observable in the
+generated trees, which is the point.
+
+**Not verified, and not claimed:** the *Remove ADE…* / *Forget* buttons are
+implemented and their logic is unit-tested in `ade-core::gui::projects`, but the
+screen was locked for this whole stretch (ScreenCaptureKit answers "Stream failed
+to start" against a locked display), so there are NO pixels of the new project-card
+controls. That plus the ISC-197 tray re-check and ISC-187 (AccessKit) are the
+outstanding pixel-gated items.
+
+**Pixel-gated backlog cleared (2026-07-26 afternoon, machine unlocked) — plus a third real defect.**
+
+**ISC-197 tray half — CLOSED, fix confirmed live.** The tray now reads
+"ADE — 10/17 healthy · 5 warn · **2 err**" where it read 1 err before the
+`read_last_finished` fix, with the failed openwiki install counted. Evidence
+`e2e-21`.
+
+**ISC-196 — CLOSED.** "Open Control Center" clicked from the tray menu launched
+the app (pid confirmed).
+
+**ISC-191 — CLOSED.** A genuine cold start (capture ~0.5s after launch) shows a
+spinner over "Scanning capabilities… / Detecting installed tools and harnesses
+on this machine" — no crash, no blank window.
+
+**ISC-187 (AccessKit) — CLOSED, and my earlier assessment was WRONG.** I had
+recorded that the AX tree "did not expose browsable actionable elements". It
+does. Two probe mistakes produced that false negative: `interceptor macos tree
+--app` returns the *system menu bar* rather than the app window, and I searched
+for VISIBLE button text while every control is labelled with its descriptive AX
+label. Searching the label works — `find "Withdraw ade"` returns
+`{role: button, name: "Withdraw ade's files and managed blocks from …"}` — and
+`interceptor macos act <ref>` PRESSED it through the AX tree, with no
+coordinates, flipping the card into its confirm state; a second AX press on
+"Cancel removing ade" backed out. Lesson, same shape as the tray-icon false
+negative earlier in this task: an absence-probe needs a positive control before
+its absence is believed.
+
+**THIRD DEFECT, found by simply restarting the app: `JobRunner` never resumed
+persisted history.** The Activity tab read "No jobs yet" while `jobs.json` held
+five, and the Control Center header showed **1 error** against the tray's **2** —
+the exact mirror of the bug fixed this morning, because a freshly launched app
+had an EMPTY in-memory runner. Worse than the missing display: `persist()` writes
+only what is in memory and the id counter restarted at 1, so **the first action
+after any restart would have re-used `job-1` and overwritten the entire recorded
+history**. Fixed by resuming from `jobs.json` in `JobRunner::new` — history
+restored, counter continued, and a job left `running` by a dead process retired
+as an error ("interrupted — the app exited while this job was running") rather
+than resurrected, which would have locked its capability forever. Live-verified:
+after restart all five jobs are back and the header now reads **2 errors**,
+matching the tray exactly (`e2e-22` before / `e2e-23` after). Pinned by two
+regression tests including the id-continuation and stale-running cases.
+
+**ISC-219 — CLOSED with pixels and machine truth.** The project card shows
+*Inspect · Remove ADE… · Forget*; "Remove ADE…" armed a red "Confirm remove ADE"
+and started NO job; confirming restored a throwaway fixture repo to its exact
+pre-init path digest and auto-unregistered it, with the toast reporting
+"ade removed from … — 34 deleted, 2 edited". Evidence `e2e-24`, `e2e-25`.
+
+**Two polish defects found in the same pixels and fixed:** the project path was
+rendered before the right-aligned controls, so it claimed full width and the
+buttons drew straight over the text (real repo paths are long — not a fixture-only
+problem); it now truncates with an ellipsis inside the right-to-left layout and
+carries the full path on hover. And the grouped-view toggle rendered OFF for
+about a second on every launch because `Shared::default()` applied until the
+first detection returned; `Engine::new` now seeds the persisted preference and
+job history before the first paint — verified in the cold-start frame.
+
+**Gates:** fmt · clippy `-D warnings` · 397 tests · coverage 96.06% line / 96.66%
+function · `cargo deny check` all ok · parity PASS.
+
+**Still open, honestly:** ISC-190 (tray degradation under a *detection failure*).
+I did not manufacture a detection panic, and I am not claiming the path works
+from adjacent evidence. Closing it needs a fault-injection seam in `poll_once`
+or a unit test over the degraded render path — worth adding, since it is the one
+tray behaviour with no coverage at all.
+
+**Machine left as found:** both fixture repos deleted, no projects registered,
+apps and tray running the current build. `~/.ade/jobs.json` deliberately KEPT —
+it is the genuine record of the actions I ran, and the openwiki entry (from a
+scroll-drift mis-click) is why the dashboards read 2 errors. Deleting it to make
+the UI look green would be exactly the dishonesty this project argues against;
+`rm ~/.ade/jobs.json` clears it if you'd rather start clean.
