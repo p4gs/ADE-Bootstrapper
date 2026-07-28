@@ -14,6 +14,11 @@ if [ ! -x "$ADE_BIN" ]; then
   echo "error: build the Rust ade first (cargo build [--release])" >&2
   exit 2
 fi
+# The harness cds into each fixture before invoking the binary, so a caller who
+# passes a RELATIVE path (as CI does: `parity-check.sh target/debug/ade`) would
+# have it resolve against the fixture dir and vanish. The defaults are already
+# absolute, which is why this only ever bit the argument form.
+ADE_BIN="$(cd "$(dirname "$ADE_BIN")" && pwd)/$(basename "$ADE_BIN")"
 
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/ade-parity-XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
