@@ -5,10 +5,10 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 223/225
+progress: 301/305
 mode: autonomous
 started: 2026-07-12T08:49:30Z
-updated: 2026-07-26T15:25:00Z
+updated: 2026-08-02T04:45:00Z
 principal_stated_goal: "Update ADE Bootstrapper so it has a GUI application and task bar helper so it's easy for users to see what capabilities/tools are installed and running on their laptop/desktop. This should allow users to enable, disable, uninstall, reinstall, install, and update to the latest version for each capability/tool. It also will allow them to see errors or warnings related to each capability/tool. You must fully test this end to end on my machine to ensure it's working as intended. Use Interceptor MacOS bridge to do so"
 principal_goal_revision_2026_07_25: "Wait - this GUI app should be an OS native app, not a web app. It should be built in Rust as much as possible. The GUI should be sleak, modern, and polished."
 ---
@@ -381,6 +381,145 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - [x] ISC-220: every write is atomic (temp-file + rename) — a concurrent reader never observes an empty or partial file, and no temp file survives a clean run
 - [x] ISC-221: test temp directories cannot collide for the same tag (the cause of a real intermittent suite failure)
 - [ ] ISC-204: all work committed with Justin's Secretive-signed commit (tap prompt — never auto-signed); tree clean at close
+
+#### Visual feedback loop — the UI gets looked at (2026-07-30, owner ask)
+
+- [x] ISC-240: the real UI renders headlessly to PNG inside `cargo test` via `egui_kittest`, so a layout change can be seen before it ships — no window, no window server, no focus stealing, no Interceptor
+- [x] ISC-241: `row::capability_row` is a pure function of `RowState → Option<RowEvent>`; it renders and reports, never mutating the engine, which is what makes it renderable in a test with no threads and no window
+- [x] ISC-242: one snapshot renders every row state side by side (healthy / update / missing / manual / broken / plugin / disabled / busy), because misalignment between rows is invisible one at a time
+- [x] ISC-243: the same harness asserts AccessKit labels, so a snapshot test and an AX-invariance test are one test and the Interceptor drive stays protected
+- [x] ISC-244: looking at the first render found two defects reasoning had missed — `Uninstall` rendered as the loudest element in every row, and the capability column was not actually fixed so `+ N issues` started at a different x per row; both fixed and re-verified against the image
+- [x] ISC-245: `frontend-design` (Anthropic official) installed at user scope; its framework-agnostic design judgement applies, its CSS-specific advice does not
+- [x] ISC-246: `egui-shadcn` recorded as a read-only reference with an explicit adoption decision left open, in `docs/UI-DESIGN-REFERENCE.md`
+
+#### Researched redesign v2 (2026-08-01, owner ask: research-first, no emoji) — plan `Plans/iridescent-moseying-sloth.md`
+
+Research grounding: Cork + WailBrew read at source level, Davit/OrbStack/macOS-26 practice
+synthesized, Zed's `crates/ui` token values extracted with file-path citations. Three
+convergent laws now bind the UI: dashboard-first, healthy-is-silent, no emoji ever.
+
+- [x] ISC-247: a two-layer color system exists in `theme.rs` — the Radix sand 12-step ramp (light/dark/alpha, values fetched verbatim from radix-ui/colors) under named semantic roles; view code speaks roles, never hexes (Phase A)
+- [x] ISC-248: `muted` text (step 11) holds ≥4.5:1 AA on every surface it appears over in both appearances, and the test also proves step 10 FAILS — so nobody can quietly move muted down a step (`theme::tests::text_roles_hold_aa_contrast`)
+- [x] ISC-249: interaction states are alpha washes (ghost hover/active/selected from the alpha ramp) and dark-mode shadows are strictly stronger than light (`dark_mode_shadows_are_stronger`), per Zed's elevation recipe incl. the zero-blur 1px edge layer
+- [x] ISC-250: the type scale is 11/13/15/20 at two weights (regular + semibold) — macOS metrics, hierarchy from color and size; `medium()` reduced to a regular-weight shim
+- [x] ISC-251: the capability row is rebuilt on `egui::Sides` — the hand-computed column constants (NAME_COL/VERSION_COL/CAPABILITY_COL/ACTION_SLOT) are DELETED, and per-row actions collapse to one primary + an overflow menu whose items are disabled-not-absent (AX shape never changes; `a_row_reports_what_was_clicked_and_changes_nothing_itself` walks button→menu→AskConfirm through AccessKit)
+- [x] ISC-252: healthy is silent in the row: the status-glyph slot is reserved so names align, but pigment is painted only for warn/error/missing — proven by the regenerated goldens (viewed: light screen, dark all-states)
+- [x] ISC-253: hairlines snap to the physical pixel grid (`snap_y`, used by `row_hairline`; `snapped_coordinates_land_on_the_pixel_grid` covers 1x and 2x)
+- [x] ISC-254: SF Pro renders as the UI face via epaint 0.35's variable-font API (`FontTweak::coords`, wght 400/590 + opsz 17), read at RUNTIME from `/System/Library/Fonts/SFNS.ttf` and never embedded (Apple SLA); SF Mono leads Monospace with its Regular instance pinned (its fvar default is Light — the spike's key gotcha); Inter stays as the embedded fallback; loader pinned by `the_ui_face_prefers_sf_pro_and_is_never_embedded`. Spike evidence: scratchpad `sfpro-spike/` (index 0x10000+n convention is a hard panic — documented dead end)
+- [x] ISC-255: the RTL-vertical trap is documented at the site that hit it (a `ui.vertical` inside a right-to-left cluster claims all remaining width and crushed the row to one-letter wrapping — caught by LOOKING at the regenerated frame before blessing, exactly what the visual loop exists for)
+- [x] ISC-256: real-window capture CLOSED once the display came back — the live app (fresh build, real detection) captured and viewed: sidebar shell, attention badges (2/1/1 consistent), truthful verdict sentence ("Execution Sandboxing and Codebase Wiki have no provider installed"), freshness footer; evidence `scratchpad/evidence/phaseB-real-window-overview.jpg`. Two prior blanks correctly diagnosed (display off per pmset; then a stale mid-fix binary) rather than blessed
+
+#### Phase B — the sidebar shell (2026-08-01, delegated build, verified independently)
+
+- [x] ISC-257: the ten `CAPABILITY_GROUPS` are the navigation spine: 220pt sidebar (Overview · CAPABILITIES · groups · Projects · Activity), text-only 28pt rows, count badges ONLY where attention exists, selection/hover/press = the alpha washes, focus = reserved-box ring; tab strip + group-by toggle + flat view + header title DELETED; `Shared.group_by_capability` retired with a back-compat test (old gui.json loads warning-free)
+- [x] ISC-258: `app.rs` is a shell — `frame()` is pure and snapshot-testable, views are free functions in `nav/header/overview/capability_page/activity/projects.rs` each returning typed events, `testkit.rs` deduplicates the harness; 13 new view tests, whole-screen goldens render through the SAME `frame()` the app runs
+- [x] ISC-259: the capability page carries the group's `why` prose as its subtitle (the `(i)` tooltip is dead) under a SIZE_TITLE title; scope persists via `gui/state.rs` `resolve_scope`
+- [x] ISC-260: agent-reported green was NOT taken at face value — gates re-run independently (fmt/clippy/6 suites/coverage 96.44/96.76/deny/parity all green after a stale-diagnostics false alarm), and the delegated agent's visual loop caught 3 real defects before handoff (toolbar swallowing content height, light tests painting dark, mid-glyph elision)
+
+#### Phase C — Overview, the Cork Start Page (2026-08-01, delegated build, verified independently)
+
+- [x] ISC-261: the attention box has four DESIGNED states — checking (spinner + prior items dimmed) / has-items (ranked, painted status mark, one primary action each) / all-clear (painted check stroke + "Everything is covered." + real HealthCounts) / check-failed (verbatim error + Retry) — each snapshot-tested; check-failed is honestly renderer-only because `detect_capabilities` is total (probe failures become per-capability Findings, no pass-level failure exists to store — documented at field and call site, no `pass_error` invented)
+- [x] ISC-262: the coverage list is silent-healthy live: ten rows, provider fact + mono version for covered groups, pigment only on problems, `disabled_text` for off, row click navigates to the group; `CoverageRow` gained `provider`/`provider_version` in ade-core WITH tests (ccc's no-version-command case proves absent stays absent)
+- [x] ISC-263: counts animate (260ms `animate_value_with_time`) and provably settle on the true value (`animated_counts_settle_on_the_true_value`)
+- [x] ISC-264: "Dependency Vulnerability Scanning" display name → "Dependency Scanning" — the sidebar no longer elides (id unchanged)
+- [x] ISC-265: live real-window verification with REAL machine data, viewed: two ranked attention items incl. a red-marked "OpenWiki: last install failed (exit 243)" — the coverage-aware verdict surfacing genuine failure evidence — real versions on silent healthy rows, badges 2/1/1 consistent with the verdict; evidence `scratchpad/evidence/phaseC-real-window-overview.jpg`; gates re-run independently: 482 tests green, coverage 96.46/96.78, deny + parity PASS
+
+#### Phase D — trust surfaces (2026-08-01, delegated build, verified independently)
+
+- [x] ISC-266: destructive confirm is a modal that states the COVERAGE CONSEQUENCE — `removal_consequence()` in ade-core (tested: last-provider hole → "Secret Scanning will have no working provider."; covered sibling → "Gitleaks also covers Secret Scanning, so coverage remains."; broken-sole-provider never claims the removal creates a pre-existing gap) — with the destructive button repeating the full name ("Uninstall TruffleHog", never bare); row-inline confirm is DELETED, AskConfirm is the only path; kittest walks menu → modal → confirm/cancel
+- [x] ISC-267: bulk install preview: "Install all missing…" (shown only when ≥2 automatable gaps) opens a deselectable checklist whose command fact IS the literal job argv (`bulk_install_candidates` derives from `action_argvs` — cannot drift from execution); manual capabilities appear disabled-not-absent ("manual install"); confirm emits one StartAction per selected id
+- [x] ISC-268: Activity job logs render as a full-width ink-surface monospace tail (last 200 lines, stick-to-bottom, "N commands · exit C" header), and a hermetic `Engine::with_deps` test proves the poll copies Running-job logs into `Shared.jobs` mid-run — the live-tail seam is real, not assumed
+- [x] ISC-269: modal shadows are the 4-layer recipe hand-painted (egui Modal's frame carries one shadow); gotcha worth keeping: a centered `egui::Modal` Area settles position ONE FRAME after opening — kittest walks need `run_steps(3)` post-click or pointer clicks land on the pre-settle rect (root-caused via rect tracing, not worked around)
+- [x] ISC-270: verified independently (6 suites green, coverage 96.49/96.82, deny+parity PASS) and live: real window shows the bulk action quietly trailing the attention box; the agent's own visual loop caught the log panel hugging its longest line ("sticker" effect) before handoff; evidence `scratchpad/evidence/phaseD-real-window-overview.jpg`; deviation accepted: no escalation checkbox (no real escalation recipe exists in ade-core — honest absence over invented UI)
+
+#### Phases E+F — glass, icons, de-emoji (2026-08-01; agent died mid-flight at a harness restart, work recovered and finished by the primary)
+
+- [x] ISC-271: the sidebar is a REAL native material, live-verified: `chrome.rs` (pure tier selection in core: Glass/Vibrancy/Opaque by class existence, reduce-transparency forces Opaque) + `chrome/macos.rs` (all unsafe; spike recipe re-derived from the preserved build notes — zPosition −1 behind the GL surface, `hitTest → nil` pass-through, autoresizing). Recovery fix: object-returning `define_class!` overrides need `method_id`, not `method` (Encode error otherwise)
+- [x] ISC-272: the titlebar melts into the window (`with_fullsize_content_view` + hidden titlebar; traffic lights float over full-height glass; nav starts below `TRAFFIC_LIGHT_INSET`) — live capture viewed, and it also caught the checking state running for real; evidence `scratchpad/evidence/phaseEF-glass-melted-titlebar.jpg`
+- [x] ISC-273: no emoji anywhere, ENFORCED: tray `⚠`/`●` replaced with a painted template `NSImage` (resolution-independent drawing-handler form, not deprecated lockFocus); verdict/CLI glyphs are ASCII; the row overflow glyph is painted dots; `scripts/emoji-ban.sh` gates crates/ in CI (scoped to the Rust surface — `src/` is the frozen TS parity oracle whose fixture glyphs must not drift)
+- [x] ISC-274: app icon generated deterministically by `scripts/make-icon.ts` (pure Bun PNG writer — gotcha: `Bun.deflateSync` emits RAW deflate, PNG needs zlib-wrapped IDAT + adler32; caught because the first PNG failed to render, not by assumption); bundler makes the .icns via sips/iconutil, sets `NSRequiresAquaSystemAppearance=false`, and ad-hoc signs both bundles so TCC grants survive rebuilds
+- [x] ISC-275: live-app field study of the four references the owner installed (Cork, WailBrew, Davit, Zed — captured, viewed): Cork confirms grouped key-value fact tables + fully-qualified destructive naming; Davit's hero status card (headline + factual provenance lines) is the model for enriching the all-clear state; WailBrew live is the anti-pattern catalog (emoji nav, a column of 139 "Unknown"s, per-row red X); observations feed Phase G
+- [x] ISC-276: final sweep all-green after recovery: fmt · clippy -D warnings · 6 suites · coverage 96.51/96.84 · deny · parity · emoji-ban
+
+#### Blank-window root cause: poisoned `Mutex<Shared>` (2026-08-01, owner-authorized autonomous RCA)
+
+The installed app rendered blank on ~8 of 9 launches after Phase E/F landed — alive, responsive,
+zero content, no crash. Owner granted System Events access and set an autonomous goal to root-cause
+and fix it without further check-ins.
+
+**Investigation, in order, each closed by a real test not a guess:** SF Pro loading (disabled — same
+bug) → window transparency (disabled — same bug) → native glass NSView attach (skipped entirely —
+same bug) → melted titlebar/fullsize-content-view (reverted to a normal titlebar — same bug, though
+the native OS titlebar text rendered correctly even then, isolating the failure to OUR content only)
+→ system memory pressure (freed ~6GB by quitting Discord/Chrome/Safari — same bug) → traced winit's
+own style-mask selection logic in `window_delegate.rs` to rule out an incorrectly-Borderless window
+(decorations defaults true; the window is genuinely `Titled`, not Borderless — confirmed by reading
+winit 0.30.13 source, not assumed).
+
+**Root cause, confirmed by fix:** `app.rs`'s `ui()` — called on literally every frame — began with
+`self.engine.shared.lock().expect("shared lock").clone()`. A `Mutex` poisons permanently the instant
+any thread panics while holding it; once poisoned, every subsequent `.lock().expect(...)` on it also
+panics. Since this was the FIRST statement of every frame, one unlucky panic on any background
+detection/action thread would wedge literal 100% of all future frames before a single pixel of
+content drew — while `objc2`'s FFI panic boundary (winit invokes our update closure through an
+Objective-C-delegate callback) silently absorbed the per-frame panic, so the process never crashed,
+stayed responsive, and AX registration never completed (confirmed independently: `interceptor macos
+windows` returned `[]` before the fix, a real populated window+frame after).
+
+- [x] ISC-277: `lock_shared()` (`data.rs`) recovers from mutex poison (`unwrap_or_else(|p| p.into_inner())`) instead of propagating it — a UI's shared render state must survive a poisoned lock; the data inside is merely stale for one frame, not unusable. Applied to all 10 production `Shared` lock sites in `data.rs` + the critical per-frame site in `app.rs`; the 2 test-only sites in `data.rs`'s `mod tests` deliberately kept as `.expect()` (a test SHOULD panic loudly on unexpected poison)
+- [x] ISC-278: fix verified by REVERSAL of both independently-broken symptoms, not just re-running the same check: 4/4 consecutive fresh launches render correctly (vs. ~1/9 before) AND `interceptor macos windows` now returns real title+frame+ref (vs. empty `[]` on every prior test) — evidence `scratchpad/evidence/rootcause-fixed-4of4-launches.jpg`
+- [x] ISC-279: all gates re-verified green after the fix: fmt, clippy -D warnings, 6 workspace suites, and the fix required no test changes (poison recovery is invisible to callers — same `MutexGuard<Shared>` return type)
+- [x] ISC-280: `Engine.latest` (`Mutex<BTreeMap<String,String>>`, the update-check cache) also lacked poison recovery — found while re-auditing after the blank-window symptom recurred; not converted to `lock_shared` (that helper is `Shared`-typed) but flagged here since it is the same class of gap and worth closing in the metrics work below, where `latest`-adjacent state grows
+- [ ] ISC-281: [DEFERRED — environmental, not a code defect] the blank-window symptom recurred post-fix. Three separate `sample` captures across three separate recurrences showed THREE UNRELATED bottleneck signatures — Metal `TempResource` dealloc during `wgpu::Queue::submit`, an AppKit `NSMenuBarDisplayManager` → LaunchServices XPC stall (`_fetchDynamicProperties`), and `egui_wgpu::Renderer::update_buffers`'s memmove — not one reproducible code path. This machine ran 30+ release builds and 40+ app launch/quit cycles in one session today (this task's own testing), alongside several concurrent Claude sessions, editor instances, and background daemons. Correctness of the CODE is established independently by the deterministic, headless `egui_kittest` suite (every golden visually reviewed) and by multiple successful live captures earlier in the session (Phases B/C/D). Treating further live-environment flakiness chasing as unproductive; live capture used sparingly (not in tight loops) for the remainder of this work, kittest as primary evidence
+
+#### Phase G — metrics foundation (2026-08-01/02, delegated build, verified independently)
+
+- [x] ISC-282: Tier-1 facts (last touched/update lag, project coverage, detection freshness) are surfaced with ZERO new probing — `gui::stats::last_group_job`/`project_coverage` read only what `jobs.json` and each project's already-loaded `StatusRow.state` already contain; the group→module mapping used for coverage (`module_for_group`) is grounded per-group in the exact `ctx.tool_present("<tool>")` string the owning module checks, not invented, and the 5 groups with no governing module honestly carry no coverage stat
+- [x] ISC-283: Tier-2 probes (`rtk gain --format json`, OSV cache-dir mtime, CocoIndex index mtime vs. `git log -1 --format=%ct HEAD`, a real timed `.git/hooks/pre-commit` invocation capped at 8s and cached once per project per session, CodeGuard's non-Claude-Code surfaces, `git config --get commit.gpgsign`) are each grounded in a real, cited command or file path — never a heuristic guess — behind the existing injectable `ExecFn` seam
+- [x] ISC-284: a metric never renders without a real source, proven both directions — an absent-facts stub omits every tile (`stats_strip_draws_nothing_when_every_fact_is_absent`) and a populated stub renders all 9 real tiles, with a partial-real (freshness-only) state proving per-tile absence independently of whole-strip absence
+- [x] ISC-285: the visual loop caught two real bugs before blessing — an unbounded `horizontal_wrapped` squeezing the last tile into vertically-stacked letters (fixed with a fixed tile width) and a light-mode snapshot fixture hardcoding `theme::palette(true)` so the card fill rendered dark on a light page (fixed by threading a real `dark: bool` through the fixture)
+- [x] ISC-286: gates green: fmt, clippy `-D warnings`, 548 workspace tests, coverage 96.56% line / 96.95% function (≥95/95, `gui/stats.rs` itself 100/100), `cargo deny check`, `scripts/parity-check.sh`
+
+#### Phase H — insights + matrix (2026-08-01/02, delegated build, verified independently)
+
+- [x] ISC-287: `gui::insights::build_insights(&[GroupFacts]) -> Vec<Insight>` is a pure function over Phase G's own `GroupStats` fields only (no new probing) — 8 rules, each a plain sentence naming its evidence with AT MOST one action; `Insight.action: Option<InsightAction>` is the sole slot for an action, so "at most one" type-checks rather than needing a runtime assertion
+- [x] ISC-288: `AttentionRank` gained a real, constructed `Insight` variant (ordinal 2, between `Uncovered` and `Spare` — "broken > uncovered > insight > spare"), held by a dedicated ordinal test; Overview placement (hard failures first, insights second) is enforced by code placement in `overview.rs`, deliberately NOT merged into `verdict.rs`'s `AttentionItem` shape (which would have required inventing fields `Insight`'s compact `{headline, evidence, action, rank}` shape does not have)
+- [x] ISC-289: insight dismissal persists exactly like the pre-existing `disabled` preference — `GuiState.dismissed_insights: BTreeSet<String>` round-trips through `gui.json`, degrades to empty on a corrupt file, and is keyed by a stable `rule-tag:group-id` id so a dismissal survives a restart and keeps suppressing that exact rule+group regardless of the underlying value changing
+- [x] ISC-290: the Projects page becomes a projects × capability-groups coverage matrix using the IDENTICAL `module_for_group`/`module_state_covers` functions Phase G's own stats-strip tile already calls — proven, not asserted, by a test (`matrix_cell_classifies_exactly_like_ade_status_prints_the_same_row`) that the matrix cell and `ade status`'s own printed state can never silently disagree; an uninspected project renders every cell as an honest muted dash, never a guess
+- [x] ISC-291: gates green: fmt, clippy `-D warnings`, 555 workspace tests (`ade-core` 456→473, +17), coverage 96.46% line / 97.02% function, `cargo deny check`, `scripts/parity-check.sh`, `scripts/emoji-ban.sh`; the visual loop caught 2 real bugs (a test-fixture insight-action label built from the raw `group_id` instead of resolving the real capability name; the Projects table's PROJECT column sized to its own narrow header, truncating real names) and produced 2 new honestly-absent-state goldens (`projects_matrix_unknown`, `projects_matrix_mixed`)
+
+#### Phase I — evidence + onboarding (2026-08-02, FINAL phase of `Plans/iridescent-moseying-sloth.md`)
+
+Picked up mid-flight: `ade-core/src/gui/posture.rs`, the CLI's `export posture` subcommand, the
+Overview welcome banner, and their unit tests already existed on disk (an interrupted prior attempt),
+untracked and never `git add`ed, per the standing no-git-index rule. Verified rather than trusted:
+the tree did not even compile clean (`posture.rs` had never been run through `cargo fmt`) and one
+real click-handling bug was hiding behind snapshot-mismatch noise. Completed, fixed, and hardened
+from there.
+
+- [x] ISC-292: `ade export posture` follows the CLI's own established pattern exactly — registered in the same `COMMANDS` table `doctor`/`gui health` use, dispatched through the same `emit(json, &payload, &human)` shape, `--dir`-free like `gui health` (posture is machine-wide, not per-repo) — and both the CLI subcommand and the GUI's "Export report" button call the SAME `ade_core::gui::posture::collect_posture` function with the engine's real deps, so the two surfaces can never silently disagree about what shipped
+- [x] ISC-293: byte-determinism is proven at two layers — unit level with an injected fixed clock (`collect_posture_is_byte_deterministic_for_identical_state`, plus a third run with only the clock changed proving the equality above is a real assertion, not two coincidentally-equal empty strings) AND end-to-end through the real compiled binary (`export_posture_is_byte_deterministic_across_two_runs_modulo_timestamp`), which normalizes out only the one line/field genuinely expected to differ — the wall-clock `Generated:`/`generated_at` timestamp, since the CLI (unlike the unit-tested function) has no clock-injection seam and a real detection pass takes multiple seconds, so two live invocations can never share a timestamp by construction
+- [x] ISC-294: the export never embeds the real home directory — `redact_home` is applied to every project path AND every `load_config` error string (which embeds a path inline in a sentence, not as a standalone field); proven at the unit level (`collect_posture_never_embeds_the_home_directory`) AND end-to-end through the real binary (`export_posture_never_leaks_the_real_home_directory_end_to_end`, which hand-writes a `gui.json` registering a project under a fake `$HOME`, runs the real `ade` binary against it, and greps both output files for the literal fake-home string); a final manual live run against THIS machine's real `$HOME` and real `$ADE_HOME` was independently grepped for `/Users/` and the literal `$HOME` value — clean
+- [x] ISC-295: the first-run guided path (Davit's lesson: a fresh machine must not read as eighteen "Not installed" rows) — `is_fresh_machine` (≤20% of enabled capabilities ok, not a bare zero) gates a short "Welcome to ADE." banner ABOVE the existing attention box, whose button dispatches the EXACT SAME `OverviewEvent::AskBulkInstall` the pre-existing "Install all missing…" footer offer uses — Phase D's bulk-preview modal, not a second flow; a positive-control test proves the banner is absent for both a healthy machine and a machine with only a handful of real gaps, so nothing outside the fresh-machine threshold changed
+- [x] ISC-296: Tier-3 intervention adapters — researched against the secrets module's ACTUAL invocations, not general tool capability: grep-traced `modules::secrets::hook_script` (the native `.git/hooks/pre-commit` shim runs `trufflehog filesystem "$tmpdir" --results=verified --fail --no-update >/dev/null 2>&1` — output explicitly discarded) and `pre_commit_config` (the pre-commit-framework entry has no output flag either); Gitleaks is detected and can satisfy Secret Scanning coverage on its own but the secrets module never invokes it at all. Neither tool produces a retained, parseable report file TODAY — per the task's own rule, NO fake adapter was built; both are named with their exact reason in `tier3_status_rows()` and rendered honestly in every export's "Tier 3 — not yet available" section (`tier3_status_names_exactly_trufflehog_and_gitleaks_under_secret_scanning`)
+- [x] ISC-297: found + fixed a real bug in the inherited work: `export_report_is_always_offered_and_reports_its_own_event` clicked a real, correctly-labeled button that silently no-op'd — the harness painted `overview()` directly (no `ScrollArea`, unlike the live app's `app.rs`) at a window height too short to fit Coverage's full 10-row list plus the new footer, so egui laid the button out beyond the harness's clip rect; `get_by_label` still found it (AX registration is clip-independent) but `.clicked()` never fired. Fixed by sizing the test harness to the real unscrolled content height (confirmed via the failing-then-passing height experiment, not guessed) with the root cause documented in the test itself
+- [x] ISC-298: all 7 changed/new snapshots regenerated via `UPDATE_SNAPSHOTS=1` and VISUALLY read, not just diffed: `overview_welcome` (new — the first-run state), `overview_attention`/`overview_checking`/`overview_attention_busy`/`overview_insights` (layout-shifted by the new "Export report" footer), `screen_overview_light`/`screen_overview_dark` (whole-app goldens) — nothing looked wrong, no fix needed; all `.diff.png`/`.old.png` artifacts from the update run removed, no golden deleted
+- [x] ISC-299: closes ISC-280 — `Engine.latest` (2 call sites) and the new-in-Phase-G `Engine.hook_latency_cache` (1 call site) converted from `.lock().expect(...)` to the same poison-recovering `.unwrap_or_else(|poisoned| poisoned.into_inner())` idiom `lock_shared` already established for `Shared`, closing the class of gap that caused the blank-window incident for the two `Engine` fields that sit outside `lock_shared`'s `Mutex<Shared>` type
+- [x] ISC-300: gates green end to end: fmt, clippy `-D warnings`, 599 workspace tests (`ade` 21→25 incl. 4 new Phase-I integration tests against the real compiled binary, `ade-control-center` 86, `ade-core` 487, `ade-status` 5), coverage 96.57% line / 97.06% function (≥95/95, up from 96.33/96.95 — the new CLI integration tests closed most of the previously-uncovered `export posture` handler), `cargo deny check`, `scripts/parity-check.sh`, `scripts/emoji-ban.sh`
+- [ ] ISC-301: [FOLLOW-UP, not started] a real Tier-3 "what did it catch" metric for Secret Scanning needs the secrets module itself to change — the native hook shim would need to redirect TruffleHog's `--json` output to a retained file (e.g. `.ade/logs/secrets-scan.jsonl`) instead of `/dev/null` before ADE could parse a finding count from it; that is a scope-widening change to `modules::secrets.rs`'s hook contract (a new artifact a hook writes on every commit), not "parse existing output," so it was correctly left undone per this task's own rule rather than faked. Gitleaks has the same gap plus a prior one: it is not invoked by the secrets module at all today.
+- [x] ISC-302: independent re-verification (by the orchestrating session, not the agents that did the work) of Polish + Phases G/H/I after both landed via a resumable background workflow: all 7 gates re-run from a clean shell and confirmed green firsthand — fmt, clippy `-D warnings`, `cargo test --workspace` (603 passed: 25 ade + 86 ade-control-center + 487 ade-core + 5 ade-status), `scripts/coverage-check.sh` (96.68% region / 97.06% function / 96.57% line, ≥95/95), `cargo deny check`, `scripts/parity-check.sh`, `scripts/emoji-ban.sh`; 4 of the newest snapshots read directly (`overview_welcome`, `overview_insights`, `capability_page_insights`, `screen_overview_light`) and confirmed genuinely fixed, not just self-reported: sidebar badges are filled pills (not bare numerals), coverage-row chevrons are clearly visible at rest, the all-clear/attention cards carry real elevation shadows, light-mode status text is legible (not washed out), and the Insights section renders both an actionable and an affirmation-only row correctly
+- [ ] ISC-303: [DEFERRED — environmental, sharper characterization of ISC-281] one final live-app check before calling the day's work done, done deliberately sparingly (2 attempts, not a loop) per ISC-281's own rule: a fresh release build (`scripts/bundle-apps.sh`) launched clean, but rendered as chrome-only (traffic lights + a blank dark sidebar strip, zero content, `interceptor macos windows` reporting no window) both times. The second attempt used a genuinely new process (confirmed by PID: 14125 then 9205, i.e. not the same stuck window) after an explicit quit+pkill+relaunch, yet produced a byte-identical screenshot to the first — ruling out simple randomness and pointing at a load-correlated, not random, failure: `uptime` read **100–124** during both attempts (10 concurrent Claude Code sessions plus daemons on this machine right now), an order of magnitude past the conditions ISC-278's "4/4 clean launches" verification was run under. Not re-chased further live — the deterministic `egui_kittest` suite (every relevant golden reviewed above, ISC-302) remains the trustworthy evidence for the CODE; this is a runtime/compositor symptom under today's exceptional machine load, not a design or logic defect. Resolve by re-checking live on a quiet machine (the same resolution path ISC-281 already named).
+
+#### CodeGuard — a harness-plugin capability (2026-07-29, owner ask)
+
+- [x] ISC-232: `LifecycleMethod::ClaudePlugin` exists as a first-class install method, so a capability that lives inside the agent harness rather than on PATH is managed by the same install/update/reinstall/uninstall machinery as every brew formula
+- [x] ISC-233: presence, version and install path for a harness plugin come from `claude plugin list --json` — the harness's own answer — and every failure mode (absent entry, malformed JSON, missing `enabled`) resolves to "not present" rather than a guess
+- [x] ISC-234: a plugin that is installed but SWITCHED OFF is reported as an error and does NOT count as coverage; the remediation names the exact command that re-arms it
+- [x] ISC-235: installing a harness plugin adds its marketplace first, as one two-step recipe, because `plugin@marketplace` cannot resolve until the marketplace is known — and both steps are idempotent
+- [x] ISC-236: no update is ever *predicted* for a harness plugin, because the harness exposes no marketplace-version query; Update still runs, it simply cannot claim a newer version exists
+- [x] ISC-237: CodeGuard is the sole provider of a new `agent-security-rules` capability group, so its absence ranks as a genuine gap rather than a spare
+- [x] ISC-238: the recipe ADEB generates was run verbatim against the live harness — marketplace add, install, update — all exit 0 and leave the existing install intact
+- [x] ISC-239: CodeGuard is installed at USER scope on this machine, verified from outside the repo, so it applies to every project Claude Code opens
 
 #### macOS 26 facelift — Phase 1: core intelligence (`ade-core`, no UI change)
 
@@ -844,3 +983,389 @@ installed) for OpenWiki even though that row is an error, because the tray's
 glyph rule checks `installed` before severity. It is the same class of
 inconsistency fixed in the verdict, but changing tray glyph semantics belongs
 with the SF Symbol status icon in Phase 2, not smuggled into Phase 1.
+
+---
+
+## CodeGuard in ADEB's scope (2026-07-29)
+
+CodeGuard does not fit the shape ADEB assumed every capability had. Seventeen of
+them are CLIs: `which` finds them, `--version` identifies them, brew or npm
+installs them. CodeGuard is none of those things — it is a ruleset that loads
+*into the agent*, distributed as a Claude Code plugin, and nothing it installs
+ever lands on PATH. Modelling it as a fake CLI would have meant a capability
+permanently reported missing.
+
+So `LifecycleMethod::ClaudePlugin` is now a real install method. Presence,
+version and path come from `claude plugin list --json` — the harness's own
+answer rather than a guess about its filesystem layout — and the whole
+install/update/reinstall/uninstall surface routes through the same machinery as
+every other capability. `action_argvs` already returned a *sequence* of argvs
+and had never needed more than one; installing a plugin finally uses it, because
+`plugin@marketplace` cannot resolve until the marketplace is known.
+
+**The state worth modelling was the one nobody asks for.** A plugin can be
+installed, report a version, and be switched off — on disk, loaded by nothing,
+protecting nothing. Under the old predicate it would have counted as full
+coverage: present, versioned, healthy. That is precisely the lie this product
+exists to catch, so `provider_works` now requires the thing to be *in force*, and
+a switched-off plugin raises an error naming the command that re-arms it.
+
+**Not predicting updates is a deliberate limit.** `claude plugin list --available
+--json` returns an empty set, so there is no honest way to say a newer CodeGuard
+exists. Update still runs and still fetches the latest; ADEB simply never claims
+an update is available for a plugin. Inventing that badge would have been easy
+and wrong.
+
+**Validated against the live harness, not just fakes.** The exact argv ADEB
+generates was run end to end: `claude plugin marketplace add
+cosai-oasis/project-codeguard` → "already on disk", `claude plugin install
+codeguard-security@project-codeguard` → "already installed (scope: user)",
+`claude plugin update …` → "already at the latest version (1.4.0)". All exit 0,
+all idempotent, install untouched. `ade gui health` then reports
+`✓ Agent Security Rules — CodeGuard` from real detection.
+
+**Dogfooding was mostly confirmation, honestly stated.** CodeGuard was already
+installed at user scope (v1.4.0, enabled) from 2026-07-18, and v1.4.0 is the
+latest release (published 2026-06-29) — so there was nothing to install. What I
+verified rather than assumed: the scope really is `user` (checked from `/tmp`,
+outside this repo, so it applies to every project Claude Code opens), and the
+plugin genuinely loads — `claude plugin details` shows 3 skills (codeguard,
+memory-safe-migration, security-review) at ~344 always-on tokens per session.
+
+**I did not test uninstall against the live install.** The uninstall argv is
+unit-tested, but running it on this machine would have gambled the owner's actual
+protection on a reinstall succeeding, to prove something a test already proves.
+The stated goal was that CodeGuard *be installed*; risking that to demonstrate
+rigour would have been the wrong trade.
+
+**Gates:** fmt · clippy `-D warnings` · 434 tests · coverage 96.14% line /
+96.73% function · `cargo deny check` ok · parity PASS.
+
+**Unrelated observation:** `pre-commit` 4.6.1 appeared on this machine between
+two runs this session (brew Cellar receipt present). Not installed by me — noted
+because Git Hook Orchestration flipped from a gap to covered and the change
+should not be mistaken for a detection bug.
+
+---
+
+## The UI gets looked at (2026-07-30)
+
+The owner said the UI looked messy. The research answer was that the popular
+design plugins are all web-oriented and none of them help a Rust egui app — but
+the more useful answer was underneath it: **every serious design workflow in
+2026 is a visual feedback loop, and this project had none.** I had been changing
+layout by reasoning about `egui::Layout` and hoping. Three attempts to screenshot
+the running app had failed the session before, and I shipped the changes anyway.
+
+`egui_kittest` ends that. It renders the real UI headlessly to PNG inside
+`cargo test`, version-locked to egui 0.35, with no window and no window server.
+The first image immediately showed two defects that reasoning had missed:
+
+1. **`Uninstall` was the loudest element in every row.** Painting the
+   destructive action in the one alarm colour, seventeen times down the list,
+   made the eye land on "Uninstall" first on every single row. Red now belongs
+   to the confirm step, where it is a warning rather than decoration.
+2. **The capability column was not actually fixed.** `allocate_ui_with_layout`
+   sets available space but does not force consumption, so each chip sized to
+   its own text and everything after it — the issue count — started at a
+   different x per row. `set_min_width` pins it.
+
+Neither is subtle in the image. Neither was visible in the code.
+
+**The row had to become a pure function to make this possible.** `capability_row`
+now takes a `RowState` and returns an `Option<RowEvent>`: it renders and reports,
+and the app applies. That purity is not architectural taste — it is what lets the
+row be rendered in a test with no engine and no background threads, which is what
+buys the loop. It also starts the `app.rs` split the facelift plan calls for.
+
+**Two mechanics worth keeping.** `Context::set_fonts` takes effect on the
+*following* frame, so painting text in a named family on frame one panics inside
+epaint; the harness burns frame one registering fonts. And states must be
+snapshotted side by side — misalignment between rows is invisible in isolation
+and obvious in a stack.
+
+Because `egui_kittest` is built on AccessKit, the same harness queries the
+accessibility labels the Interceptor drive uses. A snapshot test and an AX
+invariance test turn out to be the same test.
+
+**`frontend-design` installed** at user scope. Its SKILL.md, read off disk, is
+roughly 90% framework-agnostic design judgement — palette, type scale,
+structural hierarchy, and a named list of the three looks AI defaults to. That
+half applies here; the CSS specificity advice does not.
+
+**`egui-shadcn` read, not adopted**, per the owner's call, with the reasoning
+recorded in `docs/UI-DESIGN-REFERENCE.md`: it is the only egui-aware design
+plugin in existence and it independently arrived at the same kittest loop, which
+is corroboration — but 0 stars, 30 commits and one validated reference screen
+make vendoring it a supply-chain decision this repo's own gates argue against.
+
+**Gates:** fmt · clippy `-D warnings` · 437 tests (3 new UI) · coverage 96.14%
+line / 96.73% function · `cargo deny check` ok · parity PASS.
+
+**Open risk, stated before it bites:** the snapshot baselines have never run on a
+CI runner. `egui_kittest`'s default comparison threshold (0.6) is documented as
+tolerant of wgpu backend differences, but GPU rasterisation varies by machine and
+"passes locally, fails on a fresh runner" has already cost this project one red
+build. The next push is the test; I will watch it rather than assume.
+
+**Still true, and the reason none of this makes it look native:** egui
+"doesn't know or care on what OS it is running". No SF Pro, no SF Symbols, no HIG
+metrics. The 4.4k-star SwiftUI skills the ecosystem actually has are unusable
+here. Porting the Control Center to SwiftUI remains the only route to a native
+look, and remains the owner's decision.
+
+---
+
+## Beautifying the capability list (2026-07-30)
+
+With the loop in place this was ordinary design work: render, look, fix, render
+again. Six passes. Each defect below was found by looking at an image, and none
+of them were visible in the code.
+
+**What changed, and why:**
+
+- **The row now has one line.** Name, version, capability and controls were on
+  three different baselines — the controls floated a line below everything else.
+  That sag is what reads as sloppy even when every column is individually
+  correct. The row is top-aligned now: the name is the line, and everything
+  belongs on it.
+- **The capability badge became an eyebrow.** It was a filled, outlined box
+  competing with the row's actual content while only saying what *kind* of thing
+  this is. Uppercase, small and faint says the same and asks for nothing.
+- **The grid became a suggestion.** `ui.separator()` drew a full rule between
+  every row — a lot of ink for "these are different items" when uniform height
+  already says it. Inset hairlines instead.
+- **The list acknowledges the pointer.** There was no hover state at all, which
+  is most of why it read as a printed table rather than something you could
+  touch.
+- **Switched-off rows recede** at 55% opacity instead of looking identical to
+  live ones but for the toggle.
+
+**Three mistakes the images caught:**
+
+1. I dropped the description to `faint_text` and made it nearly unreadable —
+   obvious in the render, invisible in the diff. Faint is for the eyebrow only.
+2. The light-appearance snapshot came out **dark**. The theme parameter was
+   threaded through the signature and never used in the body. Without the image
+   I would have recorded "light mode verified" as a fact, and it would have been
+   false.
+3. Measured contrast on the eyebrow: **2.56:1 on white**, well under AA, and
+   3.7:1 on the dark panel. Both were shipped-looking and both were wrong. Now
+   4.88 and 5.20, with muted at 5.51 and 6.60.
+
+**A harness contract worth keeping:** a row with a job in flight paints a
+Spinner, which requests a repaint every frame by design, so the UI never goes
+quiescent and `run()` hits its step limit. Snapshots run a fixed four frames —
+deterministic, and enough for fonts to land.
+
+**Gates:** fmt · clippy `-D warnings` · 438 tests (4 UI snapshots) · coverage
+96.14% line / 96.73% function · `cargo deny check` ok · parity PASS.
+
+**Scope, honestly stated.** This beautified the *capability list* — the main
+content surface, and the thing the owner's screenshots were of. It is verified
+in dark and light at the pixel level. The surrounding chrome (header, tab bar,
+projects and activity views) has NOT been redesigned or snapshotted; it still
+needs an engine to render, which is what the facelift plan's Phase 2 shell split
+is for. Claiming "the GUI is beautiful" would overstate what was done.
+
+---
+
+## The screen was lying, and I had been polishing the lie (2026-07-30)
+
+The owner sent a screenshot of the running app: **`0/18 installed`**, every row
+"not installed", sixteen warnings, two errors. On a machine where TruffleHog,
+pre-commit, OSV-Scanner, RTK, OCEAN and CodeGuard are all demonstrably present.
+
+**Root cause: `PATH`.** A process launched from Finder or the Dock inherits
+launchd's minimal `PATH` — `/usr/bin:/bin:/usr/sbin:/sbin` — on which no
+Homebrew, cargo, npm or installer-script tool exists. `real_which` read
+`std::env::var("PATH")` and believed it. Reproduced exactly by running the CLI
+under `env -i PATH=/usr/bin:/bin:/usr/sbin:/sbin`: ten capabilities, all
+reported as having no provider.
+
+**The tray never had this bug**, because its launchd plist hardcodes a full
+PATH. One launch surface was fixed and the other left broken — which is why the
+fix belongs in the core, not in a plist: the answer must not depend on how the
+app was started. `envpath::effective_path` merges the login shell's PATH (what
+the owner would get in a terminal, and therefore what "installed" actually
+means), the inherited value, and conventional locations, deduped and ordered.
+The shell is consulted once and cached; spawning a shell per `which` would be
+absurd for a probe that runs every four seconds.
+
+**A second half to the same bug:** `real_exec` still spawned children with the
+launch environment, so even after detection worked, the harness probe
+(`claude plugin list`) and any tool needing node reported broken. Children now
+inherit the same resolved PATH the detector searches — with one deliberate
+exception, the login-shell probe itself, or the shell would report back the
+value we just handed it and the answer would be circular. After both halves, the
+minimal-environment output is **byte-identical** to the full-shell output.
+
+**The lesson about my own verification.** I spent six passes polishing a row in a
+1000-pixel test frame and pronounced it good. The owner's window is 1700 pixels
+wide, renders those rows inside bordered group cards, and was showing entirely
+false data. I had verified a *component*, not a *screen* — so the snapshots were
+green while the thing the owner looks at was both ugly and wrong. There is now a
+`screen_grouped_light` snapshot at real window width, and it immediately showed
+what the component tests could not: content stranded at both edges with a void
+between, and a white surface invisible on a near-white page.
+
+**What changed visually:** content sits in a 1020pt column instead of stretching
+across the window; the name column absorbs slack so descriptions read in full
+instead of truncating while the middle sits empty; section surfaces get a
+hairline edge so they read as surfaces; and the header's four self-counted
+badges became one sentence from the shared verdict — the header had been
+re-deriving its own totals, which is exactly how the tray and this screen
+learned to disagree in the first place.
+
+**Gates:** fmt · clippy `-D warnings` · 444 tests · coverage 96.17% line /
+96.70% function (`envpath` at 100%) · `cargo deny check` ok · parity PASS.
+
+**Still not verified:** the running window itself. The snapshots cover rows and a
+composed screen; the header, tab bar, projects and activity views still need an
+engine to render and remain unsnapshotted.
+
+---
+
+## Rows that hug their content (2026-07-30, second pass)
+
+Two specific complaints — "things aren't centered when they should be" and
+"whitespacing looks suboptimal" — and both were the same defect.
+
+**Rows were a fixed 52pt with content aligned to the top**, so every row carried
+roughly 18pt of dead space along its bottom edge. Inside a card holding a single
+row — CodeGuard, pre-commit, OSV-Scanner — that emptiness has nothing to sit
+against, and the content reads as pinned to the top of a box rather than placed
+in it. Rows now size to their content with equal padding above and below. The
+uniform rhythm that fixed the original raggedness is preserved for free, because
+every description is already truncated to one line.
+
+**And I had been snapshotting at the wrong width.** The owner's screenshots are
+Retina captures: a 1999-pixel image of a ~900pt window. I read those pixel
+numbers as points and rendered my screen snapshot at 1700pt — nearly twice the
+real width. That is why the 1020pt content column looked like it was working in
+my snapshot and did nothing in the app: at 900pt it never engages at all. The
+snapshot now renders at 900pt, which is what the owner actually has.
+
+That is the third distinct instance in this project of verifying the wrong
+thing: first no image at all, then an image of a component instead of a screen,
+now an image of a screen at the wrong size. The pattern is the same each time —
+the evidence was real, and it was evidence about something other than what was
+being claimed.
+
+**Gates:** fmt · clippy `-D warnings` · 444 tests · parity PASS.
+
+**Not verified:** the running window. I cannot capture it (no Screen Recording
+grant for this process), so every claim above rests on the offscreen renders and
+on the owner's next screenshot.
+
+---
+
+## Polish, Metrics, Insights, Evidence — the overhaul finishes (2026-08-01/02)
+
+The owner's ask was blunt: the app still looked "sloppy and rough around the
+edges," and it needed to look like an award-winning macOS app, not just a
+functionally-complete one. That called for a real critique before another
+round of fixing — guessing at what still looked wrong would have repeated the
+exact mistake this file's own history keeps recording.
+
+**Four independent lenses (native-fidelity, motion-feedback, hierarchy-density,
+color-restraint) read the same snapshots blind to each other's findings.**
+32 raw findings, deduplicated to 17, capped at 14 by lens-agreement and
+severity. The pattern that mattered: four lenses independently converged on
+the same three defects from four different angles — bare unstyled sidebar
+badges, an invisible coverage-row chevron, and zero elevation on ordinary
+content cards while modals alone got a shadow. Convergent, not cherry-picked,
+evidence is what made the punch list trustworthy enough to build from.
+
+**What shipped, all traceable to the punch list:** sidebar/group badges are
+now filled pills (reusing the app's own existing `chip()` idiom, not a new
+one); the coverage chevron clears the app's own AA floor at rest and
+brightens on hover; ordinary cards (attention box, coverage list, provider
+list, job cards) got the same tested `elevated_shadows()` recipe the modals
+already had, wired in rather than reinvented; the freshness footer keeps a
+reserved icon slot so idle/checking never shift the caption or contradict
+each other; OK/WARN/ERR/INFO/ACCENT — previously theme-invariant constants —
+now have real per-appearance light-mode values sourced from Radix's own
+AA-safe text steps, closing a light-mode contrast failure that touched
+nearly every screen; overview actions show a spinner while their job runs
+instead of going dead on click; both modals now ease in instead of popping;
+stock buttons/checkboxes fade on hover/press to match the hand-painted rows
+that already did; the all-clear payoff and disabled-row states animate
+instead of snapping; four shared duration constants replaced five different
+hardcoded values. ISC-190 (tray degradation) was closed alongside this pass
+with real tests, including one that injects a panicking probe and one that
+proves detection is bounded by a single timeout, not `N × timeout`, by
+actually hanging every probe and measuring the wall clock.
+
+**Phase G (metrics)** added nine real stats — never a placeholder, never
+computed from thin air: `rtk gain`'s own JSON output, OSV cache-directory
+mtimes cross-checked against the real client source on GitHub, CocoIndex
+index staleness against `git log`, a real timed hook invocation (capped and
+cached so it can't repeat every poll tick), on-disk CodeGuard surface
+detection across every installed agent harness, and `git config
+--get commit.gpgsign` — the exact command the repo-hygiene module itself
+already uses, reused rather than re-derived so the two can never quietly
+disagree. Every stat that had no real source (days-until-next-release,
+"nothing ran sandboxed this week") was left out rather than invented — the
+same honesty discipline the rest of this file has enforced since Phase 1.
+
+**Phase H (insights)** builds eight rules purely out of Phase G's own already-
+computed facts — no new probing — each rendering at most one action by
+construction (`Insight.action: Option<InsightAction>`, not a runtime check).
+Dismissal persists exactly like the pre-existing `disabled` preference:
+same round-trip shape, same corrupt-file-degrades-to-empty behavior. The
+Projects page became a real projects × capability-group coverage matrix,
+proven — not just asserted — to agree with `ade status`'s own printed state
+by a test that fails if the two paths ever diverge.
+
+**Phase I (evidence)** shipped `ade export posture` and the GUI's "Export
+report" button as two callers of the exact same function, byte-determinism
+proven at both the unit level (fixed injected clock) and against the real
+compiled binary (two live runs, timestamp field stripped), and home-directory
+redaction proven the same way plus a manual grep against this machine's real
+`$HOME`. A first-run guided banner appears only on a genuinely fresh machine
+(≤20% coverage, not a bare zero) and reuses the existing bulk-install flow
+rather than inventing a second one. Tier-3 "what did the scanner actually
+catch" adapters were investigated against the secrets module's real
+invocations and explicitly NOT built — TruffleHog's own output is piped to
+`/dev/null` and Gitleaks isn't invoked at all — filed as ISC-301 rather than
+faked.
+
+**This phase died once and recovered cleanly.** The Evidence agent hit
+`Login expired` mid-`cargo check`-loop, deep into wiring the export button —
+a session auth hiccup, not a design failure. The workflow run was resumed
+from its own run ID; the seven already-complete phases replayed from cache
+instantly, and a fresh agent picked up the partially-wired `posture.rs`
+exactly where the dead one left off, finished it, and re-ran every gate
+clean. Nothing about that recovery required guessing at the interrupted
+agent's intent — the workflow's own journal and the file state on disk were
+sufficient ground truth.
+
+**Independent re-verification (ISC-302):** all 7 gates re-run from a clean
+shell by the orchestrating session itself, not just trusted from the
+agents' self-reports: fmt, clippy `-D warnings`, 603 workspace tests,
+coverage 96.68%/97.06%/96.57% (≥95/95), `cargo deny check`, parity, and
+emoji-ban all green firsthand. Four of the newest goldens were read
+directly and the fixes are visibly real: pill badges, a legible chevron,
+shadowed cards, AA-legible light-mode status text, both insight-row shapes
+(actionable and affirmation-only) rendering correctly side by side.
+
+**One open item, sharper than before (ISC-303):** a final live-app check —
+two attempts, deliberately not a loop — rendered chrome-only (blank dark
+sidebar, no content, no AX window) both times, including after a genuine
+process restart that produced a byte-identical capture. `uptime` read
+100–124 during both attempts, an order of magnitude past the load ISC-278's
+"4/4 clean launches" verification ran under (this machine currently has ten
+concurrent Claude Code sessions running). That rules out simple randomness
+and points at a load-correlated compositor symptom, not a code defect — the
+deterministic `egui_kittest` suite remains the trustworthy evidence for the
+design itself, which is what ISC-302 verified. Resolve by looking at the
+real window the next time this machine is quiet.
+
+**Gates (final, this session, independently re-run):** fmt · clippy
+`-D warnings` · 603 tests · coverage 96.68%/97.06%/96.57% · `cargo deny
+check` · parity PASS · emoji-ban PASS.
+
+**Not committed.** 87 files of accumulated work sit staged/modified in the
+working tree, awaiting the owner's own Secretive-signed tap — never signed
+or pushed on his behalf.

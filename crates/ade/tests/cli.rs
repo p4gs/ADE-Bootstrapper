@@ -9,7 +9,7 @@ use std::process::{Command, Output, Stdio};
 const BIN: &str = env!("CARGO_BIN_EXE_ade");
 
 /// Every command listed in the CLI's COMMANDS table (help must show them all).
-const COMMANDS: [&str; 17] = [
+const COMMANDS: [&str; 18] = [
     "init [dir]",
     "plan",
     "apply",
@@ -23,6 +23,7 @@ const COMMANDS: [&str; 17] = [
     "gui install",
     "gui uninstall",
     "gui status",
+    "export posture",
     "hook append",
     "hook scan",
     "version",
@@ -60,6 +61,18 @@ fn git_fixture(tag: &str) -> PathBuf {
 
 fn ade(args: &[&str]) -> Output {
     Command::new(BIN).args(args).output().expect("run ade")
+}
+
+/// Like `ade`, but with extra environment overrides on top of whatever this
+/// test process itself inherited — used to point `$ADE_HOME`/`$HOME` at
+/// disposable fixture directories instead of the real machine's.
+fn ade_env(args: &[&str], env: &[(&str, &str)]) -> Output {
+    let mut cmd = Command::new(BIN);
+    cmd.args(args);
+    for (key, value) in env {
+        cmd.env(key, value);
+    }
+    cmd.output().expect("run ade")
 }
 
 fn ade_with_stdin(args: &[&str], input: &str) -> Output {
@@ -574,4 +587,166 @@ fn gui_status_json_reports_an_agents_array() {
         assert!(agent["label"].is_string());
         assert!(agent["loaded"].is_boolean());
     }
+}
+
+// ───────────────────────── Phase I — export posture ─────────────────────────
+
+#[test]
+fn export_posture_writes_both_files_and_json_names_their_real_paths() {
+    let ade_home = unique_dir("export-home");
+
+    let human = ade_env(
+        &["export", "posture"],
+        &[("ADE_HOME", ade_home.to_str().expect("utf8 path"))],
+    );
+    assert_eq!(exit_code(&human), 0, "{}", stderr_of(&human));
+    let human_text = stdout_of(&human);
+    assert!(human_text.contains("ade export posture: OK"));
+    assert!(human_text.contains("verdict:"));
+
+    let json_output = ade_env(
+        &["export", "posture", "--json"],
+        &[("ADE_HOME", ade_home.to_str().expect("utf8 path"))],
+    );
+    assert_eq!(exit_code(&json_output), 0);
+    let payload = parse_stdout_json(&json_output);
+    assert_eq!(payload["ok"], serde_json::json!(true));
+    assert!(payload["verdict"].is_string());
+    assert!(payload["headline"].is_string());
+    let markdown_path = payload["markdownPath"].as_str().expect("markdownPath");
+    let json_path = payload["jsonPath"].as_str().expect("jsonPath");
+    assert!(markdown_path.ends_with("posture.md"));
+    assert!(json_path.ends_with("posture.json"));
+
+    // The report actually landed on disk at $ADE_HOME/export/ — the real
+    // path, not just the (possibly `~`-redacted) one the JSON payload names.
+    let markdown_on_disk = ade_home.join("export").join("posture.md");
+    let json_on_disk = ade_home.join("export").join("posture.json");
+    let markdown_body = std::fs::read_to_string(&markdown_on_disk).expect("posture.md written");
+    let json_body = std::fs::read_to_string(&json_on_disk).expect("posture.json written");
+    assert!(markdown_body.starts_with("# ADE Posture Report"));
+    assert!(markdown_body.contains("## Capabilities"));
+    assert!(markdown_body.contains("## Coverage Matrix"));
+    assert!(markdown_body.contains("## Tier 3 — not yet available"));
+    let parsed: serde_json::Value =
+        serde_json::from_str(&json_body).expect("posture.json is valid JSON");
+    assert!(parsed["generated_at"].is_string());
+
+    cleanup(&ade_home);
+}
+
+/// Two runs of `ade export posture` against IDENTICAL on-disk state (no
+/// registered projects, no jobs) produce byte-identical files ONCE the
+/// `Generated:`/`generated_at` timestamp is normalized out — the same
+/// determinism `posture.rs`'s own unit tests prove directly over
+/// `collect_posture` with an injected fixed clock, now proven through the
+/// real compiled binary end to end. The CLI has no clock-injection seam
+/// (`export`'s `PostureDeps.now_seconds` is always `None`, i.e. the real
+/// wall clock — see `main.rs`), and a full detection pass genuinely takes
+/// multiple seconds of real probing, so asserting the RAW files are
+/// byte-identical across two separate invocations would be asserting
+/// something that is never true by construction, not a determinism
+/// property. Stripping the one line/field that is expected — and only
+/// expected — to differ is what makes this a real proof rather than a flake.
+#[test]
+fn export_posture_is_byte_deterministic_across_two_runs_modulo_timestamp() {
+    let ade_home = unique_dir("export-determinism");
+    let env = [("ADE_HOME", ade_home.to_str().expect("utf8 path"))];
+
+    fn strip_timestamps(markdown: &str, json_text: &str) -> (String, serde_json::Value) {
+        let md_without_timestamp = markdown
+            .lines()
+            .filter(|line| !line.starts_with("Generated: "))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut json_value: serde_json::Value =
+            serde_json::from_str(json_text).expect("posture.json parses");
+        if let Some(obj) = json_value.as_object_mut() {
+            obj.remove("generated_at");
+        }
+        (md_without_timestamp, json_value)
+    }
+
+    assert_eq!(exit_code(&ade_env(&["export", "posture"], &env)), 0);
+    let first_md_raw = std::fs::read_to_string(ade_home.join("export/posture.md")).unwrap();
+    let first_json_raw = std::fs::read_to_string(ade_home.join("export/posture.json")).unwrap();
+    assert!(
+        first_md_raw.contains("Generated: "),
+        "sanity: the timestamp line exists at all"
+    );
+
+    assert_eq!(exit_code(&ade_env(&["export", "posture"], &env)), 0);
+    let second_md_raw = std::fs::read_to_string(ade_home.join("export/posture.md")).unwrap();
+    let second_json_raw = std::fs::read_to_string(ade_home.join("export/posture.json")).unwrap();
+
+    // Positive control: the raw files may legitimately differ (the
+    // timestamp), so equality of the STRIPPED content below is a real
+    // assertion, not a coincidence of two identical strings.
+    let (first_md, first_json) = strip_timestamps(&first_md_raw, &first_json_raw);
+    let (second_md, second_json) = strip_timestamps(&second_md_raw, &second_json_raw);
+    assert_eq!(
+        first_md, second_md,
+        "content besides the timestamp line must be byte-identical across two runs"
+    );
+    assert_eq!(
+        first_json, second_json,
+        "content besides generated_at must be identical across two runs"
+    );
+
+    cleanup(&ade_home);
+}
+
+/// The hard rule this task exists to enforce: a registered project living
+/// under `$HOME` must appear in the export as `~`-relative, and the real
+/// home directory string must never appear anywhere in either output file —
+/// proven end to end through the real binary, not just `posture.rs`'s own
+/// unit tests over `collect_posture`.
+#[test]
+fn export_posture_never_leaks_the_real_home_directory_end_to_end() {
+    let fake_home = unique_dir("export-fakehome");
+    let ade_home = unique_dir("export-fakehome-adehome");
+    let project = fake_home.join("Code").join("example-repo");
+    std::fs::create_dir_all(&project).expect("fixture project dir");
+
+    ade_core::gui::state::save_gui_state(
+        &ade_home,
+        &ade_core::gui::state::GuiState {
+            projects: vec![project.to_string_lossy().to_string()],
+            ..Default::default()
+        },
+    )
+    .expect("seed gui.json with a registered project");
+
+    let output = ade_env(
+        &["export", "posture"],
+        &[
+            ("ADE_HOME", ade_home.to_str().expect("utf8 path")),
+            ("HOME", fake_home.to_str().expect("utf8 path")),
+        ],
+    );
+    assert_eq!(exit_code(&output), 0, "{}", stderr_of(&output));
+
+    let markdown = std::fs::read_to_string(ade_home.join("export/posture.md")).unwrap();
+    let json_text = std::fs::read_to_string(ade_home.join("export/posture.json")).unwrap();
+    let home_str = fake_home.to_string_lossy().to_string();
+    assert!(
+        !markdown.contains(&home_str),
+        "posture.md embedded the real home directory:\n{markdown}"
+    );
+    assert!(
+        !json_text.contains(&home_str),
+        "posture.json embedded the real home directory:\n{json_text}"
+    );
+    assert!(markdown.contains("~/Code/example-repo"));
+    assert!(json_text.contains("~/Code/example-repo"));
+
+    cleanup(&fake_home);
+    cleanup(&ade_home);
+}
+
+#[test]
+fn export_unknown_subcommand_exits_2() {
+    let output = ade(&["export", "bogus"]);
+    assert_eq!(exit_code(&output), 2);
+    assert!(stderr_of(&output).contains("unknown export subcommand"));
 }

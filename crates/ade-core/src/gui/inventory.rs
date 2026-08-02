@@ -27,6 +27,9 @@ pub enum LifecycleMethod {
     Brew,
     BrewCask,
     Npm,
+    /// A Claude Code plugin installed at user scope, so it applies to every
+    /// project the harness opens rather than being wired per repo.
+    ClaudePlugin,
     Manual,
 }
 
@@ -36,10 +39,16 @@ impl LifecycleMethod {
             LifecycleMethod::Brew => "brew",
             LifecycleMethod::BrewCask => "brew-cask",
             LifecycleMethod::Npm => "npm",
+            LifecycleMethod::ClaudePlugin => "claude-plugin",
             LifecycleMethod::Manual => "manual",
         }
     }
 }
+
+/// The marketplace a Claude Code plugin is installed from. Adding it is
+/// idempotent, and `claude plugin install` cannot resolve `name@marketplace`
+/// until the marketplace is known, so install is a two-step sequence.
+pub const CODEGUARD_MARKETPLACE: &str = "cosai-oasis/project-codeguard";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LifecycleAction {
@@ -97,20 +106,24 @@ pub struct CapabilityDef {
 
 const V: &[&str] = &["--version"];
 
-pub const CAPABILITIES: [CapabilityDef; 17] = [
+pub const CAPABILITIES: [CapabilityDef; 18] = [
     // ── Integrated tools (mirrors INTEGRATED_TOOLS — asserted by test) ──
     CapabilityDef { id: "trufflehog", name: "TruffleHog", kind: CapabilityKind::Tool, capability: "secret-scanning", description: "Secret scanner wired into the pre-commit boundary by the secrets module", bins: &["trufflehog"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("trufflehog"), guidance: None, process_names: &[] },
     CapabilityDef { id: "pre-commit", name: "pre-commit", kind: CapabilityKind::Tool, capability: "hook-orchestration", description: "Git hook framework the secrets module uses when present", bins: &["pre-commit"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("pre-commit"), guidance: None, process_names: &[] },
     CapabilityDef { id: "gitleaks", name: "Gitleaks", kind: CapabilityKind::Tool, capability: "secret-scanning", description: "Complementary secret scanner (detected, optional)", bins: &["gitleaks"], version_args: &["version"], method: LifecycleMethod::Brew, pkg: Some("gitleaks"), guidance: None, process_names: &[] },
     CapabilityDef { id: "rtk", name: "RTK", kind: CapabilityKind::Tool, capability: "token-efficiency", description: "Token-efficiency proxy at the shell boundary (token-efficiency module)", bins: &["rtk"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("rtk"), guidance: None, process_names: &[] },
     CapabilityDef { id: "ocean", name: "OCEAN", kind: CapabilityKind::Tool, capability: "repo-hygiene", description: "Git & repository hygiene hardening (git-hygiene module)", bins: &["ocean"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://github.com/grcengineering/OCEAN (installer script / release binary)"), process_names: &[] },
-    CapabilityDef { id: "nono", name: "nono", kind: CapabilityKind::Tool, capability: "sandboxing", description: "Kernel-enforced sandboxing for terminal agents (sandbox module)", bins: &["nono"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://nono.sh"), process_names: &[] },
+    CapabilityDef { id: "nono", name: "nono", kind: CapabilityKind::Tool, capability: "sandboxing", description: "Kernel-enforced sandboxing for terminal agents (sandbox module)", bins: &["nono"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("nono"), guidance: None, process_names: &[] },
     CapabilityDef { id: "osv-scanner", name: "OSV-Scanner", kind: CapabilityKind::Tool, capability: "dependency-scanning", description: "Dependency vulnerability scanner (supply-chain module)", bins: &["osv-scanner"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("osv-scanner"), guidance: None, process_names: &[] },
     CapabilityDef { id: "openwiki", name: "OpenWiki", kind: CapabilityKind::Tool, capability: "codebase-wiki", description: "Auto-maintained codebase wiki + opt-in Personal Brain (context module)", bins: &["openwiki"], version_args: V, method: LifecycleMethod::Npm, pkg: Some("openwiki"), guidance: None, process_names: &[] },
     CapabilityDef { id: "cocoindex", name: "CocoIndex", kind: CapabilityKind::Tool, capability: "semantic-search", description: "AST-based semantic code search framework (context module)", bins: &["cocoindex"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://cocoindex.io (Python framework — pip/uv)"), process_names: &[] },
     // ccc exposes no version command (verified against the shipped CLI: its
     // only global flags are --install-completion/--show-completion/--help).
     CapabilityDef { id: "ccc", name: "CocoIndex Code CLI (ccc)", kind: CapabilityKind::Tool, capability: "semantic-search", description: "cocoindex-code CLI — alternate CocoIndex entry point (context module)", bins: &["ccc"], version_args: &[], method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://github.com/cocoindex-io/cocoindex-code"), process_names: &[] },
+    // Not a CLI: a user-scope Claude Code plugin, so `bins` is empty and
+    // presence comes from the harness's own plugin list. Installing it once
+    // covers every project the harness opens, which is the point.
+    CapabilityDef { id: "codeguard", name: "CodeGuard", kind: CapabilityKind::Tool, capability: "agent-security-rules", description: "CoSAI/OASIS secure-coding ruleset the agent follows while writing code", bins: &[], version_args: &[], method: LifecycleMethod::ClaudePlugin, pkg: Some("codeguard-security@project-codeguard"), guidance: None, process_names: &[] },
     // ── Harness CLIs (mirrors HARNESS_ADAPTERS — asserted by test) ──
     CapabilityDef { id: "claude-code", name: "Claude Code", kind: CapabilityKind::Harness, capability: "coding-harness", description: "Anthropic's coding harness CLI", bins: &["claude"], version_args: V, method: LifecycleMethod::Npm, pkg: Some("@anthropic-ai/claude-code"), guidance: None, process_names: &["claude"] },
     CapabilityDef { id: "codex", name: "Codex", kind: CapabilityKind::Harness, capability: "coding-harness", description: "OpenAI's coding harness CLI", bins: &["codex"], version_args: V, method: LifecycleMethod::BrewCask, pkg: Some("codex"), guidance: None, process_names: &["codex"] },
@@ -131,7 +144,12 @@ pub struct CapabilityGroup {
     pub why: &'static str,
 }
 
-pub const CAPABILITY_GROUPS: [CapabilityGroup; 9] = [
+pub const CAPABILITY_GROUPS: [CapabilityGroup; 10] = [
+    CapabilityGroup {
+        id: "agent-security-rules",
+        name: "Agent Security Rules",
+        why: "Scanners catch insecure code after it is written; rules stop it being written. A ruleset loaded into the agent itself shapes every suggestion it makes — injection-safe queries, real authorization checks, sound crypto — across every project, without anyone remembering to ask for it.",
+    },
     CapabilityGroup {
         id: "secret-scanning",
         name: "Secret Scanning",
@@ -144,7 +162,7 @@ pub const CAPABILITY_GROUPS: [CapabilityGroup; 9] = [
     },
     CapabilityGroup {
         id: "dependency-scanning",
-        name: "Dependency Vulnerability Scanning",
+        name: "Dependency Scanning",
         why: "AI agents add dependencies fast — including typosquatted, hallucinated, or known-vulnerable packages. Scanning against the OSV database catches known-bad versions before they ship.",
     },
     CapabilityGroup {
@@ -215,10 +233,11 @@ impl GroupCoverage {
     /// The one definition of "this provider is actually working": the owner
     /// left it enabled, it resolved on PATH, and its version story is sound —
     /// it either answered a version probe or has no version command to answer
-    /// with. A tool that is asked what it is and cannot say does not count as
-    /// coverage; that is the case where the environment is lying to you.
-    pub fn provider_works(enabled: bool, installed: bool, version_ok: bool) -> bool {
-        enabled && installed && version_ok
+    /// with — and it is actually in force. A tool that is asked what it is and
+    /// cannot say, or one that is installed but switched off, does not count as
+    /// coverage; those are the cases where the environment is lying to you.
+    pub fn provider_works(enabled: bool, installed: bool, healthy: bool) -> bool {
+        enabled && installed && healthy
     }
 
     pub fn compute<'a>(providers: impl IntoIterator<Item = ProviderFact<'a>>) -> Self {
@@ -251,7 +270,7 @@ impl GroupCoverage {
             group: cap.capability.as_str(),
             id: cap.id.as_str(),
             name: cap.name.as_str(),
-            works: Self::provider_works(cap.enabled, cap.installed, cap.version_ok()),
+            works: Self::provider_works(cap.enabled, cap.installed, cap.is_healthy()),
         }))
     }
 
@@ -319,8 +338,73 @@ pub fn action_argvs(def: &CapabilityDef, action: LifecycleAction) -> Option<Vec<
             "-g".into(),
             format!("{pkg}@latest"),
         ],
+        // Install is the one action that needs two steps: the marketplace has
+        // to be known before `plugin@marketplace` can resolve. Adding an
+        // already-known marketplace is a no-op, so this stays idempotent.
+        (LifecycleMethod::ClaudePlugin, LifecycleAction::Install | LifecycleAction::Reinstall) => {
+            return Some(vec![
+                vec![
+                    "claude".into(),
+                    "plugin".into(),
+                    "marketplace".into(),
+                    "add".into(),
+                    CODEGUARD_MARKETPLACE.into(),
+                ],
+                vec![
+                    "claude".into(),
+                    "plugin".into(),
+                    "install".into(),
+                    pkg.into(),
+                ],
+            ]);
+        }
+        (LifecycleMethod::ClaudePlugin, LifecycleAction::Uninstall) => vec![
+            "claude".into(),
+            "plugin".into(),
+            "uninstall".into(),
+            pkg.into(),
+        ],
+        (LifecycleMethod::ClaudePlugin, LifecycleAction::Update) => vec![
+            "claude".into(),
+            "plugin".into(),
+            "update".into(),
+            pkg.into(),
+        ],
     };
     Some(vec![argv])
+}
+
+/// One entry of `claude plugin list --json`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct InstalledPlugin {
+    pub version: Option<String>,
+    pub install_path: Option<String>,
+    /// A plugin can be installed and switched off, in which case it is loaded
+    /// by nothing and protects nothing.
+    pub enabled: bool,
+}
+
+/// Find one plugin in `claude plugin list --json` output. Tolerates every
+/// failure mode — bad JSON, a changed shape, a missing entry — by reporting
+/// absence rather than guessing.
+pub fn parse_installed_plugin(stdout: &str, id: &str) -> Option<InstalledPlugin> {
+    let parsed: serde_json::Value = serde_json::from_str(stdout).ok()?;
+    let entries = parsed
+        .as_array()
+        .cloned()
+        .or_else(|| parsed["plugins"].as_array().cloned())?;
+    let entry = entries
+        .into_iter()
+        .find(|entry| entry["id"].as_str() == Some(id))?;
+    Some(InstalledPlugin {
+        version: entry["version"]
+            .as_str()
+            .filter(|version| !version.is_empty() && *version != "unknown")
+            .map(String::from),
+        install_path: entry["installPath"].as_str().map(String::from),
+        // Absent means we cannot show it is live, so do not claim it is.
+        enabled: entry["enabled"].as_bool().unwrap_or(false),
+    })
 }
 
 /// Argv for the on-demand latest-version lookup; None for manual capabilities.
@@ -328,6 +412,11 @@ pub fn latest_version_argv(def: &CapabilityDef) -> Option<Vec<String>> {
     let pkg = def.pkg?;
     Some(match def.method {
         LifecycleMethod::Manual => return None,
+        // The harness exposes no marketplace-version query (`plugin list
+        // --available --json` returns an empty set), so there is no honest way
+        // to say an update exists. Update still runs; it just cannot be
+        // predicted, and claiming otherwise would be inventing a fact.
+        LifecycleMethod::ClaudePlugin => return None,
         LifecycleMethod::Brew => vec!["brew".into(), "info".into(), "--json=v2".into(), pkg.into()],
         LifecycleMethod::BrewCask => vec![
             "brew".into(),
@@ -338,6 +427,17 @@ pub fn latest_version_argv(def: &CapabilityDef) -> Option<Vec<String>> {
         ],
         LifecycleMethod::Npm => vec!["npm".into(), "view".into(), pkg.into(), "version".into()],
     })
+}
+
+/// Ask the harness which plugins it has. One call answers presence, version and
+/// whether the plugin is actually switched on.
+pub fn claude_plugin_list_argv() -> Vec<String> {
+    vec![
+        "claude".into(),
+        "plugin".into(),
+        "list".into(),
+        "--json".into(),
+    ]
 }
 
 /// Parse the latest-version lookup output. Never fails hard.
@@ -360,7 +460,9 @@ pub fn parse_latest_version(def: &CapabilityDef, result: &ExecResult) -> Option<
             let parsed: serde_json::Value = serde_json::from_str(&result.stdout).ok()?;
             parsed["casks"][0]["version"].as_str().map(String::from)
         }
-        LifecycleMethod::Manual => None,
+        // Neither has a queryable "latest", so neither ever reaches here —
+        // `latest_version_argv` returns None for both.
+        LifecycleMethod::Manual | LifecycleMethod::ClaudePlugin => None,
     }
 }
 
@@ -414,6 +516,9 @@ pub struct CapabilityStatus {
     /// False when the tool has no version command, so a missing `version` is
     /// expected rather than a fault.
     pub reports_version: bool,
+    /// Set when the capability is installed but not actually in force, so it
+    /// must not be counted as covering anything.
+    pub inactive: Option<String>,
     /// Only Some for capabilities with a process signature.
     pub running: Option<bool>,
     pub enabled: bool,
@@ -428,6 +533,42 @@ impl CapabilityStatus {
     pub fn version_ok(&self) -> bool {
         self.version.is_some() || !self.reports_version
     }
+
+    /// Installed, able to say what it is, and actually in force. This is the
+    /// bar for counting as coverage — anything less is a guardrail on paper.
+    pub fn is_healthy(&self) -> bool {
+        self.version_ok() && self.inactive.is_none()
+    }
+
+    /// The version number alone, for a column where every row must line up.
+    pub fn short_version(&self) -> Option<String> {
+        self.version.as_deref().map(short_version)
+    }
+}
+
+/// Pull the version number out of whatever a tool prints for `--version`.
+///
+/// Every CLI answers differently — `trufflehog 3.96.0`, `osv-scanner version:
+/// 2.4.0`, `8.30.1`, `Hermes Agent v0.18.2 (2026.7.7.2) · upstream 0fa5e41c` —
+/// so a column of raw strings reads as noise even though the data is fine. Take
+/// the first dotted-numeric token; the full string stays available on hover.
+pub fn short_version(raw: &str) -> String {
+    let is_version = |token: &str| {
+        let body = token.trim_start_matches(['v', 'V']);
+        let mut parts = body.split('.');
+        let first = parts.next().unwrap_or("");
+        !first.is_empty()
+            && first.chars().all(|c| c.is_ascii_digit())
+            && parts.clone().count() >= 1
+            && parts.all(|part| {
+                !part.is_empty() && part.chars().next().is_some_and(|c| c.is_ascii_digit())
+            })
+    };
+    raw.split_whitespace()
+        .map(|token| token.trim_matches(|c: char| !c.is_alphanumeric()))
+        .find(|token| is_version(token))
+        .map(|token| token.trim_start_matches(['v', 'V']).to_string())
+        .unwrap_or_else(|| raw.trim().to_string())
 }
 
 pub struct DetectOptions<'a> {
@@ -455,6 +596,36 @@ struct CapabilityFacts {
     running: Option<bool>,
     latest_version: Option<String>,
     update_available: bool,
+    /// Present when the thing is installed but not actually in force. A plugin
+    /// the harness has switched off is the case this exists for: it is on disk,
+    /// it reports a version, and it is protecting nothing.
+    inactive: Option<String>,
+}
+
+/// Assemble the facts that do not depend on how presence was established.
+fn base_facts(
+    def: &'static CapabilityDef,
+    opts: &DetectOptions<'_>,
+    enabled: bool,
+    installed: bool,
+    path: Option<String>,
+    version: Option<String>,
+) -> CapabilityFacts {
+    let latest_version = opts.latest_versions.get(def.id).cloned();
+    let update_available = match (&latest_version, &version) {
+        (Some(latest), Some(current)) => !current.contains(latest.as_str()),
+        _ => false,
+    };
+    CapabilityFacts {
+        enabled,
+        installed,
+        path,
+        version,
+        running: None,
+        latest_version,
+        update_available,
+        inactive: None,
+    }
 }
 
 fn probe_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> CapabilityFacts {
@@ -466,7 +637,28 @@ fn probe_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabilit
             break;
         }
     }
-    let installed = path.is_some();
+    let mut installed = path.is_some();
+    let mut inactive: Option<String> = None;
+    // A harness plugin never lands on PATH, so presence comes from the harness
+    // itself rather than from `which`.
+    if def.method == LifecycleMethod::ClaudePlugin {
+        if let Some(id) = def.pkg {
+            let result = (opts.exec)(&claude_plugin_list_argv(), &ExecOpts::default());
+            if result.code == 0 {
+                if let Some(plugin) = parse_installed_plugin(&result.stdout, id) {
+                    installed = true;
+                    path = plugin.install_path.clone();
+                    if !plugin.enabled {
+                        inactive = Some("installed but switched off in Claude Code".to_string());
+                    }
+                    let mut facts = base_facts(def, opts, enabled, installed, path, plugin.version);
+                    facts.inactive = inactive;
+                    return facts;
+                }
+            }
+        }
+        return base_facts(def, opts, enabled, false, None, None);
+    }
     let mut version: Option<String> = None;
     if let (Some(bin_path), false) = (&path, def.version_args.is_empty()) {
         let mut argv: Vec<String> = vec![bin_path.clone()];
@@ -494,21 +686,9 @@ fn probe_one(def: &'static CapabilityDef, opts: &DetectOptions<'_>) -> Capabilit
         }
         running = Some(is_running);
     }
-    let latest_version = opts.latest_versions.get(def.id).cloned();
-    let update_available = match (&latest_version, &version) {
-        (Some(latest), Some(current)) => !current.contains(latest.as_str()),
-        _ => false,
-    };
-
-    CapabilityFacts {
-        enabled,
-        installed,
-        path,
-        version,
-        running,
-        latest_version,
-        update_available,
-    }
+    let mut facts = base_facts(def, opts, enabled, installed, path, version);
+    facts.running = running;
+    facts
 }
 
 /// Turn probe facts into findings. Pure — no I/O, no clock, no environment.
@@ -526,6 +706,7 @@ fn assess(
         running,
         latest_version,
         update_available,
+        inactive,
     } = facts;
 
     let mut issues: Vec<Finding> = Vec::new();
@@ -568,6 +749,19 @@ fn assess(
                     )),
                 });
             }
+        }
+        // Present but not in force. Worth an error rather than a warning: the
+        // environment is reporting a guardrail that is not guarding.
+        if let Some(reason) = &inactive {
+            issues.push(Finding::error_with(
+                format!("{} is {reason}", def.name),
+                match def.method {
+                    LifecycleMethod::ClaudePlugin => {
+                        format!("Run: claude plugin enable {}", def.pkg.unwrap_or(def.id))
+                    }
+                    _ => "re-enable it where it was switched off".to_string(),
+                },
+            ));
         }
         if installed && version.is_none() && !def.version_args.is_empty() {
             issues.push(Finding::error_with(
@@ -623,6 +817,7 @@ fn assess(
         path,
         version,
         reports_version: !def.version_args.is_empty(),
+        inactive,
         running,
         enabled,
         latest_version,
@@ -666,7 +861,8 @@ pub fn detect_capabilities(opts: &DetectOptions<'_>) -> Vec<CapabilityStatus> {
                     works: GroupCoverage::provider_works(
                         fact.enabled,
                         fact.installed,
-                        fact.version.is_some() || def.version_args.is_empty(),
+                        (fact.version.is_some() || def.version_args.is_empty())
+                            && fact.inactive.is_none(),
                     ),
                 }),
         );
@@ -891,12 +1087,13 @@ mod tests {
             .as_deref()
             .unwrap()
             .contains("brew install pre-commit"));
-        let nono = caps.iter().find(|cap| cap.id == "nono").unwrap();
-        assert!(nono.issues.iter().any(|issue| issue
+        // A manual capability points at its own documentation instead of a recipe.
+        let ocean = caps.iter().find(|cap| cap.id == "ocean").unwrap();
+        assert!(ocean.issues.iter().any(|issue| issue
             .remediation
             .as_deref()
             .unwrap_or("")
-            .contains("nono.sh")));
+            .contains("github.com/grcengineering/OCEAN")));
     }
 
     #[test]
@@ -1124,6 +1321,243 @@ mod tests {
     }
 
     #[test]
+    fn version_strings_reduce_to_a_number_a_column_can_align() {
+        // Every one of these is a real string this machine's tools printed.
+        for (raw, expected) in [
+            ("trufflehog 3.96.0", "3.96.0"),
+            ("pre-commit 4.6.1", "4.6.1"),
+            ("8.30.1", "8.30.1"),
+            ("rtk 0.29.0", "0.29.0"),
+            ("osv-scanner version: 2.4.0", "2.4.0"),
+            ("codex-cli 0.144.5", "0.144.5"),
+            ("2.1.220 (Claude Code)", "2.1.220"),
+            (
+                "Hermes Agent v0.18.2 (2026.7.7.2) · upstream 0fa5e41c · local 4c96172d",
+                "0.18.2",
+            ),
+        ] {
+            assert_eq!(short_version(raw), expected, "for {raw:?}");
+        }
+        // Nothing version-shaped: keep the original rather than invent one.
+        assert_eq!(short_version("unknown build"), "unknown build");
+        assert_eq!(short_version("  spaced  "), "spaced");
+        // A bare integer is not a version — "42" alone would be a false read.
+        assert_eq!(short_version("tool 42"), "tool 42");
+        let mut cap = detect_capabilities(&base_opts(
+            &BTreeSet::new(),
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            fake_exec(&[(
+                "/fake/bin/trufflehog --version",
+                (0, "trufflehog 3.96.0\n", ""),
+            )]),
+            fake_which(&["trufflehog"]),
+        ));
+        let hog = cap.iter_mut().find(|c| c.id == "trufflehog").unwrap();
+        assert_eq!(hog.short_version().as_deref(), Some("3.96.0"));
+        hog.version = None;
+        assert!(hog.short_version().is_none());
+    }
+
+    /// Real `claude plugin list --json` output, trimmed to the shape that matters.
+    const PLUGIN_LIST: &str = r#"[
+      {"id":"repowise@repowise","version":"0.32.0","scope":"user","enabled":true,
+       "installPath":"/x/repowise"},
+      {"id":"codeguard-security@project-codeguard","version":"1.4.0","scope":"user",
+       "enabled":true,"installPath":"/x/codeguard/1.4.0"},
+      {"id":"code-review@claude-plugins-official","version":"unknown","scope":"user",
+       "enabled":true,"installPath":"/x/cr"}
+    ]"#;
+
+    #[test]
+    fn a_harness_plugin_is_found_through_the_harness_not_the_path() {
+        // CodeGuard is a Claude Code plugin: nothing lands on PATH, so `which`
+        // can never see it and the harness's own list is the source of truth.
+        let codeguard = get_capability("codeguard").unwrap();
+        assert!(codeguard.bins.is_empty());
+        assert_eq!(codeguard.method, LifecycleMethod::ClaudePlugin);
+
+        let found = parse_installed_plugin(PLUGIN_LIST, "codeguard-security@project-codeguard")
+            .expect("present in the list");
+        assert_eq!(found.version.as_deref(), Some("1.4.0"));
+        assert_eq!(found.install_path.as_deref(), Some("/x/codeguard/1.4.0"));
+        assert!(found.enabled);
+        // A plugin the harness reports as "unknown" has no version to show.
+        let unknown =
+            parse_installed_plugin(PLUGIN_LIST, "code-review@claude-plugins-official").unwrap();
+        assert!(unknown.version.is_none());
+        // Absent, malformed and unparseable all mean "not found", never a guess.
+        assert!(parse_installed_plugin(PLUGIN_LIST, "nope@nowhere").is_none());
+        assert!(parse_installed_plugin("not json", "any").is_none());
+        assert!(parse_installed_plugin("{}", "any").is_none());
+        assert!(parse_installed_plugin(r#"{"plugins":[{"id":"a@b"}]}"#, "a@b").is_some());
+        // enabled absent → assume not live rather than assume protection.
+        let cautious = parse_installed_plugin(r#"[{"id":"a@b"}]"#, "a@b").unwrap();
+        assert!(!cautious.enabled);
+    }
+
+    #[test]
+    fn detection_reads_codeguard_out_of_the_plugin_list() {
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[("claude plugin list --json", (0, PLUGIN_LIST, ""))]),
+            fake_which(&[]),
+        ));
+        let codeguard = caps.iter().find(|cap| cap.id == "codeguard").unwrap();
+        assert!(codeguard.installed);
+        assert_eq!(codeguard.version.as_deref(), Some("1.4.0"));
+        assert_eq!(codeguard.path.as_deref(), Some("/x/codeguard/1.4.0"));
+        assert!(codeguard.inactive.is_none());
+        assert!(codeguard.issues.is_empty(), "{:?}", codeguard.issues);
+        assert!(GroupCoverage::from_statuses(&caps).is_covered("agent-security-rules"));
+    }
+
+    #[test]
+    fn a_plugin_that_is_installed_but_switched_off_protects_nothing_and_says_so() {
+        // The dangerous state: on disk, reporting a version, loaded by nothing.
+        // Counting it as coverage would be the exact lie this product exists to
+        // avoid.
+        let off = r#"[{"id":"codeguard-security@project-codeguard","version":"1.4.0",
+                       "enabled":false,"installPath":"/x/cg"}]"#;
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[("claude plugin list --json", (0, off, ""))]),
+            fake_which(&[]),
+        ));
+        let codeguard = caps.iter().find(|cap| cap.id == "codeguard").unwrap();
+        assert!(codeguard.installed, "it really is on disk");
+        assert_eq!(
+            codeguard.inactive.as_deref(),
+            Some("installed but switched off in Claude Code")
+        );
+        assert!(!codeguard.is_healthy());
+        let issue = &codeguard.issues[0];
+        assert_eq!(issue.level, FindingLevel::Error);
+        assert!(issue.message.contains("switched off"));
+        assert!(issue
+            .remediation
+            .as_deref()
+            .unwrap()
+            .contains("claude plugin enable codeguard-security@project-codeguard"));
+        assert!(!GroupCoverage::from_statuses(&caps).is_covered("agent-security-rules"));
+    }
+
+    #[test]
+    fn a_missing_or_failing_harness_leaves_codeguard_absent_not_installed() {
+        let disabled = BTreeSet::new();
+        let jobs = BTreeMap::new();
+        let latest = BTreeMap::new();
+        // `claude` not on PATH at all → the exec fake returns a failure.
+        let caps = detect_capabilities(&base_opts(
+            &disabled,
+            &jobs,
+            &latest,
+            fake_exec(&[("claude plugin list --json", (127, "", "not found"))]),
+            fake_which(&[]),
+        ));
+        let codeguard = caps.iter().find(|cap| cap.id == "codeguard").unwrap();
+        assert!(!codeguard.installed);
+        assert!(codeguard.version.is_none());
+        // Sole provider of its capability, so this is a real gap, not a spare.
+        assert_eq!(codeguard.issues[0].level, FindingLevel::Warn);
+        assert!(codeguard.issues[0]
+            .remediation
+            .as_deref()
+            .unwrap()
+            .contains("claude plugin install codeguard-security@project-codeguard"));
+    }
+
+    #[test]
+    fn installing_a_plugin_adds_its_marketplace_first() {
+        let codeguard = get_capability("codeguard").unwrap();
+        // Two steps: `install` cannot resolve name@marketplace until the
+        // marketplace is known, and adding a known one is a no-op.
+        assert_eq!(
+            action_argvs(codeguard, LifecycleAction::Install).unwrap(),
+            vec![
+                vec![
+                    "claude".to_string(),
+                    "plugin".into(),
+                    "marketplace".into(),
+                    "add".into(),
+                    "cosai-oasis/project-codeguard".into()
+                ],
+                vec![
+                    "claude".to_string(),
+                    "plugin".into(),
+                    "install".into(),
+                    "codeguard-security@project-codeguard".into()
+                ],
+            ]
+        );
+        assert_eq!(
+            action_argvs(codeguard, LifecycleAction::Reinstall).unwrap(),
+            action_argvs(codeguard, LifecycleAction::Install).unwrap()
+        );
+        assert_eq!(
+            action_argvs(codeguard, LifecycleAction::Uninstall).unwrap(),
+            vec![vec![
+                "claude".to_string(),
+                "plugin".into(),
+                "uninstall".into(),
+                "codeguard-security@project-codeguard".into()
+            ]]
+        );
+        assert_eq!(
+            action_argvs(codeguard, LifecycleAction::Update).unwrap(),
+            vec![vec![
+                "claude".to_string(),
+                "plugin".into(),
+                "update".into(),
+                "codeguard-security@project-codeguard".into()
+            ]]
+        );
+        // No marketplace-version query exists, so no update is ever predicted.
+        assert!(latest_version_argv(codeguard).is_none());
+        assert!(parse_latest_version(
+            codeguard,
+            &ExecResult {
+                code: 0,
+                stdout: "1.5.0".into(),
+                stderr: String::new()
+            }
+        )
+        .is_none());
+    }
+
+    #[test]
+    fn nono_installs_through_homebrew_like_every_other_formula_backed_tool() {
+        // It was marked manual, which read as "this one is harder" when the
+        // formula has existed all along (homebrew-core Formula/n/nono.rb).
+        let nono = get_capability("nono").unwrap();
+        assert_eq!(nono.method, LifecycleMethod::Brew);
+        assert_eq!(nono.pkg, Some("nono"));
+        assert!(nono.guidance.is_none(), "an automated tool needs no prose");
+        assert_eq!(
+            action_argvs(nono, LifecycleAction::Install).unwrap(),
+            vec![vec!["brew".to_string(), "install".into(), "nono".into()]]
+        );
+        // The remaining manual entries are manual because nothing packages
+        // them, not because nobody checked.
+        let manual: Vec<&str> = CAPABILITIES
+            .iter()
+            .filter(|def| def.method == LifecycleMethod::Manual)
+            .map(|def| def.id)
+            .collect();
+        assert_eq!(manual, vec!["ocean", "cocoindex", "ccc", "hermes"]);
+    }
+
+    #[test]
     fn a_tool_with_no_version_command_is_working_not_broken() {
         // Found on a real machine: `ccc` has no --version at all (its only
         // global flags are --install-completion/--show-completion/--help), so
@@ -1158,9 +1592,11 @@ mod tests {
         );
         assert!(GroupCoverage::from_statuses(&caps).is_covered("semantic-search"));
         // Every other capability still expects a version, so the exemption
-        // cannot be claimed by accident.
+        // cannot be claimed by accident. Only two may skip the probe: ccc has
+        // no version command, and CodeGuard is not a CLI at all — its version
+        // comes from the harness that hosts it.
         for def in &CAPABILITIES {
-            if def.id != "ccc" {
+            if !matches!(def.id, "ccc" | "codeguard") {
                 assert!(!def.version_args.is_empty(), "{} lost its probe", def.id);
             }
         }

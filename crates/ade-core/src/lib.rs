@@ -12,6 +12,7 @@
 
 pub mod config;
 pub mod context;
+pub mod envpath;
 pub mod exec;
 pub mod fsutil;
 pub mod harness;

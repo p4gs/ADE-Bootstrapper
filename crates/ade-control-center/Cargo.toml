@@ -9,3 +9,26 @@ ade-core = { version = "0.2.0", path = "../ade-core" }
 eframe = "0.35.0"
 egui = "0.35.0"
 serde_json = "1.0.151"
+# eframe exposes the native NSView/NSWindow through raw-window-handle; a
+# DIRECT dependency (same 0.6 line eframe uses) is required to name the
+# handle types (Phase 0 glass-spike build note).
+raw-window-handle = "0.6.2"
+
+# The glass sidebar (Phase E): all unsafe AppKit confined to src/chrome/macos.rs.
+# Spike-proven build notes: `objc2-app-kit` needs its "objc2-quartz-core" +
+# "objc2-core-foundation" features for the CALayer (zPosition) surface, and
+# `objc2-quartz-core` itself has NO "objc2" feature — do not add one.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.4"
+objc2-foundation = "0.3.2"
+objc2-app-kit = { version = "0.3.2", features = [
+  "objc2-quartz-core",
+  "objc2-core-foundation",
+] }
+objc2-quartz-core = "0.3.2"
+
+# Renders the UI headlessly to PNG inside `cargo test`, so a layout change can
+# be looked at instead of guessed at. Every visual defect in this app so far was
+# shipped because nobody — human or agent — saw the frame before it landed.
+[dev-dependencies]
+egui_kittest = { version = "0.35.0", features = ["wgpu", "snapshot"] }

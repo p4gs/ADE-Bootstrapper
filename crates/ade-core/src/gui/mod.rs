@@ -1,7 +1,11 @@
+pub mod chrome;
+pub mod insights;
 pub mod install;
 pub mod inventory;
 pub mod jobs;
 pub mod menubar;
+pub mod posture;
 pub mod projects;
 pub mod state;
+pub mod stats;
 pub mod verdict;
