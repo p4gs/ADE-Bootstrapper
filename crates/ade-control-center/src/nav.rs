@@ -7,14 +7,13 @@
 //! healthy is silent, so sixteen quiet rows spend no pigment saying "nothing
 //! is wrong".
 
-use crate::app::chip;
 use crate::overview::animated_count;
 use crate::theme;
 use ade_core::gui::inventory::{CapabilityStatus, CAPABILITY_GROUPS};
 use ade_core::gui::state::{SCOPE_ACTIVITY, SCOPE_OVERVIEW, SCOPE_PROJECTS};
 use ade_core::gui::verdict::HealthVerdict;
 use egui::emath::GuiRounding;
-use egui::{Align, FontId, Layout, RichText, Sense, StrokeKind, UiBuilder};
+use egui::{FontId, RichText, Sense, StrokeKind};
 use std::time::Duration;
 
 /// What the owner did in the sidebar.
@@ -165,7 +164,8 @@ fn section_header(ui: &mut egui::Ui, p: &theme::Palette, text: &str) {
     ui.label(
         RichText::new(text.to_uppercase())
             .color(p.muted)
-            .font(theme::semibold(theme::SIZE_CAPTION)),
+            .font(theme::semibold(theme::SIZE_CAPTION))
+            .extra_letter_spacing(0.8),
     );
     ui.add_space(theme::Space::S2.px());
 }
@@ -204,7 +204,10 @@ fn nav_row(
         theme::DURATION_HOVER,
     );
     let wash = if selected {
-        Some(p.selected)
+        // The accent-hued wash, not the neutral one — the macOS sidebar
+        // selection idiom (ISC-310 cycle 1). List rows elsewhere keep the
+        // neutral `selected` so status colors aren't fighting a blue field.
+        Some(p.selected_accent)
     } else if response.is_pointer_button_down_on() {
         Some(p.ghost_active)
     } else if hover > 0.0 {
@@ -223,6 +226,9 @@ fn nav_row(
         theme::focus_stroke(response.has_focus()),
         StrokeKind::Inside,
     );
+    // ISC-309: the crisp line alone reads as a border change; real macOS
+    // focus is an outer glow. Both layers together are the native look.
+    theme::focus_ring(ui, rect, theme::RADIUS_CONTROL, response.has_focus());
     let text_color = if off { p.disabled_text } else { p.text };
     let pad = theme::Space::S8.px();
     let mut badge_width = 0.0;
@@ -232,28 +238,47 @@ fn nav_row(
         // announced a change; the count now also animates through the same
         // interpolator the all-clear payoff and the bulk-preview footer use.
         let shown = animated_count(ui, &format!("nav-badge-{ax_label}"), count);
-        let badge_area = egui::Rect::from_min_max(
-            egui::pos2(rect.left() + pad, rect.top()),
-            egui::pos2(rect.right() - pad, rect.bottom()),
+        // A true circle, painted directly (ISC-310 cycle 1 — the owner's
+        // verbatim nit: "It should be a circle and the number inside should
+        // be properly horizontally and vertically centered"). The generic
+        // `chip` frame is a lozenge whose text baseline floats with the
+        // frame margins; here the galley is measured first and the disc
+        // derived from it, then the galley is placed at the disc's exact
+        // center — centering is geometric, not layout-emergent. Two-plus
+        // digits widen the circle into a capsule; the height never changes.
+        let galley = ui.painter().layout_no_wrap(
+            shown.to_string(),
+            theme::medium(theme::SIZE_CAPTION),
+            p.warn,
         );
-        // A standalone child `Ui`, not `ui.scope` — this row already
-        // advanced the outer cursor via `allocate_exact_size` above, and a
-        // second automatic advance would misalign every row after it.
-        let mut badge_ui = ui.new_child(
-            UiBuilder::new()
-                .id_salt(ax_label)
-                .max_rect(badge_area)
-                .layout(Layout::right_to_left(Align::Center)),
+        let diameter: f32 = 17.0;
+        let width = diameter.max(galley.size().x + theme::Space::S8.px());
+        let center = egui::pos2(rect.right() - pad - width * 0.5, rect.center().y);
+        let badge_rect = egui::Rect::from_center_size(center, egui::vec2(width, diameter))
+            .round_to_pixels(ui.pixels_per_point());
+        ui.painter().rect_filled(
+            badge_rect,
+            egui::CornerRadius::same((diameter * 0.5) as u8),
+            p.tint_warn,
         );
-        chip(&mut badge_ui, &shown.to_string(), p.warn);
-        badge_width = badge_ui.min_rect().width() + pad;
+        ui.painter()
+            .galley(badge_rect.center() - galley.size() * 0.5, galley, p.warn);
+        badge_width = width + pad;
     }
     // The label elides into whatever the badge leaves — a 220pt sidebar and a
     // long group name must never collide or clip mid-glyph.
+    // The selected row's label goes semibold — the macOS sidebar pairing
+    // with the accent wash; weight says "you are here" without more color.
+    let font = if selected {
+        theme::semibold(theme::SIZE_BODY)
+    } else {
+        FontId::proportional(theme::SIZE_BODY)
+    };
     let galley = elided(
         ui,
         label,
         text_color,
+        font,
         rect.width() - 2.0 * pad - badge_width,
     );
     let pos = egui::pos2(rect.left() + pad, rect.center().y - galley.size().y * 0.5);
@@ -267,9 +292,9 @@ fn elided(
     ui: &egui::Ui,
     label: &str,
     color: egui::Color32,
+    font: FontId,
     max_width: f32,
 ) -> std::sync::Arc<egui::Galley> {
-    let font = FontId::proportional(theme::SIZE_BODY);
     let full = ui
         .painter()
         .layout_no_wrap(label.to_string(), font.clone(), color);

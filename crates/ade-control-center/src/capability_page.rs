@@ -59,6 +59,10 @@ pub(crate) fn capability_page(
 ) -> Option<CapabilityPageEvent> {
     let mut event = None;
     content_column(ui, |ui| {
+        // Deliberately SIZE_TITLE, not SIZE_DISPLAY: the Overview verdict is
+        // the app's one large-title statement; this title is navigational —
+        // a page you drilled into, not a verdict (ISC-311, decided at the
+        // capability_page migration rather than silently inherited).
         ui.label(RichText::new(state.group.name).font(theme::semibold(theme::SIZE_TITLE)));
         ui.add_space(theme::Space::S4.px());
         ui.label(
@@ -99,7 +103,8 @@ pub(crate) fn capability_page(
         }
         theme::section_heading(ui, p, "Providers");
         ui.add_space(theme::Space::S4.px());
-        theme::section_surface(p, ui.visuals().dark_mode).show(ui, |ui| {
+        let dark_mode = ui.visuals().dark_mode;
+        theme::elevated_card(ui, p, dark_mode, None, theme::Space::S12, |ui| {
             for (index, cap) in state.caps.iter().enumerate() {
                 if index > 0 {
                     row_hairline(ui, p);
@@ -151,7 +156,7 @@ fn insights_block(
     let mut event = None;
     theme::section_heading(ui, p, "Insights");
     ui.add_space(theme::Space::S4.px());
-    theme::section_surface(p, dark_mode).show(ui, |ui| {
+    theme::elevated_card(ui, p, dark_mode, None, theme::Space::S12, |ui| {
         for (index, insight) in insights.iter().enumerate() {
             if index > 0 {
                 row_hairline(ui, p);
@@ -202,8 +207,8 @@ struct StatTile {
 
 /// Whichever Tier-1/Tier-2 facts are real for this group, as compact tiles
 /// on the same elevated card treatment every other card in the app now
-/// carries (the polish pass's `theme::section_surface`) — not the old flat
-/// frame. Nothing renders for an absent fact, and a group with no real facts
+/// carries (`theme::elevated_card` — rim light, S12 breathing room) — not
+/// the old flat frame. Nothing renders for an absent fact, and a group with no real facts
 /// at all draws no strip whatsoever — the strip's own presence is itself
 /// "absent renders as absent", not just its individual tiles.
 fn stats_strip(
@@ -312,7 +317,7 @@ fn stats_strip(
         return;
     }
 
-    theme::section_surface(p, dark_mode).show(ui, |ui| {
+    theme::elevated_card(ui, p, dark_mode, None, theme::Space::S12, |ui| {
         ui.horizontal_wrapped(|ui| {
             for tile in &tiles {
                 stat_tile(ui, p, tile);
@@ -338,7 +343,8 @@ fn stat_tile(ui: &mut egui::Ui, p: &theme::Palette, tile: &StatTile) {
             ui.label(
                 RichText::new(tile.label)
                     .color(p.faint_text)
-                    .font(theme::medium(10.0)),
+                    .font(theme::medium(10.0))
+                    .extra_letter_spacing(0.8),
             );
             ui.label(
                 RichText::new(&tile.value)
@@ -401,7 +407,7 @@ mod tests {
     }
 
     /// `dark` must match the harness's own theme (`harness_themed`'s `dark`
-    /// argument): `section_surface`'s fill is a background color, not text,
+    /// argument): the card fill (`elevated_card`) is a background color, not text,
     /// so it is NOT covered by the harness's `override_text_color` shim —
     /// building this page's palette with the wrong appearance produces a
     /// dark stats-strip card floating on an otherwise light page, a real bug
@@ -517,6 +523,18 @@ mod tests {
             secret_scanning_page(sink, None, None),
         );
         h.snapshot("capability_page");
+    }
+
+    /// The same page in LIGHT — first light golden for this screen.
+    #[test]
+    fn snapshot_the_capability_page_light() {
+        let sink = std::sync::Arc::default();
+        let mut h = harness_themed(
+            egui::vec2(700.0, 360.0),
+            false,
+            secret_scanning_page_themed(sink, None, None, false),
+        );
+        h.snapshot("capability_page_light");
     }
 
     /// The same page once the engine has real stats for this group and a

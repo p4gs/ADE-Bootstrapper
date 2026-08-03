@@ -242,6 +242,12 @@ enum MenuEntry {
     Action {
         title: &'static str,
         action: TrayAction,
+        /// The Command-modified key equivalent shown at the row's trailing
+        /// edge — native menus carry them (ISC-309, menu-bar surface);
+        /// AppKit's default modifier for a lowercase equivalent is Command,
+        /// so plain "r"/"o"/"q" render and fire as
+        /// Cmd-R / Cmd-O / Cmd-Q while the menu is open.
+        key: &'static str,
     },
 }
 
@@ -288,15 +294,18 @@ fn menu_plan(payload: Option<&MenubarPayload>) -> Vec<MenuEntry> {
     entries.push(MenuEntry::Action {
         title: "Refresh Now",
         action: TrayAction::Refresh,
+        key: "r",
     });
     entries.push(MenuEntry::Action {
         title: "Open Control Center",
         action: TrayAction::OpenControlCenter,
+        key: "o",
     });
     entries.push(MenuEntry::Separator);
     entries.push(MenuEntry::Action {
         title: "Quit ADE Status",
         action: TrayAction::Quit,
+        key: "q",
     });
     entries
 }
@@ -461,23 +470,33 @@ impl Delegate {
             match entry {
                 MenuEntry::Info(text) => add_info_item(&menu, mtm, &text),
                 MenuEntry::Separator => menu.addItem(&NSMenuItem::separatorItem(mtm)),
-                MenuEntry::Action { title, action } => {
+                MenuEntry::Action { title, action, key } => {
                     let sel = match action {
                         TrayAction::Refresh => sel!(refreshNow:),
                         TrayAction::OpenControlCenter => sel!(openControlCenter:),
                         TrayAction::Quit => sel!(quitApp:),
                     };
-                    menu.addItem(&self.action_item(mtm, title, sel));
+                    menu.addItem(&self.action_item(mtm, title, sel, key));
                 }
             }
         }
         menu
     }
 
-    fn action_item(&self, mtm: MainThreadMarker, title: &str, action: Sel) -> Retained<NSMenuItem> {
+    fn action_item(
+        &self,
+        mtm: MainThreadMarker,
+        title: &str,
+        action: Sel,
+        key: &str,
+    ) -> Retained<NSMenuItem> {
         let item = NSMenuItem::new(mtm);
         item.setTitle(&NSString::from_str(title));
         item.setEnabled(true);
+        // Native menus carry their key equivalents; a lowercase equivalent
+        // defaults to the Command modifier, which is exactly the convention
+        // (Cmd-Q quit, Cmd-R refresh, Cmd-O open).
+        item.setKeyEquivalent(&NSString::from_str(key));
         let target: &AnyObject = self;
         // SAFETY: `action` is a selector defined on this class, and the
         // delegate (the unretained target) outlives every menu it builds —
@@ -570,6 +589,25 @@ mod tests {
     /// The same three actions in the same order also survive a HEALTHY
     /// payload — a regression guard so nobody accidentally makes them
     /// conditional on `payload` while "fixing" the degraded case above.
+    /// ISC-309 (menu-bar surface): the three action rows carry native
+    /// Command key equivalents — Cmd-R refresh, Cmd-O open, Cmd-Q quit —
+    /// in BOTH the healthy and the degraded plan, because the equivalents
+    /// are part of the same unconditional action block ISC-190 pinned.
+    #[test]
+    fn action_rows_carry_native_key_equivalents() {
+        let healthy = sample_payload();
+        for plan in [menu_plan(None), menu_plan(Some(&healthy))] {
+            let keys: Vec<&str> = plan
+                .into_iter()
+                .filter_map(|entry| match entry {
+                    MenuEntry::Action { key, .. } => Some(key),
+                    _ => None,
+                })
+                .collect();
+            assert_eq!(keys, vec!["r", "o", "q"]);
+        }
+    }
+
     #[test]
     fn a_healthy_payload_carries_the_same_three_actions() {
         let payload = sample_payload();

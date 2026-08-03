@@ -6,9 +6,7 @@
 //! ships. Every visual defect in this app so far reached the screen because
 //! nobody saw the frame first.
 
-use crate::app::{
-    ax_button, ax_ghost_button, cap_dot, capability_label, chip, status_dot_at, worst_level, Dot,
-};
+use crate::app::{ax_button, ax_ghost_button, cap_dot, capability_label, chip, worst_level, Dot};
 use crate::theme;
 use ade_core::gui::inventory::{
     get_group, short_version, CapabilityStatus, LifecycleAction, LifecycleMethod,
@@ -72,31 +70,27 @@ pub(crate) fn capability_row(
                     // align, but pigment is spent only where something is
                     // wrong. A green dot on sixteen healthy rows spends the
                     // whole attention budget saying "nothing is wrong".
-                    let (rect, _) =
-                        ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
-                    match cap_dot(cap) {
-                        Dot::Ok | Dot::Disabled => {}
-                        dot => status_dot_at(ui, rect, dot, p),
-                    }
-                    ui.vertical(|ui| {
-                        ui.spacing_mut().item_spacing.y = theme::Space::S2.px();
-                        ui.label(
-                            RichText::new(&cap.name)
-                                .color(title_color)
-                                .font(theme::semibold(theme::SIZE_BODY)),
-                        );
-                        // One line, always. The full text is a hover away, and
-                        // the row keeps its height so the list holds its rhythm.
-                        ui.add(
-                            egui::Label::new(
-                                RichText::new(&cap.description)
-                                    .color(description_color)
-                                    .size(theme::SIZE_CAPTION),
-                            )
-                            .truncate(),
-                        )
-                        .on_hover_text(&cap.description);
-                    });
+                    // One caption line, always — the full text is a hover
+                    // away, and the row keeps its height so the list holds
+                    // its rhythm. Geometry via the shared cluster helper:
+                    // block centered in the band, mark on the title line.
+                    let dot = match cap_dot(cap) {
+                        Dot::Ok | Dot::Disabled => None,
+                        dot => Some(dot),
+                    };
+                    crate::app::mark_beside_block(
+                        ui,
+                        p,
+                        dot,
+                        RichText::new(&cap.name).color(title_color),
+                        theme::semibold(theme::SIZE_BODY),
+                        Some(
+                            RichText::new(&cap.description)
+                                .color(description_color)
+                                .size(theme::SIZE_CAPTION),
+                        ),
+                        Some(&cap.description),
+                    );
                 },
                 |ui| {
                     // Laid right-to-left: the overflow menu holds the edge,
@@ -413,7 +407,7 @@ mod tests {
                     // a hand-drawn copy here is evidence about nothing.
                     theme::section_heading(ui, &p, heading);
                     ui.add_space(4.0);
-                    theme::section_surface(&p, false).show(ui, |ui| {
+                    theme::elevated_card(ui, &p, false, None, theme::Space::S12, |ui| {
                         for (index, c) in rows.iter().enumerate() {
                             if index > 0 {
                                 crate::app::row_hairline(ui, &p);

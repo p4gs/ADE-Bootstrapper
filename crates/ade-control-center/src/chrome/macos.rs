@@ -46,12 +46,43 @@ define_class!(
     }
 );
 
+/// The live handle to the attached material (ISC-309, vibrancy surface):
+/// tier selection used to be launch-time-only, so toggling Reduce
+/// Transparency in System Settings mid-run either kept glass against the
+/// user's stated accessibility preference or missed it entirely until
+/// relaunch. The handle lets the app respond while running.
+pub(crate) struct ChromeHandle {
+    host: Retained<ChromeHostView>,
+    /// The last observed Reduce Transparency value, so the per-frame poll
+    /// reports only CHANGES.
+    reduce_transparency: bool,
+}
+
+impl ChromeHandle {
+    /// Poll the accessibility setting (a cheap AppKit getter — this runs on
+    /// the main thread every frame, which is exactly where AppKit wants it).
+    /// On a change: hide or reveal the native material and report the new
+    /// "sidebar should be transparent" fact for the egui side. `None` means
+    /// no change. Turning Reduce Transparency OFF restores the material
+    /// live too — the attach survives hidden, so both directions work
+    /// without relaunch.
+    pub(crate) fn poll_reduce_transparency(&mut self) -> Option<bool> {
+        let reduce = NSWorkspace::sharedWorkspace().accessibilityDisplayShouldReduceTransparency();
+        if reduce == self.reduce_transparency {
+            return None;
+        }
+        self.reduce_transparency = reduce;
+        self.host.setHidden(reduce);
+        Some(!reduce)
+    }
+}
+
 /// Query the runtime + accessibility facts, decide the tier (pure, in core),
 /// and attach the native material behind the sidebar strip. Returns the tier
-/// actually achieved.
-pub(crate) fn attach(cc: &eframe::CreationContext<'_>) -> ChromeTier {
+/// actually achieved, plus the live handle when a material was attached.
+pub(crate) fn attach(cc: &eframe::CreationContext<'_>) -> (ChromeTier, Option<ChromeHandle>) {
     let Some(mtm) = MainThreadMarker::new() else {
-        return ChromeTier::Opaque;
+        return (ChromeTier::Opaque, None);
     };
     // Class EXISTENCE is the capability probe (never OS-version parsing).
     let has_glass = AnyClass::get(c"NSGlassEffectView").is_some();
@@ -60,12 +91,18 @@ pub(crate) fn attach(cc: &eframe::CreationContext<'_>) -> ChromeTier {
         NSWorkspace::sharedWorkspace().accessibilityDisplayShouldReduceTransparency();
     let tier = select_tier(has_glass, has_vibrancy, reduce_transparency);
     if tier == ChromeTier::Opaque {
-        return ChromeTier::Opaque;
+        return (ChromeTier::Opaque, None);
     }
     match attach_effect_view(cc, mtm, tier) {
-        Some(()) => tier,
+        Some(host) => (
+            tier,
+            Some(ChromeHandle {
+                host,
+                reduce_transparency,
+            }),
+        ),
         // No handle / no window / no layer: the painted fill stays.
-        None => ChromeTier::Opaque,
+        None => (ChromeTier::Opaque, None),
     }
 }
 
@@ -73,7 +110,7 @@ fn attach_effect_view(
     cc: &eframe::CreationContext<'_>,
     mtm: MainThreadMarker,
     tier: ChromeTier,
-) -> Option<()> {
+) -> Option<Retained<ChromeHostView>> {
     let handle = cc.window_handle().ok()?;
     let RawWindowHandle::AppKit(appkit) = handle.as_raw() else {
         return None;
@@ -136,5 +173,5 @@ fn attach_effect_view(
     // order, so that path reports failure and stays opaque.
     let layer = host.layer()?;
     layer.setZPosition(-1.0);
-    Some(())
+    Some(host)
 }

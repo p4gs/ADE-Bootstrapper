@@ -1,0 +1,46 @@
+feat(design): Phase J ISC-310 cycle-1 revision — slate dark, depth cues, both checkpoint nits
+
+The owner's cycle-1 checkpoint verdict (ISA Decisions, 2026-08-02T19:45Z):
+two annotated nits plus "this all still looks rather bland and uninspired."
+This commit is the bounded revise-and-resubmit response, applied at the
+token level so every screen inherits it:
+
+- Dark appearance moves from Radix sandDark to Radix slateDark (steps +
+  alpha, fetched verbatim from radix-ui/colors src/dark.ts). Light keeps
+  sand: warm paper by day, cool blue-cast depth by night — the mixed-ramp
+  identity Zed One / Warp / Linear all share. Accessors renamed
+  sand_step/sand_alpha_step -> neutral_step/neutral_alpha_step.
+- Six new ColorRoles: EdgeHighlight (1px top rim light on elevated dark
+  surfaces), SelectedAccent (accent-hued nav selection wash — the macOS
+  sidebar idiom), TintOk/TintWarn/TintErr/TintInfo (translucent status
+  tints for card surfaces).
+- theme: blend_over() (unmultiplied-channel compositing — Color32 stores
+  premultiplied; regression test pins the double-multiply trap caught by
+  pixel measurement) + elevated_card() (section_surface + optional
+  pre-blended status tint + rim light inset past the corner radius +
+  scale-step vertical margin).
+- Nit 1 (verbatim: "It should be a circle and the number inside should be
+  properly horizontally and vertically centered"): the nav badge is now a
+  painted 17px disc (capsule at 2+ digits), galley placed at the disc's
+  exact center — measured on the golden: glyph offset dx +0.0, dy +0.5.
+- Nit 2 (verbatim: "does not have enough empty space buffer between the
+  top of an element and itself"): Overview's attention/coverage/welcome/
+  insights boxes move to elevated_card with S12 vertical padding. The
+  attention card carries a status tint (err when anything is broken, warn
+  for gaps, ok for the all-clear payoff); the welcome banner carries the
+  info tint.
+- Gallery: 31 roles, sections on elevated_card, harness grown 3080->3460
+  (the six new rows had pushed the focus demo off the bottom).
+- ISC-307 fixture: dark pins updated to slateDark + six new-role pins,
+  citing the quoted 2026-08-02T19:45Z owner Decision as the sole authority
+  for moving off the d5b1ba8 sand-dark values; light/duration/shadow/radius
+  pins unchanged. Pre-revision goldens preserved at
+  scratchpad/phase-j-commits/rebaselines-cycle1/.
+
+29 of 32 goldens re-baselined BY DESIGN (the 3 unchanged are pure-light
+screens with no badge/card surface — exactly the predicted change set).
+Gates: fmt 0, clippy -D warnings 0, workspace tests 622/0, ISC-304 grep 0
+hits, coverage 96.72 line / 97.11 fn (>=95/95), cargo deny 0, parity 0,
+emoji-ban 0.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-310 cycle 1 of 2.

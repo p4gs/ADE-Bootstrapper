@@ -2,11 +2,11 @@
 //! Pure view — it makes zero engine calls; expanding a log is the only thing
 //! it reports.
 
-use crate::app::{chip, status_dot, Dot};
+use crate::app::{chip, status_dot_at, Dot};
 use crate::overview::plural;
 use crate::theme;
 use ade_core::gui::jobs::{parse_utc_seconds, Job, JobStatus};
-use egui::{Align, CornerRadius, Layout, RichText, Stroke};
+use egui::{Align, CornerRadius, Layout, RichText};
 use std::collections::HashSet;
 use std::time::Duration;
 
@@ -106,125 +106,136 @@ fn job_card(
     expanded_jobs: &HashSet<String>,
 ) -> Option<ActivityEvent> {
     let mut event = None;
-    egui::Frame::new()
-        .fill(p.panel)
-        .stroke(Stroke::new(1.0, p.line))
-        .corner_radius(CornerRadius::same(theme::RADIUS_CONTAINER))
-        .inner_margin(theme::margin(theme::Space::S12, theme::Space::S8))
-        .shadow(theme::elevated_shadows(ui.visuals().dark_mode)[0])
-        .show(ui, |ui| {
-            ui.horizontal(|ui| {
-                let dot = match job.status {
-                    JobStatus::Ok => Dot::Ok,
-                    JobStatus::Error => Dot::Err,
-                    JobStatus::Running => Dot::Warn,
-                };
-                status_dot(ui, dot, p);
-                ui.label(RichText::new(&job.capability_id).font(theme::medium(theme::SIZE_BODY)));
-                ui.label(
-                    RichText::new(&job.action)
-                        .color(p.muted)
-                        .size(theme::SIZE_CAPTION),
-                );
-                match job.status {
-                    JobStatus::Running => {
-                        ui.add(egui::Spinner::new().size(theme::SIZE_BODY).color(p.muted));
-                        ui.label(
-                            RichText::new("running")
-                                .color(p.warn)
-                                .size(theme::SIZE_CAPTION),
-                        );
-                    }
-                    JobStatus::Ok => chip(ui, "ok", p.ok),
-                    JobStatus::Error => chip(
-                        ui,
-                        &format!("error (exit {})", job.exit_code.unwrap_or(-1)),
-                        p.err,
-                    ),
-                }
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    ui.label(
-                        RichText::new(started_at_caption(&job.started_at))
-                            .color(p.faint_text)
-                            .size(theme::SIZE_CAPTION),
-                    );
-                });
-            });
-            let key = format!("job-{}", job.id);
-            let expanded = expanded_jobs.contains(&key);
-            // Words, not glyphs: the "+"/"−" prefixes were text characters
-            // doing icon work.
-            let toggle_text = format!(
-                "{} log ({} lines)",
-                if expanded { "Hide" } else { "Show" },
-                job.log.len()
+    // The system card (ISC-311): rim light + S12 breathing room. Only a
+    // FAILED job carries the error tint — ok stays silent (no green wall)
+    // and running stays neutral (a transient state shouldn't flash an
+    // amber surface at the reader on every poll).
+    let dark_mode = ui.visuals().dark_mode;
+    let tint = matches!(job.status, JobStatus::Error).then_some(p.tint_err);
+    theme::elevated_card(ui, p, dark_mode, tint, theme::Space::S12, |ui| {
+        ui.horizontal(|ui| {
+            let dot = match job.status {
+                JobStatus::Ok => Dot::Ok,
+                JobStatus::Error => Dot::Err,
+                JobStatus::Running => Dot::Warn,
+            };
+            // Optical anchor, same as the Overview coverage rows: a mark at
+            // galley center reads ~1.5px high of the text's ink mass
+            // (measured -1.0..-1.5px on this very golden before this fix).
+            // Half the body-size descent drops it onto the ink.
+            let (slot, _) = ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
+            let mark = egui::Rect::from_center_size(
+                egui::pos2(slot.center().x, slot.center().y + 1.5),
+                egui::Vec2::splat(12.0),
             );
-            let response = ui.selectable_label(
-                false,
-                RichText::new(toggle_text)
+            status_dot_at(ui, mark, dot, p);
+            ui.label(RichText::new(&job.capability_id).font(theme::medium(theme::SIZE_BODY)));
+            ui.label(
+                RichText::new(&job.action)
                     .color(p.muted)
                     .size(theme::SIZE_CAPTION),
             );
-            let ax = format!("Log {}", job.id);
-            response.clone().widget_info(move || {
-                egui::WidgetInfo::labeled(egui::WidgetType::Button, true, ax.clone())
+            match job.status {
+                JobStatus::Running => {
+                    ui.add(egui::Spinner::new().size(theme::SIZE_BODY).color(p.muted));
+                    ui.label(
+                        RichText::new("running")
+                            .color(p.warn)
+                            .size(theme::SIZE_CAPTION),
+                    );
+                }
+                JobStatus::Ok => chip(ui, "ok", p.ok),
+                JobStatus::Error => chip(
+                    ui,
+                    &format!("error (exit {})", job.exit_code.unwrap_or(-1)),
+                    p.err,
+                ),
+            }
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                ui.label(
+                    RichText::new(started_at_caption(&job.started_at))
+                        .color(p.faint_text)
+                        .size(theme::SIZE_CAPTION),
+                );
             });
-            if response.clicked() {
-                event = Some(ActivityEvent::ToggleLog(job.id.clone()));
-            }
-            if expanded {
-                // The command log, verbatim, on an ink surface: every command
-                // a job ran is one expand away — trust through transparency.
-                egui::Frame::new()
-                    .fill(p.inset)
-                    .corner_radius(CornerRadius::same(theme::RADIUS_CONTAINER))
-                    .inner_margin(theme::margin(theme::Space::S8, theme::Space::S8))
-                    .show(ui, |ui| {
-                        // The panel is an inset surface spanning the card, not
-                        // a sticker hugging the longest log line.
-                        ui.set_width(ui.available_width());
-                        match job.status {
-                            JobStatus::Running => {
-                                // Still streaming: the header fact that exists
-                                // is "in flight", not a final count.
-                                ui.add(
-                                    egui::Spinner::new()
-                                        .size(theme::SIZE_CAPTION)
-                                        .color(p.muted),
-                                );
-                            }
-                            _ => {
-                                let commands = command_count(&job.log);
-                                let mut header = format!(
-                                    "{commands} {}",
-                                    plural(commands, "command", "commands")
-                                );
-                                // A job with no recorded exit code states no
-                                // exit code — absent, never invented.
-                                if let Some(code) = job.exit_code {
-                                    header.push_str(&format!(" · exit {code}"));
-                                }
-                                ui.label(
-                                    RichText::new(header)
-                                        .color(p.muted)
-                                        .size(theme::SIZE_CAPTION),
-                                );
-                            }
-                        }
-                        egui::ScrollArea::vertical()
-                            .id_salt(&key)
-                            .max_height(220.0)
-                            .stick_to_bottom(true)
-                            .show(ui, |ui| {
-                                ui.label(
-                                    RichText::new(log_tail(&job.log).join("\n"))
-                                        .monospace()
-                                        .size(theme::SIZE_CAPTION),
-                                );
-                            });
-                    });
-            }
         });
+        let key = format!("job-{}", job.id);
+        let expanded = expanded_jobs.contains(&key);
+        // Words, not glyphs: the "+"/"−" prefixes were text characters
+        // doing icon work.
+        let toggle_text = format!(
+            "{} log ({} lines)",
+            if expanded { "Hide" } else { "Show" },
+            job.log.len()
+        );
+        let response = ui.selectable_label(
+            false,
+            RichText::new(toggle_text)
+                .color(p.muted)
+                .size(theme::SIZE_CAPTION),
+        );
+        let ax = format!("Log {}", job.id);
+        response.clone().widget_info(move || {
+            egui::WidgetInfo::labeled(egui::WidgetType::Button, true, ax.clone())
+        });
+        if response.clicked() {
+            event = Some(ActivityEvent::ToggleLog(job.id.clone()));
+        }
+        if expanded {
+            // The command log, verbatim, on an ink surface: every command
+            // a job ran is one expand away — trust through transparency.
+            // Deliberately NOT `elevated_card` (the ISC-311 exception
+            // rule): this is a SUNKEN inset panel inside a card — the
+            // code-panel idiom — not an elevated surface; a rim light
+            // and shadow here would invert its depth.
+            egui::Frame::new()
+                .fill(p.inset)
+                .corner_radius(CornerRadius::same(theme::RADIUS_CONTAINER))
+                .inner_margin(theme::margin(theme::Space::S8, theme::Space::S8))
+                .show(ui, |ui| {
+                    // The panel is an inset surface spanning the card, not
+                    // a sticker hugging the longest log line.
+                    ui.set_width(ui.available_width());
+                    match job.status {
+                        JobStatus::Running => {
+                            // Still streaming: the header fact that exists
+                            // is "in flight", not a final count.
+                            ui.add(
+                                egui::Spinner::new()
+                                    .size(theme::SIZE_CAPTION)
+                                    .color(p.muted),
+                            );
+                        }
+                        _ => {
+                            let commands = command_count(&job.log);
+                            let mut header =
+                                format!("{commands} {}", plural(commands, "command", "commands"));
+                            // A job with no recorded exit code states no
+                            // exit code — absent, never invented.
+                            if let Some(code) = job.exit_code {
+                                header.push_str(&format!(" · exit {code}"));
+                            }
+                            ui.label(
+                                RichText::new(header)
+                                    .color(p.muted)
+                                    .size(theme::SIZE_CAPTION),
+                            );
+                        }
+                    }
+                    egui::ScrollArea::vertical()
+                        .id_salt(&key)
+                        .max_height(220.0)
+                        .stick_to_bottom(true)
+                        .show(ui, |ui| {
+                            ui.label(
+                                RichText::new(log_tail(&job.log).join("\n"))
+                                    .monospace()
+                                    .size(theme::SIZE_CAPTION),
+                            );
+                        });
+                });
+        }
+    });
     event
 }
 
@@ -261,6 +272,7 @@ mod tests {
     }
 
     fn paint(
+        dark: bool,
         expanded: HashSet<String>,
         sink: std::sync::Arc<std::sync::Mutex<Vec<ActivityEvent>>>,
     ) -> impl FnMut(&mut egui::Ui) + 'static {
@@ -270,7 +282,7 @@ mod tests {
             job("job-1", "nono", "install", JobStatus::Error),
         ];
         move |ui| {
-            let p = crate::theme::palette(true);
+            let p = crate::theme::palette(dark);
             if let Some(event) = activity_view(ui, &p, &jobs, &expanded) {
                 sink.lock().expect("sink").push(event);
             }
@@ -283,8 +295,22 @@ mod tests {
     fn snapshot_the_activity_list_with_an_expanded_log() {
         let sink = std::sync::Arc::default();
         let expanded: HashSet<String> = ["job-job-2".to_string()].into();
-        let mut h = harness_themed(egui::vec2(700.0, 420.0), true, paint(expanded, sink));
+        let mut h = harness_themed(egui::vec2(700.0, 420.0), true, paint(true, expanded, sink));
         h.snapshot("activity");
+    }
+
+    /// The same list in LIGHT — first light golden for this screen; the
+    /// error tint, chips, and inset log all resolve through the token layer.
+    #[test]
+    fn snapshot_the_activity_list_light() {
+        let sink = std::sync::Arc::default();
+        let expanded: HashSet<String> = ["job-job-2".to_string()].into();
+        let mut h = harness_themed(
+            egui::vec2(700.0, 420.0),
+            false,
+            paint(false, expanded, sink),
+        );
+        h.snapshot("activity_light");
     }
 
     /// The log tail as a trust surface: a RUNNING job streams under a spinner
@@ -396,7 +422,11 @@ mod tests {
     fn expanding_a_log_is_reported_not_applied() {
         let seen: std::sync::Arc<std::sync::Mutex<Vec<ActivityEvent>>> = Default::default();
         let sink = std::sync::Arc::clone(&seen);
-        let mut h = harness_themed(egui::vec2(700.0, 420.0), true, paint(HashSet::new(), sink));
+        let mut h = harness_themed(
+            egui::vec2(700.0, 420.0),
+            true,
+            paint(true, HashSet::new(), sink),
+        );
         assert!(h.query_by_label("Log job-2").is_some());
         h.get_by_label("Log job-2").click();
         h.run_steps(2);

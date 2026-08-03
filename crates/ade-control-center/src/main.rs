@@ -8,6 +8,7 @@ mod app;
 mod capability_page;
 mod chrome;
 mod data;
+mod gallery;
 mod header;
 mod icons;
 mod modals;

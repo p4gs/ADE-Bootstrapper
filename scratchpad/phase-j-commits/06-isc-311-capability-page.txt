@@ -1,0 +1,28 @@
+feat(design): ISC-311 screen 1/4 — capability page onto the Phase J system
+
+The capability-detail page (capability_page.rs) migrates to the design
+system the owner approved on Overview (ISC-310, standing iterate loop):
+
+- All three cards (stats strip, group insights, providers list) move from
+  the old `section_surface` to `theme::elevated_card` — rim light in dark,
+  S12 vertical breathing room, white-card-on-gray-canvas in light.
+- Stat-tile labels join the tracked-eyebrow class (+0.8px letterspacing).
+- The page title stays SIZE_TITLE deliberately — the Overview verdict is
+  the app's one SIZE_DISPLAY statement; this title is navigational. The
+  choice is documented in a code comment, not silently inherited.
+- row.rs's grouped-list snapshot harness follows the same code-path switch
+  (it exists to render exactly what the app renders).
+- `section_surface` is now DEAD CODE (zero callers) and is deleted; its
+  narrative folded into `elevated_card`'s doc. clippy -D warnings is what
+  caught it — the gate doing its job.
+
+Measured (not eyeballed): capability-row mark-vs-title-ink alignment on
+the regenerated rows_all_states golden = +0.0px. Grep gate: zero
+`section_surface`/raw-Frame card sites remain in capability_page.rs.
+
+Gates: fmt 0, clippy -D warnings 0, workspace tests 623/0 (deterministic
+re-run), ISC-304 grep 0 hits, coverage 96.63/97.11, deny 0, parity 0,
+emoji-ban 0. Old goldens preserved in scratchpad/phase-j-commits/
+rebaselines-cycle1/ per the ISC-311 re-baselining rule.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-311 screen 1.

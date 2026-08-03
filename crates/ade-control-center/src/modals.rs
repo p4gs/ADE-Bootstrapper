@@ -12,18 +12,8 @@ use crate::overview::{animated_count, plural};
 use crate::theme;
 use ade_core::gui::inventory::{get_capability, CapabilityStatus, LifecycleAction};
 use ade_core::gui::verdict::{removal_consequence, BulkCandidate};
-use egui::{Color32, CornerRadius, RichText, Stroke, StrokeKind};
+use egui::{CornerRadius, RichText, Stroke, StrokeKind};
 use std::collections::HashSet;
-
-/// Scale a color's ALPHA alone, preserving its RGB — `Color32::gamma_multiply`
-/// scales all four channels, which is only safe for pure-black shadow colors
-/// (their RGB is already 0). The modal panel fill/stroke are real colors, so
-/// their entrance fade needs this instead.
-fn alpha_scaled(color: Color32, factor: f32) -> Color32 {
-    let [r, g, b, a] = color.to_srgba_unmultiplied();
-    let a = (a as f32 * factor).round().clamp(0.0, 255.0) as u8;
-    Color32::from_rgba_unmultiplied(r, g, b, a)
-}
 
 /// What the owner did in the confirm dialog.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -91,7 +81,7 @@ fn show_modal<T>(
     content: impl FnOnce(&mut egui::Ui) -> T,
 ) -> (T, bool) {
     let open = ctx.animate_bool_with_time(id.with("open"), true, theme::DURATION_ENTRANCE);
-    let backdrop_color = alpha_scaled(Color32::from_black_alpha(100), open);
+    let backdrop_color = theme::alpha_scaled(p.scrim, open);
     let response = egui::Modal::new(id)
         .frame(egui::Frame::new())
         .backdrop_color(backdrop_color)
@@ -124,8 +114,8 @@ fn show_modal<T>(
                 egui::epaint::RectShape::new(
                     rect,
                     radius,
-                    alpha_scaled(p.panel, open),
-                    Stroke::new(1.0, alpha_scaled(p.line, open)),
+                    theme::alpha_scaled(p.panel, open),
+                    Stroke::new(1.0, theme::alpha_scaled(p.line, open)),
                     StrokeKind::Inside,
                 )
                 .into(),
@@ -310,44 +300,43 @@ fn bulk_row(
             ui,
             |ui| {
                 let mut on = automatable && selected.contains(&candidate.capability_id);
-                let response = ui.add_enabled(automatable, egui::Checkbox::without_text(&mut on));
-                let ax = format!("Select {}", candidate.capability_id);
-                let checked = on;
-                response.widget_info(move || {
-                    egui::WidgetInfo::selected(
-                        egui::WidgetType::Checkbox,
-                        automatable,
-                        checked,
-                        ax.clone(),
-                    )
-                });
+                // The macOS checkbox idiom (ISC-311): `ax_checkbox` — an
+                // accent box with a white check when on, a bordered box when
+                // off. See its doc for why stock `egui::Checkbox` could not
+                // be restyled to do this.
+                let response = crate::app::ax_checkbox(
+                    ui,
+                    &mut on,
+                    automatable,
+                    p,
+                    &format!("Select {}", candidate.capability_id),
+                );
+                // ax_checkbox carries the WidgetInfo itself.
                 if response.clicked() {
                     event = Some(BulkEvent::Toggle(candidate.capability_id.clone()));
                 }
-                ui.vertical(|ui| {
-                    ui.spacing_mut().item_spacing.y = theme::Space::S2.px();
-                    ui.label(
-                        RichText::new(&candidate.name)
-                            .color(if automatable { p.text } else { p.disabled_text })
-                            .font(theme::semibold(theme::SIZE_BODY)),
-                    );
-                    match &candidate.command {
-                        Some(command) => {
-                            ui.label(
-                                RichText::new(command)
-                                    .color(p.muted)
-                                    .font(egui::FontId::monospace(theme::SIZE_CAPTION)),
-                            );
-                        }
-                        None => {
-                            ui.label(
-                                RichText::new("manual install")
-                                    .color(p.disabled_text)
-                                    .size(theme::SIZE_CAPTION),
-                            );
-                        }
-                    }
-                });
+                // Centered as one unit in the row band (ISC-311) — the
+                // nested-vertical layout top-aligned this block, the same
+                // class the Overview attention rows had.
+                let caption = match &candidate.command {
+                    Some(command) => RichText::new(command)
+                        .color(p.muted)
+                        .font(egui::FontId::monospace(theme::SIZE_CAPTION)),
+                    None => RichText::new("manual install")
+                        .color(p.disabled_text)
+                        .size(theme::SIZE_CAPTION),
+                };
+                crate::app::centered_text_block(
+                    ui,
+                    RichText::new(&candidate.name).color(if automatable {
+                        p.text
+                    } else {
+                        p.disabled_text
+                    }),
+                    theme::semibold(theme::SIZE_BODY),
+                    Some(caption),
+                    None,
+                );
             },
             |ui| {
                 ui.label(

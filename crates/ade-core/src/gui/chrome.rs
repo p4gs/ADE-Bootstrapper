@@ -68,6 +68,22 @@ impl ChromeTier {
 /// (the Control Center asserts the two constants agree in a test).
 pub const SIDEBAR_WIDTH_PT: f64 = 220.0;
 
+/// The melted-titlebar band height in points — the zone the floating
+/// traffic lights occupy once `with_fullsize_content_view` removes the real
+/// titlebar. This is ALSO the window's drag surface: a hidden titlebar takes
+/// the drag-to-move and double-click-to-zoom affordances with it, and every
+/// comparable app (the WezTerm/Rio class) re-provides them over this exact
+/// band. The Control Center binds its egui-side inset to this constant by
+/// test, the same contract as `SIDEBAR_WIDTH_PT`.
+pub const TITLEBAR_BAND_PT: f64 = 34.0;
+
+/// Whether a window-space point sits in the titlebar drag band. Pure — the
+/// egui side additionally requires that no interactive widget claimed the
+/// press, which is runtime state, not geometry.
+pub fn in_titlebar_band(y: f64, band_height: f64) -> bool {
+    y >= 0.0 && y < band_height
+}
+
 /// The native effect view's frame inside the window's content view, in
 /// points. Origin-agnostic: the strip spans the FULL height, so it is the
 /// same rect under flipped and unflipped coordinate systems.
@@ -147,6 +163,15 @@ mod tests {
                 height: 740.0,
             }
         );
+    }
+
+    #[test]
+    fn the_titlebar_band_is_a_half_open_interval_from_the_top() {
+        assert!(in_titlebar_band(0.0, TITLEBAR_BAND_PT));
+        assert!(in_titlebar_band(33.9, TITLEBAR_BAND_PT));
+        assert!(!in_titlebar_band(34.0, TITLEBAR_BAND_PT));
+        assert!(!in_titlebar_band(-0.1, TITLEBAR_BAND_PT));
+        assert!(!in_titlebar_band(200.0, TITLEBAR_BAND_PT));
     }
 
     #[test]

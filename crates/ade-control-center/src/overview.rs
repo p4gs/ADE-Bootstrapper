@@ -140,7 +140,7 @@ pub(crate) fn overview(
         ui.label(
             RichText::new(&state.verdict.headline)
                 .color(headline_color)
-                .font(theme::semibold(theme::SIZE_TITLE)),
+                .font(theme::semibold(theme::SIZE_DISPLAY)),
         );
         if !state.verdict.detail.is_empty() {
             ui.add_space(theme::Space::S4.px());
@@ -178,7 +178,25 @@ pub(crate) fn overview(
             ui.add_space(theme::Space::S16.px());
         }
 
-        theme::section_surface(p, dark_mode).show(ui, |ui| {
+        // ISC-310 cycle 1: the attention box is the screen's emotional
+        // center, so it carries a status tint — red-leaning when anything
+        // is broken, amber when gaps need attention, green for the
+        // all-clear payoff — and S12 vertical padding (the owner's spacing
+        // nit: "not enough empty space buffer between the top of an
+        // element and itself").
+        let tint = match &box_state {
+            AttentionBox::Items(items) => {
+                if items.iter().any(|i| i.level == FindingLevel::Error) {
+                    Some(p.tint_err)
+                } else {
+                    Some(p.tint_warn)
+                }
+            }
+            AttentionBox::AllClear => Some(p.tint_ok),
+            AttentionBox::Checking { .. } => None,
+            AttentionBox::CheckFailed(_) => Some(p.tint_err),
+        };
+        theme::elevated_card(ui, p, dark_mode, tint, theme::Space::S12, |ui| {
             match box_state {
                 AttentionBox::Checking { prior } => {
                     ui.horizontal(|ui| {
@@ -254,7 +272,7 @@ pub(crate) fn overview(
             ui.add_space(theme::Space::S20.px());
             theme::section_heading(ui, p, "Coverage");
             ui.add_space(theme::Space::S4.px());
-            theme::section_surface(p, dark_mode).show(ui, |ui| {
+            theme::elevated_card(ui, p, dark_mode, None, theme::Space::S12, |ui| {
                 for (index, row) in state.verdict.coverage.iter().enumerate() {
                     if index > 0 {
                         row_hairline(ui, p);
@@ -300,42 +318,49 @@ fn welcome_banner(
     bulk_installable: usize,
     event: &mut Option<OverviewEvent>,
 ) {
-    theme::section_surface(p, dark_mode).show(ui, |ui| {
-        egui::containers::Sides::new()
-            .height(theme::ROW_HEIGHT)
-            .shrink_left()
-            .show(
-                ui,
-                |ui| {
-                    ui.vertical(|ui| {
-                        ui.spacing_mut().item_spacing.y = theme::Space::S2.px();
-                        ui.label(
-                            RichText::new("Welcome to ADE.")
-                                .font(theme::semibold(theme::SIZE_BODY)),
-                        );
-                        ui.label(
-                            RichText::new("Let's get your development environment covered.")
-                                .color(p.muted)
-                                .size(theme::SIZE_CAPTION),
-                        );
-                    });
-                },
-                |ui| {
-                    if bulk_installable > 0
-                        && ax_button(
-                            ui,
-                            "Set up your environment",
-                            "Set up your environment",
-                            Some(p.accent),
-                            true,
-                        )
-                        .clicked()
-                    {
-                        *event = Some(OverviewEvent::AskBulkInstall);
-                    }
-                },
-            );
-    });
+    theme::elevated_card(
+        ui,
+        p,
+        dark_mode,
+        Some(p.tint_info),
+        theme::Space::S12,
+        |ui| {
+            egui::containers::Sides::new()
+                .height(theme::ROW_HEIGHT)
+                .shrink_left()
+                .show(
+                    ui,
+                    |ui| {
+                        ui.vertical(|ui| {
+                            ui.spacing_mut().item_spacing.y = theme::Space::S2.px();
+                            ui.label(
+                                RichText::new("Welcome to ADE.")
+                                    .font(theme::semibold(theme::SIZE_BODY)),
+                            );
+                            ui.label(
+                                RichText::new("Let's get your development environment covered.")
+                                    .color(p.muted)
+                                    .size(theme::SIZE_CAPTION),
+                            );
+                        });
+                    },
+                    |ui| {
+                        if bulk_installable > 0
+                            && ax_button(
+                                ui,
+                                "Set up your environment",
+                                "Set up your environment",
+                                Some(p.accent),
+                                true,
+                            )
+                            .clicked()
+                        {
+                            *event = Some(OverviewEvent::AskBulkInstall);
+                        }
+                    },
+                );
+        },
+    );
 }
 
 fn attention_rows(
@@ -368,8 +393,6 @@ fn attention_row(
         .show(
             ui,
             |ui| {
-                let (rect, _) =
-                    ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
                 // Only items at warning level or worse reach this list, so the
                 // mark is a two-way split: red for an error, amber otherwise.
                 let dot = if item.level == FindingLevel::Error {
@@ -377,23 +400,20 @@ fn attention_row(
                 } else {
                     Dot::Warn
                 };
-                status_dot_at(ui, rect, dot, p);
-                ui.vertical(|ui| {
-                    ui.spacing_mut().item_spacing.y = theme::Space::S2.px();
-                    ui.label(RichText::new(&item.title).font(theme::semibold(theme::SIZE_BODY)));
-                    let caption = item.note.as_deref().unwrap_or(&item.why);
-                    if !caption.is_empty() {
-                        ui.add(
-                            egui::Label::new(
-                                RichText::new(caption)
-                                    .color(p.muted)
-                                    .size(theme::SIZE_CAPTION),
-                            )
-                            .truncate(),
-                        )
-                        .on_hover_text(caption);
-                    }
-                });
+                let caption = item.note.as_deref().unwrap_or(&item.why);
+                crate::app::mark_beside_block(
+                    ui,
+                    p,
+                    Some(dot),
+                    RichText::new(&item.title),
+                    theme::semibold(theme::SIZE_BODY),
+                    (!caption.is_empty()).then(|| {
+                        RichText::new(caption)
+                            .color(p.muted)
+                            .size(theme::SIZE_CAPTION)
+                    }),
+                    (!caption.is_empty()).then_some(caption),
+                );
             },
             |ui| {
                 let Some(action) = &item.action else { return };
@@ -451,7 +471,7 @@ fn insights_section(
     ui.add_space(theme::Space::S20.px());
     theme::section_heading(ui, p, "Insights");
     ui.add_space(theme::Space::S4.px());
-    theme::section_surface(p, dark_mode).show(ui, |ui| {
+    theme::elevated_card(ui, p, dark_mode, None, theme::Space::S12, |ui| {
         for (index, insight) in insights.iter().enumerate() {
             if index > 0 {
                 row_hairline(ui, p);
@@ -566,25 +586,19 @@ fn check_failed(
         .show(
             ui,
             |ui| {
-                let (rect, _) =
-                    ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
-                status_dot_at(ui, rect, Dot::Err, p);
-                ui.vertical(|ui| {
-                    ui.spacing_mut().item_spacing.y = theme::Space::S2.px();
-                    ui.label(
-                        RichText::new("The last check failed.")
-                            .font(theme::semibold(theme::SIZE_BODY)),
-                    );
-                    ui.add(
-                        egui::Label::new(
-                            RichText::new(error)
-                                .color(p.muted)
-                                .size(theme::SIZE_CAPTION),
-                        )
-                        .truncate(),
-                    )
-                    .on_hover_text(error);
-                });
+                crate::app::mark_beside_block(
+                    ui,
+                    p,
+                    Some(Dot::Err),
+                    RichText::new("The last check failed."),
+                    theme::semibold(theme::SIZE_BODY),
+                    Some(
+                        RichText::new(error)
+                            .color(p.muted)
+                            .size(theme::SIZE_CAPTION),
+                    ),
+                    None,
+                );
             },
             |ui| {
                 if ax_button(ui, "Retry", "Retry check", Some(p.accent), true).clicked() {
@@ -632,10 +646,23 @@ fn coverage_row(ui: &mut egui::Ui, p: &theme::Palette, row: &CoverageRow) -> boo
             |ui| {
                 // The mark slot is reserved on every row so names align,
                 // and painted only where something is wrong.
-                let (dot, _) = ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
+                let (slot, _) =
+                    ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
+                // Optical centering (ISC-310 cycle 2's "slightly off center
+                // with its status icon" nit): the slot and the text GALLEY
+                // already share a geometric center — but ink sits low inside
+                // a galley box (ascender headroom above the caps), so a mark
+                // at galley center reads high. Half the body-size descent
+                // (+1.5px at 13pt) drops the mark onto the ink's x-height
+                // mass — measured against the golden's actual ink, not
+                // eyeballed.
+                let mark = egui::Rect::from_center_size(
+                    egui::pos2(slot.center().x, rect.center().y + 1.5),
+                    egui::Vec2::splat(12.0),
+                );
                 match row.state {
-                    CoverageState::Broken => status_dot_at(ui, dot, Dot::Err, p),
-                    CoverageState::Uncovered => status_dot_at(ui, dot, Dot::Warn, p),
+                    CoverageState::Broken => status_dot_at(ui, mark, Dot::Err, p),
+                    CoverageState::Uncovered => status_dot_at(ui, mark, Dot::Warn, p),
                     CoverageState::Covered | CoverageState::Off => {}
                 }
                 let name_color = if row.state == CoverageState::Off {

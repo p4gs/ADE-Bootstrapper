@@ -20,7 +20,7 @@ use ade_core::gui::inventory::{CapabilityGroup, CAPABILITY_GROUPS};
 use ade_core::gui::stats::{module_for_group, module_state_covers};
 use ade_core::report::StatusRow;
 use ade_core::types::{Finding, FindingLevel};
-use egui::{Align, CornerRadius, Layout, RichText, Stroke};
+use egui::{Align, Layout, RichText, Stroke};
 
 /// What the owner did in the Projects list.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -179,56 +179,63 @@ fn coverage_matrix(
     snapshot: &Shared,
 ) -> Option<ProjectsEvent> {
     let mut event = None;
-    egui::ScrollArea::horizontal()
-        .id_salt("coverage-matrix-scroll")
-        .show(ui, |ui| {
-            egui::Grid::new("coverage-matrix")
-                .num_columns(CAPABILITY_GROUPS.len() + 1)
-                .spacing(egui::vec2(theme::Space::S16.px(), theme::Space::S6.px()))
-                .show(ui, |ui| {
-                    ui.label(
-                        RichText::new("PROJECT")
-                            .color(p.faint_text)
-                            .font(theme::medium(9.5)),
-                    );
-                    for group in CAPABILITY_GROUPS.iter() {
+    let dark_mode = ui.visuals().dark_mode;
+    // Same card as every other section (ISC-311) — the matrix floated bare
+    // on the canvas while everything around it got a surface.
+    theme::elevated_card(ui, p, dark_mode, None, theme::Space::S12, |ui| {
+        egui::ScrollArea::horizontal()
+            .id_salt("coverage-matrix-scroll")
+            .show(ui, |ui| {
+                egui::Grid::new("coverage-matrix")
+                    .num_columns(CAPABILITY_GROUPS.len() + 1)
+                    .spacing(egui::vec2(theme::Space::S16.px(), theme::Space::S6.px()))
+                    .show(ui, |ui| {
                         ui.label(
-                            RichText::new(group.name.to_uppercase())
+                            RichText::new("PROJECT")
                                 .color(p.faint_text)
-                                .font(theme::medium(9.5)),
+                                .font(theme::medium(9.5))
+                                .extra_letter_spacing(0.8),
                         );
-                    }
-                    ui.end_row();
-                    for project in &snapshot.projects {
-                        // A fixed minimum width: without it, Grid sizes the
-                        // PROJECT column to the narrow "PROJECT" header and
-                        // every real repo name gets truncated to a few
-                        // letters — found in the mandated visual pass.
-                        ui.allocate_ui(
-                            egui::vec2(PROJECT_COLUMN_WIDTH, ui.spacing().interact_size.y),
-                            |ui| {
-                                ui.set_width(PROJECT_COLUMN_WIDTH);
-                                ui.add(
-                                    egui::Label::new(
-                                        RichText::new(project_short_name(&project.dir))
-                                            .font(theme::medium(theme::SIZE_BODY)),
-                                    )
-                                    .truncate(),
-                                )
-                                .on_hover_text(&project.dir);
-                            },
-                        );
-                        let report = snapshot.reports.get(&project.id);
                         for group in CAPABILITY_GROUPS.iter() {
-                            let cell = matrix_cell(report, group.id);
-                            if matrix_cell_button(ui, p, project, group, cell) {
-                                event = Some(ProjectsEvent::OpenGroup(group.id.to_string()));
-                            }
+                            ui.label(
+                                RichText::new(group.name.to_uppercase())
+                                    .color(p.faint_text)
+                                    .font(theme::medium(9.5))
+                                    .extra_letter_spacing(0.8),
+                            );
                         }
                         ui.end_row();
-                    }
-                });
-        });
+                        for project in &snapshot.projects {
+                            // A fixed minimum width: without it, Grid sizes the
+                            // PROJECT column to the narrow "PROJECT" header and
+                            // every real repo name gets truncated to a few
+                            // letters — found in the mandated visual pass.
+                            ui.allocate_ui(
+                                egui::vec2(PROJECT_COLUMN_WIDTH, ui.spacing().interact_size.y),
+                                |ui| {
+                                    ui.set_width(PROJECT_COLUMN_WIDTH);
+                                    ui.add(
+                                        egui::Label::new(
+                                            RichText::new(project_short_name(&project.dir))
+                                                .font(theme::medium(theme::SIZE_BODY)),
+                                        )
+                                        .truncate(),
+                                    )
+                                    .on_hover_text(&project.dir);
+                                },
+                            );
+                            let report = snapshot.reports.get(&project.id);
+                            for group in CAPABILITY_GROUPS.iter() {
+                                let cell = matrix_cell(report, group.id);
+                                if matrix_cell_button(ui, p, project, group, cell) {
+                                    event = Some(ProjectsEvent::OpenGroup(group.id.to_string()));
+                                }
+                            }
+                            ui.end_row();
+                        }
+                    });
+            });
+    });
     event
 }
 
@@ -289,127 +296,126 @@ fn project_card(
     confirm_remove_ade: &Option<String>,
 ) -> Option<ProjectsEvent> {
     let mut event = None;
-    egui::Frame::new()
-        .fill(p.panel)
-        .stroke(Stroke::new(1.0, p.line))
-        .corner_radius(CornerRadius::same(theme::RADIUS_CONTAINER))
-        .inner_margin(theme::margin(theme::Space::S12, theme::Space::S8))
-        .show(ui, |ui| {
-            ui.horizontal(|ui| {
-                status_dot(ui, if project.config_ok { Dot::Ok } else { Dot::Err }, p);
-                // The path is added INSIDE the right-to-left layout, after
-                // the buttons, so it truncates into whatever space is left.
-                // Added before them it claimed the full width and the
-                // controls drew straight over the text — real repo paths are
-                // long, so this was not a fixture-only problem.
-                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    // Two controls that sound alike and are not: "Forget"
-                    // only stops tracking the repo here, "Remove ADE"
-                    // rewrites the repo. Naming the destructive one after
-                    // what it destroys is the whole safety margin.
-                    if let Some(pending_id) =
-                        confirm_remove_ade.clone().filter(|id| id == &project.id)
-                    {
-                        if ax_button(
-                            ui,
-                            "Cancel",
-                            &format!("Cancel removing ade from {}", project.dir),
-                            None,
-                            true,
-                        )
-                        .clicked()
-                        {
-                            event = Some(ProjectsEvent::CancelRemoveAde);
-                        }
-                        if ax_button(
-                            ui,
-                            "Confirm remove ADE",
-                            &format!("Withdraw ade from {}", project.dir),
-                            Some(p.err),
-                            true,
-                        )
-                        .clicked()
-                        {
-                            event = Some(ProjectsEvent::ConfirmRemoveAde(pending_id));
-                        }
-                    } else {
-                        if ax_button(
-                            ui,
-                            "Forget",
-                            &format!(
-                                "Stop tracking {} here — the repo is not changed",
-                                project.dir
-                            ),
-                            None,
-                            true,
-                        )
-                        .clicked()
-                        {
-                            event = Some(ProjectsEvent::Forget(project.id.clone()));
-                        }
-                        if ax_button(
-                            ui,
-                            "Remove ADE…",
-                            &format!(
-                                "Withdraw ade's files and managed blocks from {}",
-                                project.dir
-                            ),
-                            None,
-                            project.config_ok,
-                        )
-                        .clicked()
-                        {
-                            event = Some(ProjectsEvent::AskRemoveAde(project.id.clone()));
-                        }
-                    }
-                    let has_report = snapshot.reports.contains_key(&project.id);
-                    let inspecting = snapshot.pending.contains(&format!("report-{}", project.id));
+    // The system card (ISC-311): rim light + S12 breathing room. Tint only
+    // when this project's config is actually broken — healthy is silent,
+    // never a green wall, same rule as the matrix cells below.
+    let dark_mode = ui.visuals().dark_mode;
+    let tint = (!project.config_ok).then_some(p.tint_err);
+    theme::elevated_card(ui, p, dark_mode, tint, theme::Space::S12, |ui| {
+        ui.horizontal(|ui| {
+            status_dot(ui, if project.config_ok { Dot::Ok } else { Dot::Err }, p);
+            // The path is added INSIDE the right-to-left layout, after
+            // the buttons, so it truncates into whatever space is left.
+            // Added before them it claimed the full width and the
+            // controls drew straight over the text — real repo paths are
+            // long, so this was not a fixture-only problem.
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                // Two controls that sound alike and are not: "Forget"
+                // only stops tracking the repo here, "Remove ADE"
+                // rewrites the repo. Naming the destructive one after
+                // what it destroys is the whole safety margin.
+                if let Some(pending_id) = confirm_remove_ade.clone().filter(|id| id == &project.id)
+                {
                     if ax_button(
                         ui,
-                        if inspecting {
-                            "Loading…"
-                        } else if has_report {
-                            "Reload"
-                        } else {
-                            "Inspect"
-                        },
-                        &format!("Inspect project {}", project.dir),
+                        "Cancel",
+                        &format!("Cancel removing ade from {}", project.dir),
                         None,
-                        !inspecting,
+                        true,
                     )
                     .clicked()
                     {
-                        event = Some(ProjectsEvent::Inspect(project.id.clone()));
+                        event = Some(ProjectsEvent::CancelRemoveAde);
                     }
-                    ui.add(
-                        egui::Label::new(
-                            RichText::new(&project.dir).font(theme::medium(theme::SIZE_BODY)),
-                        )
-                        .truncate(),
+                    if ax_button(
+                        ui,
+                        "Confirm remove ADE",
+                        &format!("Withdraw ade from {}", project.dir),
+                        Some(p.err),
+                        true,
                     )
-                    .on_hover_text(&project.dir);
-                });
-            });
-            if let Some(error) = snapshot.report_errors.get(&project.id) {
-                ui.label(RichText::new(error).color(p.err).size(theme::SIZE_CAPTION));
-            }
-            if let Some(report) = snapshot.reports.get(&project.id) {
-                ui.add_space(theme::Space::S6.px());
-                ui.horizontal(|ui| {
-                    if report.verify_ok {
-                        chip(ui, "verify PASS", p.ok);
-                    } else {
-                        chip(ui, "verify FAIL", p.err);
+                    .clicked()
+                    {
+                        event = Some(ProjectsEvent::ConfirmRemoveAde(pending_id));
                     }
-                });
-                ui.add_space(theme::Space::S4.px());
-                for module in &report.modules {
-                    if let Some(found) = module_row(ui, p, project, module) {
-                        event = Some(found);
+                } else {
+                    if ax_button(
+                        ui,
+                        "Forget",
+                        &format!(
+                            "Stop tracking {} here — the repo is not changed",
+                            project.dir
+                        ),
+                        None,
+                        true,
+                    )
+                    .clicked()
+                    {
+                        event = Some(ProjectsEvent::Forget(project.id.clone()));
+                    }
+                    if ax_button(
+                        ui,
+                        "Remove ADE…",
+                        &format!(
+                            "Withdraw ade's files and managed blocks from {}",
+                            project.dir
+                        ),
+                        None,
+                        project.config_ok,
+                    )
+                    .clicked()
+                    {
+                        event = Some(ProjectsEvent::AskRemoveAde(project.id.clone()));
                     }
                 }
-            }
+                let has_report = snapshot.reports.contains_key(&project.id);
+                let inspecting = snapshot.pending.contains(&format!("report-{}", project.id));
+                if ax_button(
+                    ui,
+                    if inspecting {
+                        "Loading…"
+                    } else if has_report {
+                        "Reload"
+                    } else {
+                        "Inspect"
+                    },
+                    &format!("Inspect project {}", project.dir),
+                    None,
+                    !inspecting,
+                )
+                .clicked()
+                {
+                    event = Some(ProjectsEvent::Inspect(project.id.clone()));
+                }
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(&project.dir).font(theme::medium(theme::SIZE_BODY)),
+                    )
+                    .truncate(),
+                )
+                .on_hover_text(&project.dir);
+            });
         });
+        if let Some(error) = snapshot.report_errors.get(&project.id) {
+            ui.label(RichText::new(error).color(p.err).size(theme::SIZE_CAPTION));
+        }
+        if let Some(report) = snapshot.reports.get(&project.id) {
+            ui.add_space(theme::Space::S6.px());
+            ui.horizontal(|ui| {
+                if report.verify_ok {
+                    chip(ui, "verify PASS", p.ok);
+                } else {
+                    chip(ui, "verify FAIL", p.err);
+                }
+            });
+            ui.add_space(theme::Space::S4.px());
+            for module in &report.modules {
+                if let Some(found) = module_row(ui, p, project, module) {
+                    event = Some(found);
+                }
+            }
+        }
+    });
     event
 }
 
@@ -504,12 +510,13 @@ mod tests {
     }
 
     fn paint(
+        dark: bool,
         sink: std::sync::Arc<std::sync::Mutex<Vec<ProjectsEvent>>>,
     ) -> impl FnMut(&mut egui::Ui) + 'static {
         let shared = shared_with_project();
         let mut input = String::new();
         move |ui| {
-            let p = crate::theme::palette(true);
+            let p = crate::theme::palette(dark);
             let confirm = None;
             if let Some(event) = projects_view(ui, &p, &shared, &mut input, &confirm) {
                 sink.lock().expect("sink").push(event);
@@ -524,8 +531,18 @@ mod tests {
     #[test]
     fn snapshot_the_projects_page_with_a_report() {
         let sink = std::sync::Arc::default();
-        let mut h = harness_themed(egui::vec2(900.0, 760.0), true, paint(sink));
+        let mut h = harness_themed(egui::vec2(900.0, 760.0), true, paint(true, sink));
         h.snapshot("projects");
+    }
+
+    /// The same page in LIGHT — first light-appearance golden for this
+    /// screen (ISC-311: the cycle-3 white-cards-on-gray inversion reached it
+    /// through the token layer, but nobody had SEEN these pixels).
+    #[test]
+    fn snapshot_the_projects_page_light() {
+        let sink = std::sync::Arc::default();
+        let mut h = harness_themed(egui::vec2(900.0, 760.0), false, paint(false, sink));
+        h.snapshot("projects_light");
     }
 
     /// Destructive withdrawal takes two clicks: the first only arms the
@@ -574,7 +591,7 @@ mod tests {
         // The empty-input Add button stays disabled: no event from clicking it.
         let quiet: std::sync::Arc<std::sync::Mutex<Vec<ProjectsEvent>>> = Default::default();
         let sink = std::sync::Arc::clone(&quiet);
-        let mut idle = harness_themed(egui::vec2(700.0, 380.0), true, paint(sink));
+        let mut idle = harness_themed(egui::vec2(700.0, 380.0), true, paint(true, sink));
         assert!(idle.query_by_label("Register project").is_some());
         idle.get_by_label("Register project").click();
         idle.run_steps(2);

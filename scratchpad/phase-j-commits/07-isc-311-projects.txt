@@ -1,0 +1,23 @@
+feat(design): ISC-311 screen 2/4 — projects onto the Phase J system
+
+- project_card's raw hand-built `egui::Frame` moves to `theme::elevated_card`
+  (rim light, S12 breathing room, white-on-gray in light) with `tint_err`
+  only when the project's config is actually broken — healthy is silent,
+  never a green wall, same rule as the matrix cells.
+- The coverage matrix gains the same card every other section sits on — it
+  floated bare on the canvas while everything around it got a surface.
+- Matrix column headers join the tracked-eyebrow class (+0.8px).
+
+Measured on the regenerated projects.png: card-header dot vs path-text ink
+deltas +0.0 to -1.0px (within +/-1.0 tolerance). Grep gate: zero raw
+`Frame::new()` card sites remain in projects.rs.
+
+Fresh-context verifier on screen 1 (same commit train): 6/7 claims
+CONFIRMED; the one refutation adjudicated in the ISA's 2026-08-02T23:00Z
+Decisions entry (triangle centroid vs box-center — box-center is the
+correct optical measure for non-circular glyphs; spans align at 0.00px).
+
+Gates: fmt 0, clippy -D warnings 0, workspace tests 623/0 deterministic,
+ISC-304 grep 0, coverage >=95/95, deny 0, parity 0, emoji-ban 0.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-311 screen 2.

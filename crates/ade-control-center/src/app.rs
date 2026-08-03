@@ -29,9 +29,12 @@ use std::sync::Arc;
 pub struct ControlCenterApp {
     engine: Arc<Engine>,
     local: LocalState,
-    /// The chrome tier actually achieved at launch (Phase E). When it is not
-    /// `Opaque`, the sidebar panel paints a transparent fill so the native
-    /// material behind the strip shows through.
+    /// The chrome attachment (Phase E + ISC-309): tier achieved at launch,
+    /// plus the live handle that answers Reduce Transparency toggles.
+    chrome: crate::chrome::ChromeAttachment,
+    /// Whether the sidebar paints a transparent fill so the native material
+    /// shows through. Launch value comes from the tier; flips live when the
+    /// user toggles Reduce Transparency (ISC-309, vibrancy surface).
     chrome_transparent: bool,
 }
 
@@ -49,6 +52,9 @@ pub(crate) struct LocalState {
     pub bulk_selected: Option<HashSet<String>>,
     pub expanded_issues: HashSet<String>,
     pub expanded_jobs: HashSet<String>,
+    /// The component gallery (ISC-308): `Some` while open. Debug chrome —
+    /// deliberately not persisted.
+    pub gallery: Option<crate::gallery::GalleryState>,
 }
 
 /// Everything the views can ask the engine to do. The frame is pure — it
@@ -86,14 +92,16 @@ pub(crate) enum EngineCmd {
 impl ControlCenterApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         theme::apply(&cc.egui_ctx);
-        let tier = crate::chrome::attach_sidebar_chrome(cc);
+        let chrome = crate::chrome::attach_sidebar_chrome(cc);
         let engine = Engine::new(ade_home_from_env());
         let ctx = cc.egui_ctx.clone();
         engine.start_poll(move || ctx.request_repaint());
+        let chrome_transparent = chrome.tier.wants_transparent_sidebar();
         ControlCenterApp {
             engine,
             local: LocalState::default(),
-            chrome_transparent: tier.wants_transparent_sidebar(),
+            chrome,
+            chrome_transparent,
         }
     }
 
@@ -135,6 +143,12 @@ impl ControlCenterApp {
 
 impl eframe::App for ControlCenterApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        // ISC-309 (vibrancy): honor a mid-run Reduce Transparency toggle in
+        // BOTH layers — the native material hides/reveals itself in the
+        // handle, and the egui sidebar flips its painted fill to match.
+        if let Some(transparent) = self.chrome.poll_reduce_transparency() {
+            self.chrome_transparent = transparent;
+        }
         let dark = ui.visuals().dark_mode;
         let p = theme::palette(dark);
 
@@ -177,6 +191,58 @@ pub(crate) fn frame(
     chrome_transparent: bool,
 ) -> Vec<EngineCmd> {
     let mut cmds = Vec::new();
+    // ISC-309, traffic-light surface: a melted titlebar removes the real
+    // titlebar's drag-to-move and double-click-to-zoom affordances — every
+    // native app has them, so the band the traffic lights float in gives
+    // them back. Registered FIRST, so it sits BENEATH every widget later
+    // registered in this frame: a press on a real control never starts a
+    // window drag, only a press on bare band does. Geometry is the
+    // core-owned TITLEBAR_BAND_PT contract (bound to the theme inset by
+    // test); the band spans the full window width, exactly like a real
+    // titlebar.
+    let band = egui::Rect::from_min_size(
+        ui.max_rect().min,
+        egui::vec2(
+            ui.max_rect().width(),
+            ade_core::gui::chrome::TITLEBAR_BAND_PT as f32,
+        ),
+    );
+    let band_response = ui.interact(
+        band,
+        egui::Id::new("titlebar-drag-band"),
+        egui::Sense::click_and_drag(),
+    );
+    if band_response.drag_started_by(egui::PointerButton::Primary) {
+        ui.ctx().send_viewport_cmd(egui::ViewportCommand::StartDrag);
+    }
+    if band_response.double_clicked_by(egui::PointerButton::Primary) {
+        let maximized = ui.input(|i| i.viewport().maximized.unwrap_or(false));
+        ui.ctx()
+            .send_viewport_cmd(egui::ViewportCommand::Maximized(!maximized));
+    }
+
+    // ISC-309 fresh-context review finding: the band must register BEFORE
+    // the gallery takeover's early return too, or the window is undraggable
+    // while the gallery is open.
+    // The component gallery (ISC-308): Cmd+Shift+G toggles a full-frame
+    // takeover rendering every token and shared component. A debug surface,
+    // so it deliberately does not touch the sidebar/nav composition — the
+    // live screens render exactly as before whenever it is closed.
+    if ui
+        .ctx()
+        .input(|i| i.key_pressed(egui::Key::G) && i.modifiers.command && i.modifiers.shift)
+    {
+        local.gallery = match local.gallery {
+            Some(_) => None,
+            None => Some(Default::default()),
+        };
+    }
+    if let Some(gallery_state) = &mut local.gallery {
+        let dark_mode = ui.visuals().dark_mode;
+        crate::gallery::gallery(ui, p, dark_mode, gallery_state);
+        return cmds;
+    }
+
     let verdict = build_verdict(&snapshot.capabilities);
     // The bulk-preview population, computed once per frame from the same
     // snapshot everything else renders.
@@ -205,7 +271,7 @@ pub(crate) fn frame(
     // the panel paints NO fill of its own — the material is the surface, and
     // text/washes composite on top. Opaque tier keeps the step-2 fill.
     let sidebar_fill = if chrome_transparent {
-        Color32::TRANSPARENT
+        theme::NO_FILL
     } else {
         p.panel
     };
@@ -568,6 +634,133 @@ pub(crate) fn status_dot_at(ui: &egui::Ui, rect: egui::Rect, dot: Dot, p: &theme
     }
 }
 
+/// The "status mark beside a title-over-caption block" cluster used by
+/// attention rows, capability rows, and the check-failed state — with the
+/// two geometry rules egui's nested-`ui.vertical` layout gets wrong
+/// (measured on the ISC-310 cycle-2 goldens: the block top-aligned 6px high
+/// of the band center, and the mark landed on the caption line): the text
+/// block centers in the row band as ONE unit, and the mark sits on the
+/// TITLE line's center, never the block's. Captions are caption-sized by
+/// contract — the centering math assumes it.
+pub(crate) fn mark_beside_block(
+    ui: &mut egui::Ui,
+    p: &theme::Palette,
+    dot: Option<Dot>,
+    title: RichText,
+    title_font: egui::FontId,
+    caption: Option<RichText>,
+    hover: Option<&str>,
+) {
+    let band = ui.max_rect();
+    let title_h = ui.fonts_mut(|f| f.row_height(&title_font));
+    let caption_h =
+        ui.fonts_mut(|f| f.row_height(&egui::FontId::proportional(theme::SIZE_CAPTION)));
+    let gap = theme::Space::S2.px();
+    let block_h = if caption.is_some() {
+        title_h + gap + caption_h
+    } else {
+        title_h
+    };
+    let top = band.center().y - block_h * 0.5;
+
+    // The slot is reserved unconditionally so titles align; the mark is
+    // painted at the title line's center, not the slot's layout center.
+    let (slot, _) = ui.allocate_exact_size(egui::vec2(12.0, 12.0), egui::Sense::hover());
+    if let Some(dot) = dot {
+        let mark = egui::Rect::from_center_size(
+            egui::pos2(slot.center().x, top + title_h * 0.5),
+            egui::Vec2::splat(12.0),
+        );
+        status_dot_at(ui, mark, dot, p);
+    }
+
+    place_text_block(
+        ui,
+        band,
+        top,
+        block_h,
+        gap,
+        title.font(title_font),
+        caption,
+        hover,
+    );
+}
+
+/// A title-over-caption block WITHOUT a leading mark, centered in its row
+/// band as one unit — the checkbox-row variant of `mark_beside_block`
+/// (the leading control centers itself in the band, so it centers on the
+/// block; only status marks need the title-line anchor). Same
+/// captions-are-caption-sized contract.
+pub(crate) fn centered_text_block(
+    ui: &mut egui::Ui,
+    title: RichText,
+    title_font: egui::FontId,
+    caption: Option<RichText>,
+    hover: Option<&str>,
+) {
+    let band = ui.max_rect();
+    let title_h = ui.fonts_mut(|f| f.row_height(&title_font));
+    let caption_h =
+        ui.fonts_mut(|f| f.row_height(&egui::FontId::proportional(theme::SIZE_CAPTION)));
+    let gap = theme::Space::S2.px();
+    let block_h = if caption.is_some() {
+        title_h + gap + caption_h
+    } else {
+        title_h
+    };
+    let top = band.center().y - block_h * 0.5;
+    place_text_block(
+        ui,
+        band,
+        top,
+        block_h,
+        gap,
+        title.font(title_font),
+        caption,
+        hover,
+    );
+}
+
+#[allow(clippy::too_many_arguments)]
+fn place_text_block(
+    ui: &mut egui::Ui,
+    band: egui::Rect,
+    top: f32,
+    block_h: f32,
+    gap: f32,
+    title: RichText,
+    caption: Option<RichText>,
+    hover: Option<&str>,
+) {
+    let avail = ui.available_rect_before_wrap();
+    let block = egui::Rect::from_min_max(
+        egui::pos2(avail.left(), top),
+        egui::pos2(avail.right(), top + block_h),
+    );
+    let mut text_ui = ui.new_child(
+        egui::UiBuilder::new()
+            .max_rect(block)
+            .layout(egui::Layout::top_down(egui::Align::Min)),
+    );
+    text_ui.spacing_mut().item_spacing.y = gap;
+    text_ui.label(title);
+    if let Some(caption) = caption {
+        let resp = text_ui.add(egui::Label::new(caption).truncate());
+        if let Some(hover) = hover {
+            resp.on_hover_text(hover);
+        }
+    }
+    // Advance the parent cursor over the block's true width so `Sides`
+    // sizes the left cluster honestly.
+    ui.allocate_rect(
+        egui::Rect::from_min_max(
+            egui::pos2(block.left(), band.top()),
+            egui::pos2(block.left() + text_ui.min_rect().width(), band.bottom()),
+        ),
+        egui::Sense::hover(),
+    );
+}
+
 /// The capability an item provides — an eyebrow, not a badge.
 ///
 /// It was a filled, outlined box: a container competing with the row's real
@@ -601,14 +794,34 @@ pub(crate) fn row_hairline(ui: &mut egui::Ui, p: &theme::Palette) {
     );
 }
 
+/// A status chip: ALL-CAPS, small, semibold, tracked — painted
+/// geometrically so the label sits at the pill's exact center (the
+/// Frame+label version floated the text off-center and oversized the
+/// bubble; owner annotation, ISC-310 loop, 2026-08-03: "text inside these
+/// bubbles are off center... bubbles themselves are too big compared to
+/// the text... make the font size smaller, make the text ALL CAPS, and
+/// make it bolder").
 pub(crate) fn chip(ui: &mut egui::Ui, text: &str, color: Color32) {
-    egui::Frame::new()
-        .fill(color.gamma_multiply(0.16))
-        .corner_radius(CornerRadius::same(10))
-        .inner_margin(egui::Margin::symmetric(8, 3))
-        .show(ui, |ui| {
-            ui.label(RichText::new(text).color(color).size(11.0));
-        });
+    let galley = ui
+        .painter()
+        .layout_no_wrap(text.to_uppercase(), theme::semibold(9.0), color);
+    // Tight padding: 6px x, 2px y around the ink; full-round pill.
+    let size = galley.size() + egui::vec2(12.0, 4.0);
+    use egui::emath::GuiRounding as _;
+    let (rect, _) = ui.allocate_exact_size(size, egui::Sense::hover());
+    let rect = rect.round_to_pixels(ui.pixels_per_point());
+    ui.painter().rect_filled(
+        rect,
+        CornerRadius::same((rect.height() * 0.5) as u8),
+        color.gamma_multiply(0.16),
+    );
+    // Measured on the golden: cap ink centers at +0.5px in the pill (the
+    // full-ink bbox reads +1.0 on labels with parentheses, but that is the
+    // parens' correct below-baseline descent, not mis-centering). A
+    // half-pixel counter-nudge rounds away at 1x — verified ineffective —
+    // so the galley sits at the geometric center, undoctored.
+    ui.painter()
+        .galley(rect.center() - galley.size() * 0.5, galley, color);
 }
 
 pub(crate) fn toggle(
@@ -630,17 +843,81 @@ pub(crate) fn toggle(
     });
     if ui.is_rect_visible(rect) {
         let how_on = ui.ctx().animate_bool_responsive(response.id, *on);
-        let bg = Color32::from_gray(if ui.visuals().dark_mode { 70 } else { 190 })
-            .lerp_to_gamma(p.ok, how_on);
+        let bg = p.toggle_track_off.lerp_to_gamma(p.ok, how_on);
         let radius = 0.5 * rect.height();
         ui.painter()
             .rect(rect, radius, bg, Stroke::NONE, StrokeKind::Inside);
         let circle_x = egui::lerp((rect.left() + radius)..=(rect.right() - radius), how_on);
-        ui.painter().circle_filled(
-            egui::pos2(circle_x, rect.center().y),
-            radius - 2.5,
-            Color32::WHITE,
-        );
+        ui.painter()
+            .circle_filled(egui::pos2(circle_x, rect.center().y), radius - 2.5, p.knob);
+    }
+    response
+}
+
+/// The macOS checkbox: an accent-filled rounded box with a white check when
+/// on, a visibly bordered box when off. Hand-painted like `toggle` above,
+/// for the same reasons the app hand-paints its other controls: stock
+/// `Checkbox`'s widget-gray box is nearly invisible against a slate panel
+/// (leaving its check glyph floating unanchored — pixel-scanned on the
+/// bulk-modal golden), and hand-painting gives the accent-on/bordered-off
+/// states plus the app's own focus ring, which the stock widget's style
+/// table doesn't express.
+pub(crate) fn ax_checkbox(
+    ui: &mut egui::Ui,
+    on: &mut bool,
+    enabled: bool,
+    p: &theme::Palette,
+    ax_label: &str,
+) -> egui::Response {
+    let size = egui::Vec2::splat(16.0);
+    let sense = if enabled {
+        egui::Sense::click()
+    } else {
+        egui::Sense::hover()
+    };
+    let (rect, mut response) = ui.allocate_exact_size(size, sense);
+    if enabled && response.clicked() {
+        *on = !*on;
+        response.mark_changed();
+    }
+    let label = ax_label.to_string();
+    let selected = *on;
+    response.widget_info(move || {
+        egui::WidgetInfo::selected(egui::WidgetType::Checkbox, enabled, selected, label.clone())
+    });
+    if ui.is_rect_visible(rect) {
+        let radius = egui::CornerRadius::same(theme::RADIUS_CONTROL);
+        if *on {
+            let fill = if enabled { p.accent } else { p.disabled_text };
+            ui.painter().rect(
+                rect,
+                radius,
+                fill,
+                egui::Stroke::NONE,
+                egui::StrokeKind::Inside,
+            );
+            // The check: same three-point stroke geometry stock egui draws,
+            // in on-accent white, sized to the box's inner two-thirds.
+            let inner = egui::Rect::from_center_size(rect.center(), egui::Vec2::splat(9.0));
+            ui.painter().add(egui::Shape::line(
+                vec![
+                    egui::pos2(inner.left(), inner.center().y),
+                    egui::pos2(inner.center().x - 1.0, inner.bottom()),
+                    egui::pos2(inner.right(), inner.top()),
+                ],
+                egui::Stroke::new(1.8, theme::ON_ACCENT),
+            ));
+        } else {
+            let stroke_color = if enabled { p.line } else { p.hairline };
+            ui.painter().rect(
+                rect,
+                radius,
+                p.widget,
+                egui::Stroke::new(1.0, stroke_color),
+                egui::StrokeKind::Inside,
+            );
+        }
+        theme::focus_ring(ui, rect, theme::RADIUS_CONTROL, response.has_focus());
     }
     response
 }
@@ -708,11 +985,11 @@ pub(crate) fn ax_button(
     enabled: bool,
 ) -> egui::Response {
     let rich = match fill {
-        Some(_) => RichText::new(text).color(Color32::WHITE),
+        Some(_) => RichText::new(text).color(theme::ON_ACCENT),
         None => RichText::new(text),
     };
     let backdrop = ui.painter().add(egui::Shape::Noop);
-    let button = egui::Button::new(rich).fill(Color32::TRANSPARENT);
+    let button = egui::Button::new(rich).fill(theme::NO_FILL);
     let response = ui.add_enabled(enabled, button);
     let label = ax_label.to_string();
     response.widget_info(move || {
@@ -723,9 +1000,6 @@ pub(crate) fn ax_button(
     }
     let radius = CornerRadius::same(theme::RADIUS_CONTROL);
     let widget_fill = if enabled {
-        let widget = ui.visuals().widgets.inactive.bg_fill;
-        let widget_hover = ui.visuals().widgets.hovered.bg_fill;
-        let widget_active = ui.visuals().widgets.active.bg_fill;
         let hover =
             ui.ctx()
                 .animate_bool_with_time(response.id, response.hovered(), theme::DURATION_HOVER);
@@ -734,9 +1008,25 @@ pub(crate) fn ax_button(
             response.is_pointer_button_down_on(),
             theme::DURATION_HOVER,
         );
-        fill.unwrap_or(widget)
-            .lerp_to_gamma(widget_hover, hover)
-            .lerp_to_gamma(widget_active, press)
+        // A saturated fill (accent, err) keeps its hue through hover/press —
+        // a white lift and a black shade composited over the fill. The old
+        // path lerped toward the NEUTRAL widget ramp, which visibly grayed a
+        // blue button on approach (ISC-310 standing loop, 2026-08-03).
+        // Neutral buttons keep the widget rest/hover/active ramp.
+        let (rest, hover_to, press_to) = match fill {
+            Some(saturated) => (
+                saturated,
+                theme::blend_over(saturated, theme::FILL_HOVER_LIFT),
+                theme::blend_over(saturated, theme::FILL_PRESS_SHADE),
+            ),
+            None => (
+                ui.visuals().widgets.inactive.bg_fill,
+                ui.visuals().widgets.hovered.bg_fill,
+                ui.visuals().widgets.active.bg_fill,
+            ),
+        };
+        rest.lerp_to_gamma(hover_to, hover)
+            .lerp_to_gamma(press_to, press)
     } else {
         // Disabled: `add_enabled` restores full painter opacity before
         // returning, so the dimming has to be applied by hand here too —
@@ -748,6 +1038,21 @@ pub(crate) fn ax_button(
         backdrop,
         egui::epaint::RectShape::filled(response.rect, radius, widget_fill),
     );
+    // The gel cue on filled buttons only: a 1px top light inset past the
+    // corner radius — same machined-depth technique as the card rim light,
+    // white here because it sits on a saturated fill in both appearances.
+    if fill.is_some() && enabled {
+        let rect = response.rect;
+        let y = theme::snap_y(rect.top() + 1.0, ui.pixels_per_point());
+        let inset = theme::RADIUS_CONTROL as f32;
+        ui.painter().line_segment(
+            [
+                egui::pos2(rect.left() + inset, y),
+                egui::pos2(rect.right() - inset, y),
+            ],
+            egui::Stroke::new(1.0, theme::BUTTON_TOP_LIGHT),
+        );
+    }
     response
 }
 

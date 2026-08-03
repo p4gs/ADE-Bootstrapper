@@ -1,8 +1,9 @@
 //! Visual identity for the ADE Control Center.
 //!
 //! The system is two layers, borrowed from how Zed's `crates/ui` is built:
-//! a perceptual 12-step neutral ramp (Radix "sand", light + dark + alpha
-//! variants) underneath, and named semantic roles on top. View code speaks
+//! a perceptual 12-step neutral ramp underneath (Radix "sand" in light,
+//! Radix "slate" in dark — warm paper by day, cool blue-cast depth by
+//! night, the Zed/Warp/Linear family) and named semantic roles on top. View code speaks
 //! roles ("surface", "text_muted") and scales (`SIZE_*`, `Space`), never raw
 //! hexes or invented sizes — the absence of intermediate values is what makes
 //! the result read as designed rather than assembled.
@@ -13,6 +14,7 @@
 //! unfocused so nothing shifts. The "no stock-egui look" claim (ISC-182.1)
 //! lives here.
 
+use ade_core::gui::tokens::{self, Appearance, ColorRole};
 use egui::{
     Color32, CornerRadius, FontData, FontDefinitions, FontFamily, FontId, Shadow, Stroke,
     TextStyle, Theme, Visuals,
@@ -30,8 +32,12 @@ pub const SIZE_CAPTION: f32 = 11.0;
 pub const SIZE_BODY: f32 = 13.0;
 /// Section titles.
 pub const SIZE_SECTION: f32 = 15.0;
-/// Page titles (the verdict headline, capability-page titles).
+/// Page titles (capability-page titles).
 pub const SIZE_TITLE: f32 = 20.0;
+/// The one display size — the Overview verdict headline, nothing else.
+/// macOS's large-title metric: a page gets at most one voice this loud
+/// (ISC-310 cycle 3, under the owner's standing "keep iterating" directive).
+pub const SIZE_DISPLAY: f32 = 26.0;
 
 /// The spacing scale. Fine-grained below 8 (where almost all UI rhythm
 /// lives), coarse above. Nothing off-scale: if a gap is not one of these, the
@@ -113,113 +119,70 @@ pub const TRAFFIC_LIGHT_INSET: f32 = 34.0;
 pub const MODAL_CONFIRM_WIDTH: f32 = 380.0;
 pub const MODAL_LIST_WIDTH: f32 = 460.0;
 
-// ───────────────────────── the neutral ramp ─────────────────────────
-// Radix "sand" (MIT, radix-ui/colors), fetched verbatim from src/{light,dark}.ts.
-// Step semantics (Radix's own): 1-2 app backgrounds · 3-5 element rest/hover/
-// active · 6-8 borders · 9-10 solids · 11-12 text. The alpha variant is the
-// same ramp as translucent overlays — what makes interaction washes composite
-// correctly over any surface beneath them.
+// ───────────────────────── token resolution ─────────────────────────
+// Phase J: the color DATA moved to `ade_core::gui::tokens` — the Radix
+// ramps (sand light / slateDark dark), status solids, and every semantic
+// role live there, once. This file is the ONLY sanctioned resolution layer
+// from those tokens to `egui::Color32` (the ISC-304 grep gate holds every
+// other file to zero raw color constructors), and the pinned-baseline test
+// at the bottom pins every resolved value to its authority: Phase I
+// (d5b1ba8) for light/durations/shadows/radii, the quoted 2026-08-02T19:45Z
+// owner Decision for the slate dark palette and the six cycle-1 roles.
 
-const fn c(rgb: u32) -> Color32 {
-    Color32::from_rgb((rgb >> 16) as u8, (rgb >> 8) as u8, rgb as u8)
-}
-
-const fn ca(rgba: u32) -> Color32 {
-    Color32::from_rgba_unmultiplied_const(
-        (rgba >> 24) as u8,
-        (rgba >> 16) as u8,
-        (rgba >> 8) as u8,
-        rgba as u8,
-    )
-}
-
-pub struct Ramp {
-    pub steps: [Color32; 12],
-    pub alpha: [Color32; 12],
-}
-
-impl Ramp {
-    /// Radix steps are 1-based in every doc that describes them; keep that
-    /// numbering at the call site instead of scattering `- 1`.
-    pub const fn step(&self, n: usize) -> Color32 {
-        self.steps[n - 1]
-    }
-
-    pub const fn alpha_step(&self, n: usize) -> Color32 {
-        self.alpha[n - 1]
-    }
-}
-
-/// Radix `sand` (light).
-pub const SAND_LIGHT: Ramp = Ramp {
-    steps: [
-        c(0xfdfdfc),
-        c(0xf9f9f8),
-        c(0xf1f0ef),
-        c(0xe9e8e6),
-        c(0xe2e1de),
-        c(0xdad9d6),
-        c(0xcfceca),
-        c(0xbcbbb5),
-        c(0x8d8d86),
-        c(0x82827c),
-        c(0x63635e),
-        c(0x21201c),
-    ],
-    alpha: [
-        ca(0x55550003),
-        ca(0x25250007),
-        ca(0x20100010),
-        ca(0x1f150019),
-        ca(0x1f180021),
-        ca(0x19130029),
-        ca(0x19140035),
-        ca(0x1915014a),
-        ca(0x0f0f0079),
-        ca(0x0c0c0083),
-        ca(0x080800a1),
-        ca(0x060500e3),
-    ],
-};
-
-/// Radix `sandDark`.
-pub const SAND_DARK: Ramp = Ramp {
-    steps: [
-        c(0x111110),
-        c(0x191918),
-        c(0x222221),
-        c(0x2a2a28),
-        c(0x31312e),
-        c(0x3b3a37),
-        c(0x494844),
-        c(0x62605b),
-        c(0x6f6d66),
-        c(0x7c7b74),
-        c(0xb5b3ad),
-        c(0xeeeeec),
-    ],
-    alpha: [
-        ca(0x00000000),
-        ca(0xf4f4f309),
-        ca(0xf6f6f513),
-        ca(0xfefef31b),
-        ca(0xfbfbeb23),
-        ca(0xfffaed2d),
-        ca(0xfffbed3c),
-        ca(0xfff9eb57),
-        ca(0xfffae965),
-        ca(0xfffdee73),
-        ca(0xfffcf4b0),
-        ca(0xfffffded),
-    ],
-};
-
-pub const fn neutral(dark_mode: bool) -> &'static Ramp {
+/// Appearance key for the token layer, from this file's `dark_mode` idiom.
+const fn appearance(dark_mode: bool) -> Appearance {
     if dark_mode {
-        &SAND_DARK
+        Appearance::Dark
     } else {
-        &SAND_LIGHT
+        Appearance::Light
     }
+}
+
+/// Resolve a semantic role to a renderer color. The one place in the GUI
+/// crates where token bytes become `Color32` — everything else asks the
+/// `Palette` (or the named consts below) rather than constructing color.
+const fn tc(role: ColorRole, dark_mode: bool) -> Color32 {
+    let c = tokens::resolve(role, appearance(dark_mode));
+    Color32::from_rgba_unmultiplied_const(c.r(), c.g(), c.b(), c.a())
+}
+
+/// Text painted on an `accent` fill — appearance-constant (white), exposed
+/// as a const for the call sites (`ax_button`) that have no `Palette` in
+/// scope.
+pub const ON_ACCENT: Color32 = tc(ColorRole::OnAccent, true);
+
+/// Explicit no-fill — the named form of "paint nothing here", so view code
+/// states the decision instead of reaching for a raw transparent constant.
+pub const NO_FILL: Color32 = tc(ColorRole::NoFill, true);
+
+/// Interaction states for SATURATED button fills (accent, err): a white
+/// lift on hover and a black shade on press, composited over the fill via
+/// `blend_over` — hue-preserving, where lerping toward the neutral widget
+/// ramp visibly grayed a blue button on approach. Appearance-constant.
+pub const FILL_HOVER_LIFT: Color32 = tc(ColorRole::FillHoverLift, true);
+/// See `FILL_HOVER_LIFT`.
+pub const FILL_PRESS_SHADE: Color32 = tc(ColorRole::FillPressShade, true);
+/// The 1px "gel" top light inside a filled button — the Big Sur cue.
+pub const BUTTON_TOP_LIGHT: Color32 = tc(ColorRole::ButtonTopLight, true);
+
+/// Public role resolution for surfaces that need a color OUTSIDE the current
+/// appearance (the gallery shows both appearances side by side). Ordinary
+/// view code holds a `Palette`; this exists for token introspection, not as
+/// a second path around it.
+pub fn role_color(role: ColorRole, dark_mode: bool) -> Color32 {
+    tc(role, dark_mode)
+}
+
+/// Scale a color's ALPHA alone, preserving its RGB — `Color32::gamma_multiply`
+/// scales all four channels, which is only safe for pure-black shadow colors
+/// (their RGB is already 0). Entrance fades on real colors (the modal panel
+/// fill/stroke/scrim) need this instead. Lives here because decomposing and
+/// reconstructing a color is resolution-layer work — view code hands a
+/// resolved color in and gets a resolved color back.
+pub fn alpha_scaled(color: Color32, factor: f32) -> Color32 {
+    let [r, g, b, a] = color.to_srgba_unmultiplied();
+    let a = (a as f32 * factor).round().clamp(0.0, 255.0) as u8;
+    Color32::from_rgba_unmultiplied(r, g, b, a)
 }
 
 // ───────────────────────── shadows ─────────────────────────
@@ -303,35 +266,34 @@ pub fn focus_stroke(focused: bool) -> Stroke {
     }
 }
 
-pub const ACCENT: Color32 = Color32::from_rgb(76, 125, 255);
-pub const OK: Color32 = Color32::from_rgb(47, 191, 118);
-pub const WARN: Color32 = Color32::from_rgb(226, 156, 60);
-pub const ERR: Color32 = Color32::from_rgb(224, 92, 92);
-pub const INFO: Color32 = Color32::from_rgb(110, 163, 224);
+/// The dark-appearance accent, kept as a named const because `visuals()`
+/// and `focus_stroke()` use it appearance-independently (the shipped Phase I
+/// behavior this refactor must not change) — resolved from the token layer
+/// like everything else. The full light/dark role story, including why the
+/// light values are each hue's AA-safe Radix midpoint, is documented on the
+/// token data in `ade_core::gui::tokens`.
+pub const ACCENT: Color32 = tc(ColorRole::Accent, true);
 
-/// Light-appearance role solids, one hue-appropriate AA-safe step per role —
-/// fetched the same way `SAND_LIGHT` was (radix-ui/colors `src/*.ts`, light
-/// variant). `indigo-9` is the "solid button" step — the one meant for a
-/// filled control with a light label on top — chosen for `accent` over a
-/// `-11` text step so `accent` and `info` stay two different, recognizable
-/// blues in light mode exactly as they are in dark (`ACCENT` reads more
-/// indigo, `INFO` reads more sky).
-///
-/// `ok`/`warn`/`err`/`info` are each hue's OWN midpoint between Radix's
-/// `-11` (text-safe, Radix's stated target 4.5:1 against the app
-/// background) and `-12` (max-contrast text) steps, not `-11` alone:
-/// `-11` measured 4.47:1 against this ramp's `panel` step (`SAND_LIGHT`
-/// step 2, slightly warmer/lower than a neutral white) — Radix's own 4.5:1
-/// claim is against ITS "app background," not this app's actual `panel`
-/// surface, and the two are close enough to matter. The midpoint clears
-/// `panel` with real margin (~6-7:1) while staying visibly the same hue as
-/// `-11`, not sliding all the way to `-12`'s much darker, less
-/// recognizably "success/warning/error" character.
-const ACCENT_LIGHT: Color32 = c(0x3e63dd);
-const OK_LIGHT: Color32 = c(0x1d5f42);
-const WARN_LIGHT: Color32 = c(0x7d4c11);
-const ERR_LIGHT: Color32 = c(0x99212a);
-const INFO_LIGHT: Color32 = c(0x0f5399);
+/// The macOS-style focus ring (ISC-309, focus-ring surface): a soft accent
+/// halo OUTSIDE the control's edge plus the crisp 1px line `focus_stroke`
+/// already draws inside it. Real macOS focus rings sit outside the control
+/// and glow rather than outline — a bare 1px inner stroke reads as a border
+/// change, not as focus. Paints nothing while unfocused; the layout box is
+/// already reserved by `focus_stroke`'s transparent stroke, so focus
+/// arriving still shifts nothing.
+pub fn focus_ring(ui: &egui::Ui, rect: egui::Rect, radius: u8, focused: bool) {
+    use egui::emath::GuiRounding as _;
+    if !focused {
+        return;
+    }
+    let halo = rect.expand(1.5);
+    ui.painter().rect_stroke(
+        halo.round_to_pixels(ui.pixels_per_point()),
+        CornerRadius::same(radius.saturating_add(2)),
+        Stroke::new(3.0, ACCENT.gamma_multiply(0.35)),
+        egui::StrokeKind::Outside,
+    );
+}
 
 /// Semantic roles over the ramp. View code holds a `Palette`, never a step
 /// number and never a hex — the role names ARE the design decisions.
@@ -364,7 +326,12 @@ pub struct Palette {
     pub row_hover: Color32,
     /// Ghost-element active wash — alpha step 4.
     pub ghost_active: Color32,
-    /// Selected wash (nav rows, list selection) — alpha step 5.
+    /// Neutral selected wash (list selection) — alpha step 5. Nav rows
+    /// moved to `selected_accent` in ISC-310 cycle 1; this stays as the
+    /// vocabulary's neutral option for list rows where an accent field
+    /// would fight per-row status colors (same ships-now rationale as the
+    /// unused `Space` steps above).
+    #[allow(dead_code)]
     pub selected: Color32,
     /// High-contrast text — step 12.
     pub text: Color32,
@@ -391,31 +358,63 @@ pub struct Palette {
     /// Informational / "this is clickable" role. `INFO` in dark; AA-safe
     /// blue in light.
     pub info: Color32,
+    /// Toggle-switch knob — appearance-constant white.
+    pub knob: Color32,
+    /// Toggle-switch track in the off position — the one appearance-varying
+    /// gray that used to be hardcoded in widget code (Phase J moved it here).
+    pub toggle_track_off: Color32,
+    /// Modal backdrop scrim — translucent black, both appearances.
+    pub scrim: Color32,
+    /// 1px top rim light for elevated dark surfaces — white at ~5% alpha in
+    /// dark, fully transparent in light (paper needs no rim light). Painted
+    /// by `elevated_card` as a short inset line, never a full border.
+    pub edge_highlight: Color32,
+    /// Selected wash carrying the accent hue — the macOS sidebar-selection
+    /// idiom (ISC-310 cycle 1). `selected` remains the neutral wash for
+    /// list rows where a blue wash would fight per-row status colors.
+    pub selected_accent: Color32,
+    /// Translucent status tint for card surfaces — pre-blend over `panel`
+    /// with `blend_over` before filling; never composite under text.
+    pub tint_ok: Color32,
+    /// See `tint_ok`.
+    pub tint_warn: Color32,
+    /// See `tint_ok`.
+    pub tint_err: Color32,
+    /// See `tint_ok`.
+    pub tint_info: Color32,
 }
 
 pub fn palette(dark_mode: bool) -> Palette {
-    let ramp = neutral(dark_mode);
     Palette {
-        bg: ramp.step(1),
-        panel: ramp.step(2),
-        inset: ramp.step(1),
-        widget: ramp.step(3),
-        widget_hover: ramp.step(4),
-        widget_active: ramp.step(5),
-        line: ramp.step(6),
-        hairline: ramp.alpha_step(4),
-        row_hover: ramp.alpha_step(3),
-        ghost_active: ramp.alpha_step(4),
-        selected: ramp.alpha_step(5),
-        text: ramp.step(12),
-        muted: ramp.step(11),
-        faint_text: ramp.step(11),
-        disabled_text: ramp.step(9),
-        accent: if dark_mode { ACCENT } else { ACCENT_LIGHT },
-        ok: if dark_mode { OK } else { OK_LIGHT },
-        warn: if dark_mode { WARN } else { WARN_LIGHT },
-        err: if dark_mode { ERR } else { ERR_LIGHT },
-        info: if dark_mode { INFO } else { INFO_LIGHT },
+        bg: tc(ColorRole::Bg, dark_mode),
+        panel: tc(ColorRole::Panel, dark_mode),
+        inset: tc(ColorRole::Inset, dark_mode),
+        widget: tc(ColorRole::Widget, dark_mode),
+        widget_hover: tc(ColorRole::WidgetHover, dark_mode),
+        widget_active: tc(ColorRole::WidgetActive, dark_mode),
+        line: tc(ColorRole::Line, dark_mode),
+        hairline: tc(ColorRole::Hairline, dark_mode),
+        row_hover: tc(ColorRole::RowHover, dark_mode),
+        ghost_active: tc(ColorRole::GhostActive, dark_mode),
+        selected: tc(ColorRole::Selected, dark_mode),
+        text: tc(ColorRole::Default, dark_mode),
+        muted: tc(ColorRole::Muted, dark_mode),
+        faint_text: tc(ColorRole::Faint, dark_mode),
+        disabled_text: tc(ColorRole::Disabled, dark_mode),
+        accent: tc(ColorRole::Accent, dark_mode),
+        ok: tc(ColorRole::Success, dark_mode),
+        warn: tc(ColorRole::Warning, dark_mode),
+        err: tc(ColorRole::Error, dark_mode),
+        info: tc(ColorRole::Info, dark_mode),
+        knob: tc(ColorRole::Knob, dark_mode),
+        toggle_track_off: tc(ColorRole::ToggleTrackOff, dark_mode),
+        scrim: tc(ColorRole::Scrim, dark_mode),
+        edge_highlight: tc(ColorRole::EdgeHighlight, dark_mode),
+        selected_accent: tc(ColorRole::SelectedAccent, dark_mode),
+        tint_ok: tc(ColorRole::TintOk, dark_mode),
+        tint_warn: tc(ColorRole::TintWarn, dark_mode),
+        tint_err: tc(ColorRole::TintErr, dark_mode),
+        tint_info: tc(ColorRole::TintInfo, dark_mode),
     }
 }
 
@@ -551,22 +550,64 @@ fn fonts() -> FontDefinitions {
     fonts
 }
 
-/// The one surface every section of rows sits on. The flat and grouped views
-/// used to draw *different* frames for the same concept (one stroked, one
-/// not), and the snapshot tests drew a third by hand — which made them
-/// evidence about nothing. All three call this now.
-pub fn section_surface(p: &Palette, dark_mode: bool) -> egui::Frame {
-    egui::Frame::new()
-        .fill(p.panel)
+/// Composite a translucent color over an opaque base, returning the opaque
+/// result. Status tints go through this before becoming a card fill, so the
+/// tinted surface is one real color — text renders on it exactly as on any
+/// solid — instead of a translucent layer whose final value depends on
+/// paint order.
+pub fn blend_over(base: Color32, over: Color32) -> Color32 {
+    // `Color32` stores channels PREMULTIPLIED — `over.r()` on a translucent
+    // color is already alpha-scaled, so multiplying by alpha again here
+    // would double-apply it and wash the tint out to near-nothing (caught
+    // by pixel measurement on the first cycle-1 goldens). Unmultiply first.
+    let [or, og, ob, oa] = over.to_srgba_unmultiplied();
+    let a = oa as f32 / 255.0;
+    let ch = |b: u8, o: u8| ((b as f32) * (1.0 - a) + (o as f32) * a).round() as u8;
+    Color32::from_rgb(ch(base.r(), or), ch(base.g(), og), ch(base.b(), ob))
+}
+
+/// THE card surface — the one frame every section of rows sits on (it
+/// absorbed the earlier `section_surface` once ISC-311 migrated its last
+/// caller), plus the two depth cues polished dark UIs carry (ISC-310
+/// cycle 1): an optional status tint pre-blended into the fill, and a 1px
+/// top rim light inset past the corner radius — the inner-bevel light
+/// source Zed and Warp both paint on elevated dark panels. In light
+/// appearance `edge_highlight` resolves fully transparent, so the rim
+/// simply isn't painted. `y_margin` comes from the spacing scale because
+/// the cards this replaces each need real breathing room above their
+/// headline (the cycle-1 spacing nit), not the 6px list default.
+pub fn elevated_card<R>(
+    ui: &mut egui::Ui,
+    p: &Palette,
+    dark_mode: bool,
+    tint: Option<Color32>,
+    y_margin: Space,
+    add: impl FnOnce(&mut egui::Ui) -> R,
+) -> egui::InnerResponse<R> {
+    let fill = match tint {
+        Some(t) => blend_over(p.panel, t),
+        None => p.panel,
+    };
+    let out = egui::Frame::new()
+        .fill(fill)
         .stroke(Stroke::new(1.0, p.line))
         .corner_radius(CornerRadius::same(RADIUS_CONTAINER))
-        .inner_margin(egui::Margin::symmetric(14, 6))
-        // The single contact-shadow layer of the elevated-surface stack —
-        // ordinary content cards otherwise sat at zero elevation while
-        // modals got the full four-layer stack, an unjustified two-tier
-        // system. `egui::Frame` carries one `Shadow`; the modal-only second
-        // layer (ambient + hairline edge) stays modal-exclusive.
+        .inner_margin(egui::Margin::symmetric(14, y_margin.px() as i8))
         .shadow(elevated_shadows(dark_mode)[0])
+        .show(ui, add);
+    if p.edge_highlight.a() > 0 {
+        let rect = out.response.rect;
+        let y = snap_y(rect.top() + 0.5, ui.pixels_per_point());
+        let inset = RADIUS_CONTAINER as f32;
+        ui.painter().line_segment(
+            [
+                egui::pos2(rect.left() + inset, y),
+                egui::pos2(rect.right() - inset, y),
+            ],
+            Stroke::new(1.0, p.edge_highlight),
+        );
+    }
+    out
 }
 
 /// The eyebrow above a section of rows — one code path for app and snapshots.
@@ -574,7 +615,11 @@ pub fn section_heading(ui: &mut egui::Ui, p: &Palette, text: &str) {
     ui.label(
         egui::RichText::new(text.to_uppercase())
             .color(p.faint_text)
-            .font(medium(10.5)),
+            .font(medium(10.5))
+            // Uppercase micro-labels need air between the caps to read as
+            // typography instead of shouting — the tracking every polished
+            // eyebrow (macOS, Linear, Zed) carries.
+            .extra_letter_spacing(0.8),
     );
 }
 
@@ -614,6 +659,233 @@ pub fn apply(ctx: &egui::Context) {
 mod tests {
     use super::*;
 
+    /// Rgba -> Color32 for test assertions that reach into the token layer
+    /// directly (the same conversion `tc` performs).
+    fn tc_test(c: tokens::Rgba) -> Color32 {
+        Color32::from_rgba_unmultiplied(c.r(), c.g(), c.b(), c.a())
+    }
+
+    /// ISC-307's pinned baseline — the fixture Cato's WARNING-5 asked for.
+    ///
+    /// Every value below is a hardcoded literal (deriving them from the
+    /// token layer would make this test circular), pinned by one of two
+    /// authorities:
+    ///
+    /// - LIGHT palette, durations, radii, type scale, shadows: transcribed
+    ///   from this file AS OF PHASE I CLOSE (commit
+    ///   d5b1ba88afc97bf93c3327a2aeea800bd4252eb6). Unchanged since.
+    /// - DARK palette + the six cycle-1 roles: Radix slateDark, adopted by
+    ///   owner direction at the ISC-310 checkpoint ("this all still looks
+    ///   rather bland and uninspired") — ISA `## Decisions`,
+    ///   2026-08-02T19:45Z. That quoted Decision is the ONLY authority
+    ///   under which these pins moved off the d5b1ba8 sand-dark values.
+    ///
+    /// If any assertion fails without a new quoted owner Decision, a
+    /// reviewed value drifted — that is a regression, not a re-baselining
+    /// opportunity.
+    #[test]
+    fn pinned_baseline_values_are_unchanged() {
+        // Durations — the four motion constants, exactly as shipped.
+        assert_eq!(DURATION_HOVER, 0.1);
+        assert_eq!(DURATION_VALUE, 0.26);
+        assert_eq!(DURATION_ENTRANCE, 0.15);
+        assert_eq!(DURATION_PAYOFF, 0.2);
+
+        // Radii and type scale.
+        assert_eq!(
+            (RADIUS_CONTROL, RADIUS_CONTAINER, RADIUS_POPOVER),
+            (5, 10, 12)
+        );
+        assert_eq!(
+            (
+                SIZE_CAPTION,
+                SIZE_BODY,
+                SIZE_SECTION,
+                SIZE_TITLE,
+                SIZE_DISPLAY
+            ),
+            (11.0, 13.0, 15.0, 20.0, 26.0)
+        );
+
+        // Elevated shadows, both appearances, every field.
+        for (dark_mode, hairline_alpha) in [(true, 15), (false, 8)] {
+            let s = elevated_shadows(dark_mode);
+            assert_eq!(s[0].offset, [0, 2]);
+            assert_eq!((s[0].blur, s[0].spread), (3, 0));
+            assert_eq!(s[0].color, Color32::from_black_alpha(31));
+            assert_eq!(s[1].offset, [0, 1]);
+            assert_eq!((s[1].blur, s[1].spread), (0, 0));
+            assert_eq!(s[1].color, Color32::from_black_alpha(hairline_alpha));
+        }
+
+        // Modal shadows, both appearances, every field.
+        for (dark_mode, top, mid, edge) in [(true, 31, 20, 31), (false, 15, 15, 10)] {
+            let s = modal_shadows(dark_mode);
+            assert_eq!(
+                (s[0].offset, s[0].blur, s[0].color),
+                ([0, 2], 3, Color32::from_black_alpha(top))
+            );
+            assert_eq!(
+                (s[1].offset, s[1].blur, s[1].color),
+                ([0, 3], 6, Color32::from_black_alpha(mid))
+            );
+            assert_eq!(
+                (s[2].offset, s[2].blur, s[2].color),
+                ([0, 6], 12, Color32::from_black_alpha(10))
+            );
+            assert_eq!(
+                (s[3].offset, s[3].blur, s[3].color),
+                ([0, 1], 0, Color32::from_black_alpha(edge))
+            );
+        }
+
+        // The dark palette, field by field, against the Radix slateDark
+        // literals (the 2026-08-02T19:45Z owner Decision — see the test doc).
+        let d = dark();
+        assert_eq!(d.bg, Color32::from_rgb(0x11, 0x11, 0x13));
+        assert_eq!(d.panel, Color32::from_rgb(0x18, 0x19, 0x1b));
+        assert_eq!(d.inset, Color32::from_rgb(0x11, 0x11, 0x13));
+        assert_eq!(d.widget, Color32::from_rgb(0x21, 0x22, 0x25));
+        assert_eq!(d.widget_hover, Color32::from_rgb(0x27, 0x2a, 0x2d));
+        assert_eq!(d.widget_active, Color32::from_rgb(0x2e, 0x31, 0x35));
+        assert_eq!(d.line, Color32::from_rgb(0x36, 0x3a, 0x3f));
+        assert_eq!(
+            d.hairline,
+            Color32::from_rgba_unmultiplied(0xd3, 0xed, 0xf8, 0x1d)
+        );
+        assert_eq!(
+            d.row_hover,
+            Color32::from_rgba_unmultiplied(0xdd, 0xea, 0xf8, 0x14)
+        );
+        assert_eq!(
+            d.ghost_active,
+            Color32::from_rgba_unmultiplied(0xd3, 0xed, 0xf8, 0x1d)
+        );
+        assert_eq!(
+            d.selected,
+            Color32::from_rgba_unmultiplied(0xd9, 0xed, 0xfe, 0x25)
+        );
+        assert_eq!(d.text, Color32::from_rgb(0xed, 0xee, 0xf0));
+        assert_eq!(d.muted, Color32::from_rgb(0xb0, 0xb4, 0xba));
+        assert_eq!(d.faint_text, Color32::from_rgb(0xb0, 0xb4, 0xba));
+        assert_eq!(d.disabled_text, Color32::from_rgb(0x69, 0x6e, 0x77));
+        assert_eq!(d.accent, Color32::from_rgb(76, 125, 255));
+        assert_eq!(d.ok, Color32::from_rgb(47, 191, 118));
+        assert_eq!(d.warn, Color32::from_rgb(226, 156, 60));
+        assert_eq!(d.err, Color32::from_rgb(224, 92, 92));
+        assert_eq!(d.info, Color32::from_rgb(110, 163, 224));
+
+        // The light palette, field by field. Surface planes carry the
+        // cycle-3 values (white cards on a gray sand canvas, controls one
+        // step darker) under the owner's quoted 2026-08-02T21:15Z standing
+        // directive ("I still expect more polish ... Keep iterating") —
+        // text/status/wash pins remain the d5b1ba8 literals.
+        let l = light();
+        assert_eq!(l.bg, Color32::from_rgb(0xf1, 0xf0, 0xef));
+        assert_eq!(l.panel, Color32::from_rgb(0xff, 0xff, 0xff));
+        assert_eq!(l.inset, Color32::from_rgb(0xf9, 0xf9, 0xf8));
+        assert_eq!(l.widget, Color32::from_rgb(0xe9, 0xe8, 0xe6));
+        assert_eq!(l.widget_hover, Color32::from_rgb(0xe2, 0xe1, 0xde));
+        assert_eq!(l.widget_active, Color32::from_rgb(0xda, 0xd9, 0xd6));
+        assert_eq!(l.line, Color32::from_rgb(0xda, 0xd9, 0xd6));
+        assert_eq!(
+            l.hairline,
+            Color32::from_rgba_unmultiplied(0x1f, 0x15, 0x00, 0x19)
+        );
+        assert_eq!(
+            l.row_hover,
+            Color32::from_rgba_unmultiplied(0x20, 0x10, 0x00, 0x10)
+        );
+        assert_eq!(
+            l.ghost_active,
+            Color32::from_rgba_unmultiplied(0x1f, 0x15, 0x00, 0x19)
+        );
+        assert_eq!(
+            l.selected,
+            Color32::from_rgba_unmultiplied(0x1f, 0x18, 0x00, 0x21)
+        );
+        assert_eq!(l.text, Color32::from_rgb(0x21, 0x20, 0x1c));
+        assert_eq!(l.muted, Color32::from_rgb(0x63, 0x63, 0x5e));
+        assert_eq!(l.faint_text, Color32::from_rgb(0x63, 0x63, 0x5e));
+        assert_eq!(l.disabled_text, Color32::from_rgb(0x8d, 0x8d, 0x86));
+        assert_eq!(l.accent, Color32::from_rgb(0x3e, 0x63, 0xdd));
+        assert_eq!(l.ok, Color32::from_rgb(0x1d, 0x5f, 0x42));
+        assert_eq!(l.warn, Color32::from_rgb(0x7d, 0x4c, 0x11));
+        assert_eq!(l.err, Color32::from_rgb(0x99, 0x21, 0x2a));
+        assert_eq!(l.info, Color32::from_rgb(0x0f, 0x53, 0x99));
+
+        // The Phase J additions resolve to the exact values their previously
+        // hardcoded call sites shipped: white knob, gray-70/gray-190 track,
+        // black-alpha-100 scrim, white-on-accent, full transparency.
+        assert_eq!(d.knob, Color32::WHITE);
+        assert_eq!(l.knob, Color32::WHITE);
+        assert_eq!(d.toggle_track_off, Color32::from_gray(70));
+        assert_eq!(l.toggle_track_off, Color32::from_gray(190));
+        assert_eq!(d.scrim, Color32::from_black_alpha(100));
+        assert_eq!(l.scrim, Color32::from_black_alpha(100));
+        assert_eq!(ON_ACCENT, Color32::WHITE);
+        assert_eq!(NO_FILL, Color32::TRANSPARENT);
+        assert_eq!(
+            FILL_HOVER_LIFT,
+            Color32::from_rgba_unmultiplied(255, 255, 255, 26)
+        );
+        assert_eq!(
+            FILL_PRESS_SHADE,
+            Color32::from_rgba_unmultiplied(0, 0, 0, 36)
+        );
+        assert_eq!(
+            BUTTON_TOP_LIGHT,
+            Color32::from_rgba_unmultiplied(255, 255, 255, 46)
+        );
+
+        // The six cycle-1 roles (same 19:45Z Decision).
+        assert_eq!(
+            d.edge_highlight,
+            Color32::from_rgba_unmultiplied(255, 255, 255, 14)
+        );
+        assert_eq!(
+            l.edge_highlight,
+            Color32::from_rgba_unmultiplied(255, 255, 255, 0)
+        );
+        assert_eq!(
+            d.selected_accent,
+            Color32::from_rgba_unmultiplied(76, 125, 255, 46)
+        );
+        assert_eq!(
+            l.selected_accent,
+            Color32::from_rgba_unmultiplied(0x3e, 0x63, 0xdd, 36)
+        );
+        assert_eq!(d.tint_ok, Color32::from_rgba_unmultiplied(47, 191, 118, 20));
+        assert_eq!(
+            d.tint_warn,
+            Color32::from_rgba_unmultiplied(226, 156, 60, 20)
+        );
+        assert_eq!(d.tint_err, Color32::from_rgba_unmultiplied(224, 92, 92, 20));
+        assert_eq!(
+            d.tint_info,
+            Color32::from_rgba_unmultiplied(110, 163, 224, 20)
+        );
+        assert_eq!(
+            l.tint_ok,
+            Color32::from_rgba_unmultiplied(0x1d, 0x5f, 0x42, 20)
+        );
+        assert_eq!(
+            l.tint_warn,
+            Color32::from_rgba_unmultiplied(0x7d, 0x4c, 0x11, 22)
+        );
+        assert_eq!(
+            l.tint_err,
+            Color32::from_rgba_unmultiplied(0x99, 0x21, 0x2a, 20)
+        );
+        assert_eq!(
+            l.tint_info,
+            Color32::from_rgba_unmultiplied(0x0f, 0x53, 0x99, 20)
+        );
+
+        // The theme-level consts still resolve to the shipped dark values.
+        assert_eq!(ACCENT, Color32::from_rgb(76, 125, 255));
+    }
+
     fn channel_lin(byte: u8) -> f64 {
         let c = byte as f64 / 255.0;
         if c <= 0.04045 {
@@ -644,7 +916,7 @@ mod tests {
     fn text_roles_hold_aa_contrast() {
         for dark_mode in [true, false] {
             let p = palette(dark_mode);
-            let ramp = neutral(dark_mode);
+
             for surface in [p.bg, p.panel, p.widget] {
                 assert!(
                     contrast(p.text, surface) >= 7.0,
@@ -681,8 +953,9 @@ mod tests {
                     "info on surface below AA (dark_mode={dark_mode})"
                 );
             }
+            let step10 = tc_test(tokens::neutral_step(appearance(dark_mode), 10));
             assert!(
-                contrast(ramp.step(10), p.panel) < 4.5,
+                contrast(step10, p.panel) < 4.5,
                 "step 10 unexpectedly clears AA — muted could move down a step"
             );
         }
@@ -809,6 +1082,33 @@ mod tests {
             SIDEBAR_WIDTH,
             ade_core::gui::chrome::SIDEBAR_WIDTH_PT as f32
         );
+    }
+
+    /// The traffic-light inset and the core titlebar-band contract are one
+    /// value (ISC-309) — the egui nav inset, the drag band, and any native
+    /// positioning all measure the same zone.
+    #[test]
+    fn the_titlebar_band_matches_the_traffic_light_inset() {
+        assert_eq!(
+            TRAFFIC_LIGHT_INSET,
+            ade_core::gui::chrome::TITLEBAR_BAND_PT as f32
+        );
+    }
+
+    /// `blend_over` composites UNMULTIPLIED channels — `Color32` stores
+    /// premultiplied, and reading `.r()` off a translucent color then
+    /// multiplying by alpha again double-applies it, washing every status
+    /// tint out to a near-invisible gray (the exact bug the first cycle-1
+    /// goldens shipped, caught by pixel measurement).
+    #[test]
+    fn blend_over_composites_unmultiplied_channels() {
+        let base = Color32::from_rgb(24, 25, 27); // slate panel
+        let over = Color32::from_rgba_unmultiplied(226, 156, 60, 20); // tint_warn dark
+        assert_eq!(blend_over(base, over), Color32::from_rgb(40, 35, 30));
+        assert_eq!(blend_over(base, Color32::TRANSPARENT), base);
+        // Opaque over wins completely.
+        let opaque = Color32::from_rgb(1, 2, 3);
+        assert_eq!(blend_over(base, opaque), opaque);
     }
 
     /// The focus box is reserved while unfocused: same width stroke,
