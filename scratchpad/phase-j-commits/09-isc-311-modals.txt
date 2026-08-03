@@ -1,0 +1,34 @@
+feat(design): ISC-311 screen 4/4 — modals onto the Phase J system
+
+- Modals deliberately KEEP their four-layer shadow stack and pop-in — they
+  are a different elevation tier than cards; forcing them onto
+  elevated_card would flatten that hierarchy. (Their panel fill already
+  follows the token layer, so light modals became pure white with the
+  cycle-3 inversion automatically.)
+- bulk_row's title/command block was the same nested-vertical top-align
+  class found on Overview — now centered as one unit via the new shared
+  `app::centered_text_block` (extracted from `mark_beside_block`; a
+  checkbox row centers the control on the block, only status marks get
+  the title-line anchor).
+- New `app::ax_checkbox`: the macOS checkbox — accent-filled rounded box
+  with a white check when on, visibly bordered box when off, disabled
+  state, focus ring, full WidgetInfo. Stock egui's widget-gray box was
+  nearly invisible on slate, leaving its check glyph floating unanchored
+  (pixel-scanned). Hand-painted like `toggle`, the app's own idiom.
+- Measured on the regenerated modal_bulk golden: accent-box centers within
+  -1.0/-1.5px of block ink centers (geometric block centering; ink skews
+  low with descenders — box-center is the convention for controls, per
+  the ISA's triangle adjudication).
+
+PROCESS BUG CAUGHT AND RECORDED: three earlier "regenerate + measure"
+cycles on this modal ran `cargo test -- modal`, which does NOT match the
+snapshot test's name (snapshot_the_bulk_preview) — the golden sat stale
+at 15:19 while measurements "disproved" changes that had never rendered,
+including a scoped-visuals experiment falsely judged a failure. The
+per-screen checklist's full-workspace regen is mandatory, not a
+formality. ISA Decisions entry records the lesson.
+
+Gates: fmt 0, clippy -D warnings 0, workspace tests 623/0 deterministic,
+ISC-304 grep 0, coverage >=95/95, deny 0, parity 0, emoji-ban 0.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-311 screen 4.

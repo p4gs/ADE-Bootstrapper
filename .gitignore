@@ -8,3 +8,7 @@ coverage/
 /target/
 crates/ade-control-center/bundles/
 /bundles/
+
+# kittest failure artifacts — regenerated on every failed snapshot run
+crates/ade-control-center/tests/snapshots/*.new.png
+crates/ade-control-center/tests/snapshots/*.diff.png

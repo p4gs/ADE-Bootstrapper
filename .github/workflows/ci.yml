@@ -27,6 +27,10 @@ jobs:
         uses: taiki-e/install-action@cargo-deny
       - name: Supply chain (licenses, advisories, sources, bans)
         run: cargo deny check
+      - name: Emoji ban (UI surfaces are emoji-free by design)
+        run: |
+          command -v rg >/dev/null 2>&1 || brew install ripgrep
+          bash scripts/emoji-ban.sh
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
       - name: Coverage gate (95% line / 95% function)

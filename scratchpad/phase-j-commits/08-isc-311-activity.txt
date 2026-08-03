@@ -1,0 +1,22 @@
+feat(design): ISC-311 screen 3/4 — activity onto the Phase J system
+
+- job_card's raw hand-built `egui::Frame` moves to `theme::elevated_card`
+  (rim light, S12 breathing room). Only a FAILED job carries the error
+  tint — ok stays silent (no green wall) and running stays neutral (a
+  transient state shouldn't flash an amber surface on every poll).
+- The expanded command-log panel deliberately KEEPS its raw inset Frame —
+  it is a sunken code panel inside the card, not an elevated surface; a
+  rim light there would invert its depth. Documented in-code per the
+  ISC-311 exception rule.
+- The flat-horizontal dot row was NOT safe, exactly as the operating
+  instructions warned: measured -1.0 to -1.5px high vs title ink before
+  the fix. Same optical anchor as the Overview coverage rows (+1.5px,
+  half the body-size descent) applied; measured after: all three status
+  dots within +/-0.5px of their title ink.
+
+Gates: fmt 0, clippy -D warnings 0, workspace tests 623/0 deterministic,
+ISC-304 grep 0, coverage >=95/95, deny 0, parity 0, emoji-ban 0. Grep
+gate: the only remaining raw Frame in activity.rs is the documented
+inset-panel exception.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-311 screen 3.

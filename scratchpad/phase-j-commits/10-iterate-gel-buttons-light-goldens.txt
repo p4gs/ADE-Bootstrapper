@@ -1,0 +1,33 @@
+feat(design): iterate loop — gel button states + first light goldens for 3 screens
+
+Under the ISC-310 standing iterate directive ("keep iterating"):
+
+- Three new appearance-constant token roles (FillHoverLift, FillPressShade,
+  ButtonTopLight) drive filled-button interaction: a saturated fill
+  (accent, err) now keeps its hue through hover/press via blend_over
+  compositing — the old path lerped toward the NEUTRAL widget ramp, which
+  visibly grayed a blue button on approach (a real defect, not just
+  polish). Neutral buttons keep the widget rest/hover/active ramp.
+- The Big Sur gel cue: a 1px top light inset past the corner radius inside
+  filled buttons — the same machined-depth technique as the card rim
+  light, white in both appearances. Measured on the golden: top row
+  (108,148,255) over accent fill = the lift line rendering.
+- First-ever LIGHT goldens for the three screens migrated in ISC-311
+  (projects_light, activity_light, capability_page_light) — the cycle-3
+  white-cards-on-gray inversion reached them through the token layer, but
+  nobody had seen the pixels. Visually reviewed: all three hold up; the
+  light error-tinted job card in activity_light is a highlight.
+- Gallery: 34 roles, harness 3460->3560 (verified no clipping — the focus
+  demo and hairline sections render with room to spare).
+
+Also this session, recorded in the ISA: the owner re-opened the framework
+question; two adversarially-verified evidence passes (GPUI/egui + libcosmic/
+Iced/Makepad, 14 agents) settled on stay-on-egui with a named GPUI
+re-evaluation trigger (crates.io release with AccessKit on by default OR a
+released visual-test harness). Durable synthesis in LifeOS memory.
+
+Gates: fmt 0, clippy -D warnings 0, workspace tests 626/0 deterministic,
+ISC-304 grep 0, coverage >=95/95, deny 0, parity 0, emoji-ban 0. 36
+goldens (3 new).
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J standing iterate loop.

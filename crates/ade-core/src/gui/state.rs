@@ -19,8 +19,6 @@ pub struct GuiState {
     pub disabled: BTreeSet<String>,
     /// Absolute paths of registered ADE-bootstrapped projects (insertion order).
     pub projects: Vec<String>,
-    /// Control Center view preference: group tools by capability (ISC-206).
-    pub group_by_capability: bool,
     /// Navigation section the window was last on — a capability-group id, or
     /// one of the reserved scopes below. Restored on launch so the app opens
     /// where the owner left it.
@@ -28,6 +26,14 @@ pub struct GuiState {
     /// Capability id last selected in the content list, so the inspector can
     /// come back the way it was left.
     pub selection: Option<String>,
+    /// Phase H — `Insight::id`s the owner has dismissed (same GUI-preference
+    /// pattern as `disabled`): a stable rule+group tag, so dismissing
+    /// "the OSV database is stale for Dependency Scanning" survives a
+    /// relaunch and keeps suppressing that exact rule for that exact group
+    /// until the owner clears it by hand (there is no auto-expiry — a
+    /// dismissal is a deliberate "I've seen this" the app must not
+    /// second-guess).
+    pub dismissed_insights: BTreeSet<String>,
 }
 
 /// The reserved (non-capability-group) navigation scopes.
@@ -55,9 +61,9 @@ impl Default for GuiState {
         GuiState {
             disabled: BTreeSet::new(),
             projects: Vec::new(),
-            group_by_capability: false,
             scope: SCOPE_OVERVIEW.to_string(),
             selection: None,
+            dismissed_insights: BTreeSet::new(),
         }
     }
 }
@@ -139,12 +145,11 @@ pub fn load_gui_state(home: &Path) -> GuiStateLoad {
             };
         }
     }
+    // Fields are read by name, so keys this version no longer defines — like
+    // the retired `groupByCapability` toggle — are simply ignored: an older
+    // gui.json loads cleanly and the retired key disappears on the next save.
     let disabled = string_array(obj.get("disabled")).unwrap_or_default();
     let projects = string_array(obj.get("projects")).unwrap_or_default();
-    let group_by_capability = obj
-        .get("groupByCapability")
-        .and_then(|value| value.as_bool())
-        .unwrap_or(false);
     let scope = resolve_scope(
         obj.get("scope")
             .and_then(|value| value.as_str())
@@ -155,13 +160,18 @@ pub fn load_gui_state(home: &Path) -> GuiStateLoad {
         .and_then(|value| value.as_str())
         .filter(|id| crate::gui::inventory::get_capability(id).is_some())
         .map(String::from);
+    // Unlike `selection`, a dismissed insight id is not validated against a
+    // live taxonomy table — insight ids are rule+group tags (`insights.rs`),
+    // not capability ids, and a rule retired between releases should simply
+    // never match again rather than needing a migration.
+    let dismissed_insights = string_array(obj.get("dismissedInsights")).unwrap_or_default();
     GuiStateLoad {
         state: GuiState {
             disabled: disabled.into_iter().collect(),
             projects,
-            group_by_capability,
             scope,
             selection,
+            dismissed_insights: dismissed_insights.into_iter().collect(),
         },
         warning: None,
     }
@@ -179,9 +189,9 @@ pub fn save_gui_state(home: &Path, state: &GuiState) -> std::io::Result<()> {
         "schemaVersion": GUI_STATE_SCHEMA_VERSION,
         "disabled": state.disabled.iter().collect::<Vec<_>>(),
         "projects": projects_dedup,
-        "groupByCapability": state.group_by_capability,
         "scope": resolve_scope(&state.scope),
         "selection": state.selection,
+        "dismissedInsights": state.dismissed_insights.iter().collect::<Vec<_>>(),
     });
     write_ensured(&home.join(GUI_STATE_FILE), &stable_stringify(&value))?;
     Ok(())
@@ -224,7 +234,6 @@ mod tests {
         state.disabled.insert("zeta".into());
         state.disabled.insert("alpha".into());
         state.projects = vec!["/a".into(), "/b".into(), "/a".into()];
-        state.group_by_capability = true;
         save_gui_state(&home, &state).unwrap();
         let first = read_if_exists(&home.join(GUI_STATE_FILE)).unwrap();
         let load = load_gui_state(&home);
@@ -275,6 +284,99 @@ mod tests {
         let _ = std::fs::remove_dir_all(&home);
     }
 
+    /// The grouped-view toggle was retired with the sidebar redesign. A
+    /// gui.json written by an older build still carries `groupByCapability`;
+    /// it must load without warning, keep every field this version does know,
+    /// and drop the retired key on the next save.
+    #[test]
+    fn a_state_file_with_the_retired_grouping_field_still_loads_cleanly() {
+        let home = make_temp_dir("gui-state-compat");
+        std::fs::write(
+            home.join(GUI_STATE_FILE),
+            r#"{"schemaVersion":1,"disabled":["rtk"],"projects":["/repo"],"groupByCapability":true,"scope":"projects","selection":null}"#,
+        )
+        .unwrap();
+        let load = load_gui_state(&home);
+        assert!(load.warning.is_none(), "a retired key is not corruption");
+        assert!(load.state.disabled.contains("rtk"));
+        assert_eq!(load.state.projects, vec!["/repo".to_string()]);
+        assert_eq!(load.state.scope, SCOPE_PROJECTS);
+        save_gui_state(&home, &load.state).unwrap();
+        let rewritten = read_if_exists(&home.join(GUI_STATE_FILE)).unwrap();
+        assert!(
+            !rewritten.contains("groupByCapability"),
+            "the retired key must not be re-persisted"
+        );
+        let _ = std::fs::remove_dir_all(&home);
+    }
+
+    /// Phase H: dismissed insight ids round-trip sorted/deduped exactly like
+    /// `disabled` — the same GUI-preference persistence pattern, a new field.
+    /// Unlike `selection`, a dismissed id is never validated against a live
+    /// taxonomy table (insight ids are rule+group tags, not capability ids),
+    /// so a rule retired between releases degrades silently — it just never
+    /// matches again — rather than needing a migration path.
+    #[test]
+    fn dismissed_insights_round_trip_sorted_deduped_and_never_validated() {
+        let home = make_temp_dir("gui-state-insights");
+        let mut state = GuiState::default();
+        assert!(
+            state.dismissed_insights.is_empty(),
+            "defaults dismiss nothing"
+        );
+        state
+            .dismissed_insights
+            .insert("osv-db-age:dependency-scanning".into());
+        state
+            .dismissed_insights
+            .insert("last-job-failed:sandboxing".into());
+        save_gui_state(&home, &state).unwrap();
+        let load = load_gui_state(&home);
+        assert_eq!(
+            load.state
+                .dismissed_insights
+                .iter()
+                .cloned()
+                .collect::<Vec<_>>(),
+            vec![
+                "last-job-failed:sandboxing".to_string(),
+                "osv-db-age:dependency-scanning".to_string(),
+            ]
+        );
+
+        // An id naming a rule/group that no longer exists loads cleanly —
+        // no warning, no crash, no "unknown insight" concept to validate
+        // against.
+        std::fs::write(
+            home.join(GUI_STATE_FILE),
+            r#"{"schemaVersion":1,"dismissedInsights":["retired-rule:not-a-real-group"]}"#,
+        )
+        .unwrap();
+        let stale = load_gui_state(&home);
+        assert!(stale.warning.is_none());
+        assert!(stale
+            .state
+            .dismissed_insights
+            .contains("retired-rule:not-a-real-group"));
+        let _ = std::fs::remove_dir_all(&home);
+    }
+
+    /// A gui.json written before Phase H has no `dismissedInsights` key at
+    /// all — it must load as an empty set, not a corrupt-file warning.
+    #[test]
+    fn a_state_file_without_dismissed_insights_defaults_to_empty() {
+        let home = make_temp_dir("gui-state-insights-absent");
+        std::fs::write(
+            home.join(GUI_STATE_FILE),
+            r#"{"schemaVersion":1,"disabled":[],"projects":[],"scope":"overview","selection":null}"#,
+        )
+        .unwrap();
+        let load = load_gui_state(&home);
+        assert!(load.warning.is_none());
+        assert!(load.state.dismissed_insights.is_empty());
+        let _ = std::fs::remove_dir_all(&home);
+    }
+
     #[test]
     fn corrupt_variants_degrade_with_warning_never_crash() {
         let home = make_temp_dir("gui-state-bad");
@@ -296,13 +398,14 @@ mod tests {
 
         std::fs::write(
             home.join(GUI_STATE_FILE),
-            r#"{"schemaVersion": 1, "disabled": "nope", "projects": [1]}"#,
+            r#"{"schemaVersion": 1, "disabled": "nope", "projects": [1], "dismissedInsights": [2]}"#,
         )
         .unwrap();
         let malformed = load_gui_state(&home);
         assert!(malformed.warning.is_none());
         assert!(malformed.state.disabled.is_empty());
         assert!(malformed.state.projects.is_empty());
+        assert!(malformed.state.dismissed_insights.is_empty());
         let _ = std::fs::remove_dir_all(&home);
     }
 }

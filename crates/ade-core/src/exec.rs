@@ -15,6 +15,13 @@ pub fn real_exec() -> ExecFn {
         };
         let mut command = Command::new(program);
         command.args(&argv[1..]);
+        // Children inherit the SAME resolved PATH the detector searches, or a
+        // GUI launch would find `brew` and then fail to run it — and probes
+        // that shell out (a harness asking its own plugin list, a CLI that
+        // needs node) would report broken tools that are perfectly fine.
+        if !is_shell_probe(argv) {
+            command.env("PATH", resolved_path());
+        }
         if let Some(cwd) = &opts.cwd {
             command.current_dir(cwd);
         }
@@ -57,13 +64,40 @@ fn is_executable(path: &Path) -> bool {
     }
 }
 
+/// True for the one call that must NOT get the resolved PATH: the login-shell
+/// probe that computes it. Overriding PATH there would make the shell report
+/// back the value we just handed it, and the answer would be circular.
+fn is_shell_probe(argv: &[String]) -> bool {
+    argv.len() == 4 && argv[1] == "-l" && argv[2] == "-c" && argv[3].contains("$PATH")
+}
+
+/// The `PATH` this process should search, computed once.
+///
+/// Never the raw inherited value: a GUI app launched from Finder or launchd
+/// gets `/usr/bin:/bin:/usr/sbin:/sbin`, on which no developer tool exists, and
+/// a detector that trusts it reports a fully-equipped machine as empty. The
+/// login shell is consulted once and cached, because spawning a shell per
+/// `which` would be absurd for a probe that runs every four seconds.
+fn resolved_path() -> String {
+    static RESOLVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    RESOLVED
+        .get_or_init(|| {
+            let inherited = std::env::var("PATH").unwrap_or_default();
+            let home = std::env::var("HOME").unwrap_or_default();
+            let shell = std::env::var("SHELL").ok();
+            let from_shell = crate::envpath::login_shell_path(&real_exec(), shell.as_deref());
+            crate::envpath::effective_path(&inherited, from_shell.as_deref(), &home)
+        })
+        .clone()
+}
+
 pub fn real_which() -> WhichFn {
     Arc::new(|name: &str| -> Option<String> {
         if name.contains('/') {
             let path = Path::new(name);
             return is_executable(path).then(|| name.to_string());
         }
-        let path_env = std::env::var("PATH").unwrap_or_default();
+        let path_env = resolved_path();
         for dir in path_env.split(':') {
             if dir.is_empty() {
                 continue;

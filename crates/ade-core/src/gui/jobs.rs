@@ -375,6 +375,36 @@ pub fn now_utc_seconds(seconds: u64) -> String {
     )
 }
 
+/// The inverse of `now_utc_seconds`: parse the exact `YYYY-MM-DDTHH:MM:SSZ`
+/// shape this module writes back into seconds since the epoch. `None` for
+/// anything else — a malformed or foreign-shaped value is a display gap for
+/// the caller to fall back on, never a panic (mirrors `load_gui_state`'s
+/// "degrade, never crash" discipline for on-disk data this process didn't
+/// necessarily write).
+pub fn parse_utc_seconds(text: &str) -> Option<u64> {
+    let text = text.strip_suffix('Z')?;
+    let (date, time) = text.split_once('T')?;
+    let mut date_parts = date.split('-');
+    let year: i64 = date_parts.next()?.parse().ok()?;
+    let month: u64 = date_parts.next()?.parse().ok()?;
+    let day: u64 = date_parts.next()?.parse().ok()?;
+    if date_parts.next().is_some() || !(1..=12).contains(&month) || !(1..=31).contains(&day) {
+        return None;
+    }
+    let mut time_parts = time.split(':');
+    let hour: u64 = time_parts.next()?.parse().ok()?;
+    let minute: u64 = time_parts.next()?.parse().ok()?;
+    let second: u64 = time_parts.next()?.parse().ok()?;
+    if time_parts.next().is_some() || hour >= 24 || minute >= 60 || second >= 60 {
+        return None;
+    }
+    let days = days_from_civil(year, month, day);
+    let seconds = days
+        .checked_mul(86_400)?
+        .checked_add((hour * 3600 + minute * 60 + second) as i64)?;
+    u64::try_from(seconds).ok()
+}
+
 /// Days-since-epoch → (y, m, d). Howard Hinnant's civil_from_days algorithm.
 fn civil_from_days(days: i64) -> (i64, u64, u64) {
     let z = days + 719_468;
@@ -387,6 +417,20 @@ fn civil_from_days(days: i64) -> (i64, u64, u64) {
     let day = doy - (153 * mp + 2) / 5 + 1;
     let month = if mp < 10 { mp + 3 } else { mp - 9 };
     (if month <= 2 { year + 1 } else { year }, month, day)
+}
+
+/// (y, m, d) → days-since-epoch. The exact inverse of `civil_from_days`
+/// (Howard Hinnant's `days_from_civil` algorithm) — kept symmetric with it
+/// rather than re-deriving via a different method, so the two are easy to
+/// eyeball against each other.
+fn days_from_civil(year: i64, month: u64, day: u64) -> i64 {
+    let y = if month <= 2 { year - 1 } else { year };
+    let era = if y >= 0 { y } else { y - 399 } / 400;
+    let yoe = (y - era * 400) as u64;
+    let mp = if month > 2 { month - 3 } else { month + 9 };
+    let doy = (153 * mp + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe as i64 - 719_468
 }
 
 #[cfg(test)]
@@ -668,5 +712,54 @@ mod tests {
         assert_eq!(&now[10..11], "T");
         let year: i64 = now[0..4].parse().unwrap();
         assert!(year >= 2026);
+    }
+
+    /// `parse_utc_seconds` is the exact inverse of `now_utc_seconds` across a
+    /// wide spread of instants — epoch, "now"-ish, a leap-year Feb 29, a
+    /// year boundary, and a value with a non-trivial era/century — every one
+    /// of them a real behavior a job's `started_at` can actually carry.
+    #[test]
+    fn parse_utc_seconds_round_trips_through_now_utc_seconds() {
+        for seconds in [
+            0, // 1970-01-01T00:00:00Z
+            1,
+            59,
+            3_600,
+            86_399,
+            86_400,        // 1970-01-02T00:00:00Z
+            1_700_000_000, // an ordinary recent instant
+            1_798_761_600, // 2026-12-31T00:00:00Z-ish, a year boundary
+            951_782_400,   // 2000-02-29 — a leap day in a /400 year
+            1_988_150_400, // > 2032, crosses another era boundary
+        ] {
+            let text = now_utc_seconds(seconds);
+            assert_eq!(
+                parse_utc_seconds(&text),
+                Some(seconds),
+                "round-trip failed for {seconds} -> {text}"
+            );
+        }
+    }
+
+    /// Malformed or foreign-shaped input degrades to `None`, never a panic —
+    /// the same discipline `load_gui_state` holds for on-disk data this
+    /// process did not necessarily write.
+    #[test]
+    fn parse_utc_seconds_degrades_on_malformed_input() {
+        for bad in [
+            "",
+            "not-a-date",
+            "2026-07-31T18:02:11",  // missing the trailing Z
+            "2026-07-31 18:02:11Z", // missing the T
+            "2026-13-01T00:00:00Z", // month 13
+            "2026-01-32T00:00:00Z", // day 32
+            "2026-01-01T24:00:00Z", // hour 24
+            "2026-01-01T00:60:00Z", // minute 60
+            "2026-01-01T00:00:60Z", // second 60
+            "2026-01-01T00:00Z",    // missing seconds
+            "2026-01T00:00:00Z",    // missing day
+        ] {
+            assert_eq!(parse_utc_seconds(bad), None, "expected None for {bad:?}");
+        }
     }
 }

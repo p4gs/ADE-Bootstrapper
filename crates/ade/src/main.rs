@@ -10,6 +10,7 @@ use ade_core::fsutil::{read_if_exists, write_ensured};
 use ade_core::gui::install::{gui_install, gui_status, gui_uninstall, InstallDeps};
 use ade_core::gui::inventory::{detect_capabilities, DetectOptions};
 use ade_core::gui::jobs::read_last_finished;
+use ade_core::gui::posture::{self, PostureDeps};
 use ade_core::gui::state::{ade_home_from_env, load_gui_state};
 use ade_core::gui::verdict::{build_verdict, render_health_text};
 use ade_core::harness::adapters::HARNESS_ADAPTERS;
@@ -83,6 +84,10 @@ const COMMANDS: &[(&str, &str)] = &[
     (
         "gui health",
         "state whether this machine's agent environment is sound, and what needs doing",
+    ),
+    (
+        "export posture",
+        "write a deterministic markdown+JSON evidence report to $ADE_HOME/export/",
     ),
     (
         "hook append",
@@ -198,7 +203,7 @@ fn summarize_findings(prefix: &str, findings: &[Finding]) -> String {
             let remediation = finding
                 .remediation
                 .as_ref()
-                .map(|text| format!(" → {text}"))
+                .map(|text| format!(" -> {text}"))
                 .unwrap_or_default();
             format!("{prefix}[{level}] {}{remediation}", finding.message)
         })
@@ -258,17 +263,19 @@ fn human_apply(verb: &str, report: &ApplyReport, created: bool) -> String {
         if created { " (created ade.json)" } else { "" }
     )];
     for module in &report.modules {
+        // Plain ASCII markers (Phase F) — the old glyph set lands on the
+        // terminal's emoji rendering path. Two columns wide so ids align.
         let marker = match module.result.status {
-            ModuleStatus::Failed => "✗",
-            ModuleStatus::Degraded => "◐",
-            _ if module.enabled => "✓",
-            _ => "·",
+            ModuleStatus::Failed => "x",
+            ModuleStatus::Degraded => "~",
+            _ if module.enabled => "ok",
+            _ => "-",
         };
         let status = serde_json::to_value(module.result.status)
             .ok()
             .and_then(|value| value.as_str().map(String::from))
             .unwrap_or_default();
-        lines.push(format!("  {marker} {status:<9} {}", module.id));
+        lines.push(format!("  {marker:<2} {status:<9} {}", module.id));
     }
     for file in &report.translate {
         let error = file
@@ -277,8 +284,8 @@ fn human_apply(verb: &str, report: &ApplyReport, created: bool) -> String {
             .map(|text| format!(" — {text}"))
             .unwrap_or_default();
         lines.push(format!(
-            "  {} translate {}{error}",
-            if file.ok { "✓" } else { "✗" },
+            "  {:<2} translate {}{error}",
+            if file.ok { "ok" } else { "x" },
             file.path
         ));
     }
@@ -328,8 +335,8 @@ fn install_report_output(
             .map(|text| format!(" — {text}"))
             .unwrap_or_default();
         lines.push(format!(
-            "  {} {}{detail}",
-            if step.ok { "✓" } else { "✗" },
+            "  {:<2} {}{detail}",
+            if step.ok { "ok" } else { "x" },
             step.step
         ));
     }
@@ -497,8 +504,8 @@ fn run(argv: &[String]) -> i32 {
             human.push(summarize_findings("  instructions: ", &report.translation));
             for module in &report.modules {
                 human.push(format!(
-                    "  {} {}\n{}",
-                    if module.ok { "✓" } else { "✗" },
+                    "  {:<2} {}\n{}",
+                    if module.ok { "ok" } else { "x" },
                     module.id,
                     summarize_findings("    ", &module.findings)
                 ));
@@ -552,8 +559,8 @@ fn run(argv: &[String]) -> i32 {
                     .map(|v| format!(" ({v})"))
                     .unwrap_or_default();
                 human.push(format!(
-                    "    {} {}{version}",
-                    if tool.present { "✓" } else { "✗" },
+                    "    {:<2} {}{version}",
+                    if tool.present { "ok" } else { "x" },
                     tool.name
                 ));
             }
@@ -760,7 +767,7 @@ fn run(argv: &[String]) -> i32 {
                     .iter()
                     .map(|entry| {
                         format!(
-                            "{} {} {} → {}",
+                            "{} {} {} -> {}",
                             entry.ts, entry.action, entry.target, entry.result
                         )
                     })
@@ -802,6 +809,59 @@ fn run(argv: &[String]) -> i32 {
                 1
             }
         }
+        "export" => match parsed.positionals.first().map(String::as_str) {
+            Some("posture") => {
+                let ade_home = ade_home_from_env();
+                let user_home = std::env::var("HOME").ok().map(PathBuf::from);
+                let deps = PostureDeps {
+                    exec: real_exec(),
+                    which: real_which(),
+                    ade_home: ade_home.clone(),
+                    user_home: user_home.clone(),
+                    now_seconds: None,
+                };
+                let report = posture::collect_posture(&deps);
+                let markdown = posture::render_markdown(&report);
+                let json_text = posture::render_json(&report);
+                let export_dir = ade_home.join("export");
+                let markdown_path = export_dir.join("posture.md");
+                let json_path = export_dir.join("posture.json");
+                let ok = write_ensured(&markdown_path, &markdown).is_ok()
+                    && write_ensured(&json_path, &json_text).is_ok();
+                let markdown_display = posture::redact_home(
+                    &markdown_path.display().to_string(),
+                    user_home.as_deref(),
+                );
+                let json_display =
+                    posture::redact_home(&json_path.display().to_string(), user_home.as_deref());
+                let payload = serde_json::json!({
+                    "ok": ok,
+                    "verdict": report.verdict,
+                    "headline": report.headline,
+                    "markdownPath": markdown_display,
+                    "jsonPath": json_display,
+                });
+                let human = format!(
+                    "ade export posture: {} — wrote {markdown_display} and {json_display} (verdict: {})",
+                    if ok { "OK" } else { "FAILED" },
+                    report.verdict
+                );
+                emit(json, &payload, &human);
+                if ok {
+                    0
+                } else {
+                    1
+                }
+            }
+            other => {
+                eprintln!(
+                    "ade: unknown export subcommand \"{}\"\n\n{}",
+                    other.unwrap_or(""),
+                    usage()
+                );
+                2
+            }
+        },
         "gui" => match parsed.positionals.first().map(String::as_str) {
             Some("install") => {
                 let deps = install_deps();
@@ -881,8 +941,8 @@ fn run(argv: &[String]) -> i32 {
                         .unwrap_or_default();
                     let pid = agent.pid.map(|p| format!(" (pid {p})")).unwrap_or_default();
                     human.push(format!(
-                        "  {} {}{state}{pid}",
-                        if agent.loaded { "✓" } else { "✗" },
+                        "  {:<2} {}{state}{pid}",
+                        if agent.loaded { "ok" } else { "x" },
                         agent.label
                     ));
                 }

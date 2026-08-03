@@ -1,0 +1,31 @@
+feat(gallery): Phase J ISC-308 — the in-app component gallery
+
+Zed's component_preview pattern: a Cmd+Shift+G debug takeover rendering
+every design token and shared component, in every state, side by side —
+the fast-iteration surface for the design pass AND a permanent regression
+fixture, inside the real app instead of a throwaway mockup (ISA Decisions
+2026-08-02, order-of-operations item 2).
+
+Sections: all 25 color roles (both appearances, hex), a LIVE contrast
+audit computed in token space (a broken floor is visible in the same view
+a design pass iterates in), type scale, both spacing scales (shipped
+Space + density-preset tokens::Spacing), radii + elevation, the four
+motion constants, and every component state (buttons, toggles, chips,
+status dots, spinner, focus strokes, hairline).
+
+Boundary held: the gallery wraps existing components, never restyles
+them — existing goldens byte-untouched; the only live-screen change is
+the keybinding branch in frame(), inert while closed. New goldens
+gallery.png / gallery_light.png (860x3080) generated and visually
+reviewed. Label test pins all 8 sections; a contrast-audit test gates
+the exact floors the gallery displays.
+
+Gates: fmt clean; clippy -D warnings clean; 619 tests 0 fail; coverage
+96.72%/97.11%/96.62%; deny green; parity PASS; emoji-ban PASS.
+
+Files: crates/ade-control-center/src/gallery.rs (new),
+main.rs (mod), app.rs (LocalState.gallery + keybinding branch),
+theme.rs (role_color), tests/snapshots/gallery{,_light}.png (new),
+ISA.md (ISC-308 closed).
+
+Phase J execution per Plans/resolute-charting-heron.md. AI-Assisted.

@@ -62,6 +62,8 @@ cargo build --release          # or grab a release binary
 | `ade gui install` | macOS: install the Control Center + menu-bar apps and agent |
 | `ade gui uninstall` | Remove the apps and agent |
 | `ade gui status` | Menu-bar agent launchd state |
+| `ade gui health` | State whether this machine's agent environment is sound, and what needs doing |
+| `ade export posture` | Write a deterministic markdown+JSON evidence report to `$ADE_HOME/export/` |
 | `ade hook append` | (wired by modules) append a harness hook event to the audit chain |
 | `ade hook scan` | (wired by modules) scan stdin for prompt-injection patterns |
 

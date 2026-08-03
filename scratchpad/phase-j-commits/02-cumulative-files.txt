@@ -1,0 +1,15 @@
+ISA.md
+Plans/resolute-charting-heron-operating-instructions.md
+Plans/resolute-charting-heron.md
+crates/ade-control-center/src/app.rs
+crates/ade-control-center/src/gallery.rs
+crates/ade-control-center/src/main.rs
+crates/ade-control-center/src/modals.rs
+crates/ade-control-center/src/theme.rs
+crates/ade-control-center/tests/snapshots/gallery.png
+crates/ade-control-center/tests/snapshots/gallery_light.png
+crates/ade-core/src/gui/mod.rs
+crates/ade-core/src/gui/tokens.rs
+scratchpad/phase-j-commits/01-isc-304-307-files.txt
+scratchpad/phase-j-commits/01-isc-304-307-tokens.txt
+scratchpad/phase-j-commits/02-isc-308-gallery.txt

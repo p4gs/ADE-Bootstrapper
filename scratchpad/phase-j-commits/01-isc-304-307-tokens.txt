@@ -1,0 +1,38 @@
+feat(tokens): Phase J ISC-304..307 — design-token crate, WCAG auto-contrast, pinned baseline
+
+ade-core gains gui::tokens — the single source of color/spacing/shape truth,
+pure data with zero egui dependency (the CLI never links a rendering stack;
+the logic is coverage-counted at 98.65%/100% in the gated crate):
+
+- Semantic ColorRole enum (25 roles, Zed's pattern, deliberately no
+  Custom escape hatch) resolved against Appearance; the Radix sand ramps
+  and status solids moved here verbatim from theme.rs.
+- WCAG relative-luminance/contrast-ratio math + ensure_contrast auto-repair
+  (Warp's pattern, reimplemented — binary-search blend toward the better
+  pole, honest pole return when the target is unreachable). Tested against
+  6 arbitrary accents x {bg,panel} x {light,dark}, all repaired to >=4.5:1.
+- Spacing/CornerRadii with Density/Roundness presets — cosmic-theme's shape
+  as a clean-room reimplementation per the ISC-305 fallback (deny.toml is
+  permissive-only by stated policy; zero new dependencies; see the ISA's
+  2026-08-02T16:45Z Decision).
+
+theme.rs becomes the sole sanctioned resolution layer (tokens -> Color32).
+The ISC-304 gate — grep for ANY Color32 constructor across both GUI crates —
+returns zero hits outside it. New Palette roles (knob, toggle_track_off,
+scrim) plus ON_ACCENT/NO_FILL consts replace the last raw colors in app.rs
+and modals.rs; alpha_scaled moves into the resolution layer where it belongs.
+
+ISC-307's guarantee is a fixture, not a hope: phase_i_baseline_values_are_
+unchanged asserts every Palette field (both appearances), all four DURATION_*
+constants, and both shadow stacks against literals transcribed from d5b1ba8,
+and the full kittest suite passes with byte-identical goldens — zero pixels
+changed by construction.
+
+Also carried: the Phase J ISA authoring (ISC-304..313, two review rounds
+dispositioned in Decisions) and the two-file Fable prompt in Plans/.
+
+Gates: fmt clean; clippy -D warnings clean; 614 tests 0 fail; coverage
+96.71%/97.11%/96.61% (floor 95/95); cargo deny green; parity PASS;
+emoji-ban PASS.
+
+Phase J execution per Plans/resolute-charting-heron.md. AI-Assisted.

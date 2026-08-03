@@ -9,3 +9,8 @@ ade-core = { version = "0.2.0", path = "../ade-core" }
 objc2 = "0.6.4"
 objc2-app-kit = "0.3.2"
 objc2-foundation = "0.3.2"
+# Already in the tree via objc2-app-kit's default "block2" feature; named
+# directly only to call the NON-deprecated, resolution-independent
+# `imageWithSize:flipped:drawingHandler:` (the deprecated lockFocus path
+# rasterizes at one scale and blurs on Retina menu bars).
+block2 = "0.6.1"

@@ -1,0 +1,35 @@
+feat(chrome): Phase J ISC-309 — native-feel depth on all four chrome surfaces
+
+The four surfaces the design research named as where every comparable team
+actually closed the "feels native" gap, each with its own verification
+modality (kittest cannot render three of them — the ISA's split-verification
+amendment):
+
+- Focus rings (egui-drawn, kittest-verified): theme::focus_ring paints the
+  macOS two-layer look — soft outer accent halo + the existing crisp inner
+  line. A bare 1px stroke reads as a border change; the halo reads as focus.
+  Live on nav rows; demoed in the gallery golden (reviewed).
+- Traffic-light band (live-behavior surface): the melted titlebar gives
+  back what hiding the real one took away — drag-to-move and double-click-
+  to-zoom over the full-width 34pt band, registered beneath every widget so
+  real controls always win the press. Geometry is a cross-crate contract:
+  ade-core's TITLEBAR_BAND_PT bound to theme::TRAFFIC_LIGHT_INSET by test.
+- Menu bar (AX-verifiable surface): the tray's three action rows carry
+  native Command key equivalents (Cmd-R / Cmd-O / Cmd-Q) in the pure
+  menu_plan model — pinned by test in both the healthy and degraded plans.
+- Vibrancy (live-behavior surface): tier selection is no longer launch-only.
+  A per-frame poll answers mid-run Reduce Transparency toggles in BOTH
+  layers — the native material hides/reveals, the egui sidebar fill flips —
+  both directions, no relaunch. A launch-time Opaque tier honestly cannot
+  upgrade live (no effect view was attached); stated in code, not hidden.
+
+Also: gallery hardening from the ISC-308 fresh-context review — one shared
+CONTRAST_PAIRS const for display + gate test (no drift possible), honest
+exhaustiveness comment, S0 in the spacing bars.
+
+Gates: fmt clean; clippy -D warnings clean; 622 tests 0 fail; coverage
+96.72%/97.11%/96.62%; deny green; parity PASS; emoji-ban PASS. All 31
+pre-existing goldens byte-identical; only the 2 gallery goldens changed
+(reviewed: the focus-ring demo now shows the halo).
+
+Phase J execution per Plans/resolute-charting-heron.md. AI-Assisted.

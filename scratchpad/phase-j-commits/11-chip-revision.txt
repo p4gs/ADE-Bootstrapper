@@ -1,0 +1,25 @@
+fix(design): status chips per owner annotation — caps, smaller, bolder, centered
+
+Owner annotation (ISA Decisions 2026-08-03): "The text inside these
+bubbles are off center. Also, the bubbles themselves are too big compared
+to the text. Also, let's make the font size smaller, make the text ALL
+CAPS, and make it bolder."
+
+chip() rebuilt from Frame+label (layout-emergent geometry) to painted
+geometry: uppercase semibold 9pt label, pill derived from the galley
+(+12x, +4y), full-round radius, galley placed at the pill's exact center,
+rect pixel-snapped. Affects every chip site (activity status, projects
+verify PASS/FAIL, capability running chip, gallery specimens).
+
+Measured on the regenerated goldens: OK chip ink-vs-pill dx +0.0 / dy
++0.5; ERROR chip cap-ink +0.5 (its full-ink bbox reads +1.0 — the
+parentheses' correct below-baseline descent, not mis-centering; a
+half-pixel counter-nudge was tested, measured ineffective at 1x, and
+removed rather than shipped as dead code — finding documented in chip()'s
+own comment).
+
+Gates: fmt 0, clippy -D warnings 0, 626 tests 0 fail deterministic,
+ISC-304 grep 0, coverage >=95/95, deny 0, parity 0, emoji-ban 0.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-310 loop (owner
+annotation cycle).

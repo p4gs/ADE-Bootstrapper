@@ -1,0 +1,86 @@
+ M crates/ade-control-center/src/activity.rs
+ M crates/ade-control-center/src/capability_page.rs
+ M crates/ade-control-center/src/overview.rs
+ M crates/ade-control-center/src/projects.rs
+ M crates/ade-control-center/src/row.rs
+ M crates/ade-control-center/tests/snapshots/activity_log_tail.png
+ M crates/ade-control-center/tests/snapshots/activity.png
+ M crates/ade-control-center/tests/snapshots/capability_page_insights.png
+ M crates/ade-control-center/tests/snapshots/capability_page_stats_strip_freshness_only.png
+ M crates/ade-control-center/tests/snapshots/capability_page_stats_strip_light.png
+ M crates/ade-control-center/tests/snapshots/capability_page_stats_strip.png
+ M crates/ade-control-center/tests/snapshots/capability_page.png
+ M crates/ade-control-center/tests/snapshots/modal_bulk.png
+ M crates/ade-control-center/tests/snapshots/modal_confirm_light.png
+ M crates/ade-control-center/tests/snapshots/modal_confirm.png
+ M crates/ade-control-center/tests/snapshots/nav_sidebar_light.png
+ M crates/ade-control-center/tests/snapshots/nav_sidebar.png
+ M crates/ade-control-center/tests/snapshots/overview_all_clear.png
+ M crates/ade-control-center/tests/snapshots/overview_attention_busy.png
+ M crates/ade-control-center/tests/snapshots/overview_attention.png
+ M crates/ade-control-center/tests/snapshots/overview_check_failed.png
+ M crates/ade-control-center/tests/snapshots/overview_checking.png
+ M crates/ade-control-center/tests/snapshots/overview_insights.png
+ M crates/ade-control-center/tests/snapshots/overview_welcome.png
+ M crates/ade-control-center/tests/snapshots/projects_matrix_mixed.png
+ M crates/ade-control-center/tests/snapshots/projects_matrix_unknown.png
+ M crates/ade-control-center/tests/snapshots/projects.png
+ M crates/ade-control-center/tests/snapshots/rows_all_states.png
+ M crates/ade-control-center/tests/snapshots/rows_grouped.png
+ M crates/ade-control-center/tests/snapshots/rows_light.png
+ M crates/ade-control-center/tests/snapshots/screen_900.png
+ M crates/ade-control-center/tests/snapshots/screen_grouped_light.png
+ M crates/ade-control-center/tests/snapshots/screen_overview_dark.png
+ M crates/ade-control-center/tests/snapshots/screen_overview_light.png
+ M crates/ade-control-center/tests/snapshots/toolbar.png
+?? Plans/verdant-forging-osprey-operating-instructions.md
+?? Plans/verdant-forging-osprey.md
+?? scratchpad/phase-j-checkpoint/cycle2-badge-before-after.png
+?? scratchpad/phase-j-checkpoint/cycle2-overview-before-after.png
+?? scratchpad/phase-j-checkpoint/cycle2-overview-dark-full.png
+?? scratchpad/phase-j-checkpoint/cycle2-overview-light-full.png
+?? scratchpad/phase-j-checkpoint/cycle2-tints.png
+?? scratchpad/phase-j-checkpoint/cycle3-light-before-after.png
+?? scratchpad/phase-j-checkpoint/cycle3-nit-closeups.png
+?? scratchpad/phase-j-checkpoint/cycle3-overview-dark-full.png
+?? scratchpad/phase-j-checkpoint/cycle3-overview-light-full.png
+?? scratchpad/phase-j-commits/04-cumulative-files.txt
+?? scratchpad/phase-j-commits/04-isc-310-cycle1-revision.txt
+?? scratchpad/phase-j-commits/05-cumulative-files.txt
+?? scratchpad/phase-j-commits/05-isc-310-cycle2-verdict-response.txt
+?? scratchpad/phase-j-commits/06-cumulative-files.txt
+?? scratchpad/phase-j-commits/06-isc-311-capability-page.txt
+?? scratchpad/phase-j-commits/07-cumulative-files.txt
+?? scratchpad/phase-j-commits/07-isc-311-projects.txt
+?? scratchpad/phase-j-commits/08-cumulative-files.txt
+?? scratchpad/phase-j-commits/08-isc-311-activity.txt
+?? scratchpad/phase-j-commits/rebaselines-cycle1/
+A  Plans/resolute-charting-heron-operating-instructions.md
+A  Plans/resolute-charting-heron.md
+A  scratchpad/phase-j-checkpoint/capability_page_insights.png
+A  scratchpad/phase-j-checkpoint/CHECKPOINT.md
+A  scratchpad/phase-j-checkpoint/gallery_light.png
+A  scratchpad/phase-j-checkpoint/gallery.png
+A  scratchpad/phase-j-checkpoint/screen_overview_dark.png
+A  scratchpad/phase-j-checkpoint/screen_overview_light.png
+A  scratchpad/phase-j-commits/01-isc-304-307-files.txt
+A  scratchpad/phase-j-commits/01-isc-304-307-tokens.txt
+A  scratchpad/phase-j-commits/02-cumulative-files.txt
+A  scratchpad/phase-j-commits/02-isc-308-gallery.txt
+A  scratchpad/phase-j-commits/03-cumulative-files.txt
+A  scratchpad/phase-j-commits/03-isc-309-native-chrome.txt
+AM crates/ade-control-center/src/gallery.rs
+AM crates/ade-control-center/tests/snapshots/gallery_light.png
+AM crates/ade-control-center/tests/snapshots/gallery.png
+AM crates/ade-core/src/gui/tokens.rs
+M  crates/ade-control-center/src/chrome/macos.rs
+M  crates/ade-control-center/src/chrome/mod.rs
+M  crates/ade-control-center/src/main.rs
+M  crates/ade-control-center/src/modals.rs
+M  crates/ade-core/src/gui/chrome.rs
+M  crates/ade-core/src/gui/mod.rs
+M  crates/ade-status/src/main.rs
+MM crates/ade-control-center/src/app.rs
+MM crates/ade-control-center/src/nav.rs
+MM crates/ade-control-center/src/theme.rs
+MM ISA.md

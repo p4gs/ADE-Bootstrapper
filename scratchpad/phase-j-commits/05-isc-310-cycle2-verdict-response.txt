@@ -1,0 +1,50 @@
+feat(design): Phase J ISC-310 cycle 3 — alignment class fix + light inversion + display type
+
+The owner's cycle-2 verdict (ISA Decisions, 2026-08-02T21:15Z): "This
+direction looks good but I still expect more polish and more of a
+distinctly different and 'wow, this is truly a best in class design'
+aesthetic. Keep iterating" — plus two annotated alignment nits on the
+light Overview.
+
+Both nits, fixed as a CLASS and verified by pixel measurement of the
+regenerated goldens (not eyeballed):
+
+- Root cause 1: egui's nested-`ui.vertical`-inside-centered-horizontal
+  gotcha top-aligned every title/caption block in its row band (measured
+  6px high of card center) and landed the status mark on the caption line
+  (14px below the title center). New shared `app::mark_beside_block`
+  helper: the text block centers in the band as ONE unit, the mark sits on
+  the TITLE line's center. Swept across attention rows, capability rows
+  (row.rs), and the check-failed state. Measured after: dot-vs-title
+  -0.5px, block-vs-card -0.5px.
+- Root cause 2: the coverage-row mark and text galley were already
+  geometrically centered — the offset is OPTICAL: ink sits low inside a
+  galley box (ascender headroom), so a mark at galley center reads high.
+  +1.5px (half the body-size descent) drops the mark onto the ink's
+  x-height mass. Measured after: dot-vs-ink +0.0px.
+
+Toward "distinctly different" (same commit, token level):
+
+- Light appearance: the macOS grouped-settings idiom — PURE WHITE cards
+  on a visibly gray sand canvas (step 3), Radix Themes' own
+  panel-solid pattern; light controls shift one step darker in lockstep
+  so rest buttons stay visible on the new canvas. The old step-1/step-2
+  pairing had a 6-value delta: cards read as flat regions, not surfaces.
+- SIZE_DISPLAY (26pt, macOS large-title metric) for the Overview verdict
+  headline — one voice this loud per page, nothing else uses it.
+- +0.8px letterspacing on every uppercase eyebrow (section headings +
+  sidebar section headers).
+- The selected nav row's label goes semibold — the macOS sidebar pairing
+  with the accent wash.
+
+ISC-307 fixture: light surface pins updated to the cycle-3 values citing
+the quoted 2026-08-02T21:15Z standing directive (the 19:45Z Decision
+covered dark only); text/status/wash light pins remain d5b1ba8 literals;
+SIZE_DISPLAY added to the type-scale pin.
+
+Gates: fmt 0, clippy -D warnings 0, workspace tests 623/0 (deterministic
+re-run clean), ISC-304 grep 0 hits, coverage 96.63 line / 97.11 fn
+(>=95/95), cargo deny 0, parity 0, emoji-ban 0.
+
+AI-Assisted: Claude (Sonnet 5) under ISA Phase J, ISC-310 cycle 3 under
+the owner's standing iterate directive.
