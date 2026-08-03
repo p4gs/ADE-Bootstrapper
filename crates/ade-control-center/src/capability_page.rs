@@ -304,6 +304,23 @@ fn stats_strip(
                 detail: Some("harnesses with CodeGuard installed".to_string()),
             });
         }
+        if let Some(catches) = &stats.secrets_catches {
+            tiles.push(StatTile {
+                label: "SECRETS CAUGHT",
+                value: format!(
+                    "{} {}",
+                    catches.blocked,
+                    plural(catches.blocked as usize, "commit", "commits")
+                ),
+                detail: Some(format!(
+                    "{} verified {} across {} {}",
+                    catches.findings,
+                    plural(catches.findings as usize, "finding", "findings"),
+                    catches.scans,
+                    plural(catches.scans as usize, "scan", "scans")
+                )),
+            });
+        }
         if let Some(hardened) = &stats.hardened_repos {
             tiles.push(StatTile {
                 label: "SIGNED COMMITS",
@@ -488,6 +505,11 @@ mod tests {
                 ecosystems: 4,
             }),
             index_staleness_days: Some(14),
+            secrets_catches: Some(ade_core::gui::stats::SecretsCatchLog {
+                scans: 41,
+                blocked: 3,
+                findings: 5,
+            }),
             hook_latency_millis: Some(340),
             harness_surfaces: vec![
                 ade_core::gui::stats::HarnessSurface {

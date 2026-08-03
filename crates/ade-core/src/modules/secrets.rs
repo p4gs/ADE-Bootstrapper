@@ -27,7 +27,7 @@ pub const PRECOMMIT_CONFIG_PATH: &str = ".pre-commit-config.yaml";
 pub const HOOK_MARKER: &str = "# ade-secrets-hook v1";
 pub const CHAINED_HOOK_NAME: &str = "pre-commit.pre-ade";
 
-pub const GITIGNORE_LINES: [&str; 8] = [
+pub const GITIGNORE_LINES: [&str; 9] = [
     ".env",
     ".env.*",
     "*.pem",
@@ -36,6 +36,7 @@ pub const GITIGNORE_LINES: [&str; 8] = [
     "id_ed25519",
     ".ade/memory-store/",
     ".ade/audit/",
+    ".ade/logs/",
 ];
 
 /// The native pre-commit shim. Warns-and-passes when trufflehog is missing
@@ -68,8 +69,17 @@ if command -v trufflehog >/dev/null 2>&1; then
   trap 'rm -rf "$tmpdir"' EXIT
   # Materialize the staged snapshot (index), then scan the real bytes being committed.
   git checkout-index --prefix="$tmpdir/" -af
-  trufflehog filesystem "$tmpdir" --results=verified --fail --no-update >/dev/null 2>&1
+  scan_json="$tmpdir/.ade-secrets-scan.json"
+  trufflehog filesystem "$tmpdir" --results=verified --fail --no-update --json >"$scan_json" 2>/dev/null
   status=$?
+  # Tier-3 catch metric, redacted ON PURPOSE: TruffleHog's JSON carries raw
+  # secret values, so the retained log keeps ONLY counts — the findings
+  # themselves die with the temp dir. Metric failure never blocks a commit.
+  findings=$(wc -l <"$scan_json" | tr -d '[:space:]')
+  [ -n "$findings" ] || findings=0
+  result=clean
+  [ $status -ne 0 ] && result=blocked
+  {{ mkdir -p .ade/logs && printf '{{"ts":%s,"findings":%s,"result":"%s"}}\n' "$(date +%s)" "$findings" "$result" >>.ade/logs/secrets-scan.jsonl; }} 2>/dev/null || true
   if [ $status -ne 0 ]; then
     echo "ade: commit BLOCKED — TruffleHog found a verified secret in the staged content." >&2
     echo "ade: remove the secret (and rotate it), then commit again." >&2
@@ -743,8 +753,17 @@ if command -v trufflehog >/dev/null 2>&1; then
   trap 'rm -rf "$tmpdir"' EXIT
   # Materialize the staged snapshot (index), then scan the real bytes being committed.
   git checkout-index --prefix="$tmpdir/" -af
-  trufflehog filesystem "$tmpdir" --results=verified --fail --no-update >/dev/null 2>&1
+  scan_json="$tmpdir/.ade-secrets-scan.json"
+  trufflehog filesystem "$tmpdir" --results=verified --fail --no-update --json >"$scan_json" 2>/dev/null
   status=$?
+  # Tier-3 catch metric, redacted ON PURPOSE: TruffleHog's JSON carries raw
+  # secret values, so the retained log keeps ONLY counts — the findings
+  # themselves die with the temp dir. Metric failure never blocks a commit.
+  findings=$(wc -l <"$scan_json" | tr -d '[:space:]')
+  [ -n "$findings" ] || findings=0
+  result=clean
+  [ $status -ne 0 ] && result=blocked
+  { mkdir -p .ade/logs && printf '{"ts":%s,"findings":%s,"result":"%s"}\n' "$(date +%s)" "$findings" "$result" >>.ade/logs/secrets-scan.jsonl; } 2>/dev/null || true
   if [ $status -ne 0 ]; then
     echo "ade: commit BLOCKED — TruffleHog found a verified secret in the staged content." >&2
     echo "ade: remove the secret (and rotate it), then commit again." >&2

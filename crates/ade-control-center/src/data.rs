@@ -55,6 +55,10 @@ pub struct GroupStats {
     /// Tier 2 — repo-hygiene only: of the registered projects, how many
     /// have `commit.gpgsign` actually enabled.
     pub hardened_repos: Option<stats::HardenedRepoCoverage>,
+    /// Tier 3 — secret-scanning only: what the pre-commit boundary actually
+    /// caught, summed across registered projects' count-only scan logs
+    /// (ISC-301; the log is deliberately redacted — see `stats`).
+    pub secrets_catches: Option<stats::SecretsCatchLog>,
 }
 
 #[derive(Debug, Clone)]
@@ -346,6 +350,21 @@ impl Engine {
             );
             if let Some(entry) = out.get_mut("agent-security-rules") {
                 entry.harness_surfaces = surfaces;
+            }
+        }
+
+        // Secret scanning: what the boundary actually caught — pure fs reads
+        // of each registered project's redacted count-only scan log.
+        {
+            let logs: Vec<stats::SecretsCatchLog> = projects
+                .iter()
+                .filter_map(|project| {
+                    std::fs::read_to_string(stats::secrets_log_path(Path::new(&project.dir))).ok()
+                })
+                .filter_map(|content| stats::parse_secrets_log(&content))
+                .collect();
+            if let Some(entry) = out.get_mut("secret-scanning") {
+                entry.secrets_catches = stats::merge_secrets_logs(&logs);
             }
         }
 

@@ -425,6 +425,74 @@ pub fn hardened_repo_coverage(flags: &[bool]) -> Option<HardenedRepoCoverage> {
     })
 }
 
+/// Tier 3 — secret-scanning only: what the pre-commit boundary actually
+/// caught, aggregated from the REDACTED count-only log the native hook shim
+/// appends on every scan (`.ade/logs/secrets-scan.jsonl`). The log is
+/// deliberately counts-only — TruffleHog's raw JSON carries the secret
+/// values themselves, and retaining those would turn a catching tool into a
+/// secrets-retention bug (ISC-301, decided at implementation).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SecretsCatchLog {
+    /// Hook runs that actually scanned (trufflehog present).
+    pub scans: u64,
+    /// Runs that BLOCKED a commit.
+    pub blocked: u64,
+    /// Total verified findings across blocked runs.
+    pub findings: u64,
+}
+
+/// Where the shim writes the count-only scan log, relative to a project.
+pub fn secrets_log_path(project_dir: &Path) -> PathBuf {
+    project_dir
+        .join(".ade")
+        .join("logs")
+        .join("secrets-scan.jsonl")
+}
+
+/// Parse one project's scan log. Malformed lines are SKIPPED, not fatal —
+/// the log is append-only from a shell hook and a torn write must never
+/// blank the whole metric. `None` when no line parses (absent fact renders
+/// as absent, the stats strip's own honesty rule).
+pub fn parse_secrets_log(content: &str) -> Option<SecretsCatchLog> {
+    let mut out = SecretsCatchLog {
+        scans: 0,
+        blocked: 0,
+        findings: 0,
+    };
+    for line in content.lines() {
+        let Ok(value) = serde_json::from_str::<serde_json::Value>(line) else {
+            continue;
+        };
+        let Some(result) = value.get("result").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        let findings = value.get("findings").and_then(|v| v.as_u64()).unwrap_or(0);
+        match result {
+            "blocked" => {
+                out.scans += 1;
+                out.blocked += 1;
+                out.findings += findings;
+            }
+            "clean" => out.scans += 1,
+            _ => continue,
+        }
+    }
+    (out.scans > 0).then_some(out)
+}
+
+/// Sum the per-project logs into the group fact. `None` when no project has
+/// a log at all.
+pub fn merge_secrets_logs(logs: &[SecretsCatchLog]) -> Option<SecretsCatchLog> {
+    if logs.is_empty() {
+        return None;
+    }
+    Some(SecretsCatchLog {
+        scans: logs.iter().map(|l| l.scans).sum(),
+        blocked: logs.iter().map(|l| l.blocked).sum(),
+        findings: logs.iter().map(|l| l.findings).sum(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -861,5 +929,62 @@ mod tests {
         let coverage = hardened_repo_coverage(&[true, true, false]).expect("real data");
         assert_eq!(coverage.hardened, 2);
         assert_eq!(coverage.total, 3);
+    }
+
+    /// ISC-301: the count-only log parses per its shim contract — blocked
+    /// and clean runs both count as scans, findings accumulate from blocked
+    /// runs, torn/malformed lines are skipped, and an unparseable-only or
+    /// empty log is an ABSENT fact, never a zero-filled tile.
+    #[test]
+    fn secrets_log_parses_counts_and_skips_torn_lines() {
+        let content = concat!(
+            "{\"ts\":1754170000,\"findings\":0,\"result\":\"clean\"}\n",
+            "{\"ts\":1754170060,\"findings\":2,\"result\":\"blocked\"}\n",
+            "{\"ts\":1754170120,\"findings\":1,\"result\":\"blocked\"}\n",
+            "not json at all\n",
+            "{\"ts\":1754170180,\"result\":\"weird\"}\n",
+        );
+        let log = parse_secrets_log(content).expect("parses");
+        assert_eq!(
+            log,
+            SecretsCatchLog {
+                scans: 3,
+                blocked: 2,
+                findings: 3
+            }
+        );
+        assert_eq!(parse_secrets_log(""), None);
+        assert_eq!(parse_secrets_log("garbage\n"), None);
+    }
+
+    #[test]
+    fn secrets_logs_merge_across_projects_and_absent_stays_absent() {
+        let a = SecretsCatchLog {
+            scans: 3,
+            blocked: 2,
+            findings: 3,
+        };
+        let b = SecretsCatchLog {
+            scans: 5,
+            blocked: 0,
+            findings: 0,
+        };
+        assert_eq!(
+            merge_secrets_logs(&[a, b]),
+            Some(SecretsCatchLog {
+                scans: 8,
+                blocked: 2,
+                findings: 3
+            })
+        );
+        assert_eq!(merge_secrets_logs(&[]), None);
+    }
+
+    #[test]
+    fn secrets_log_path_is_the_shim_contract_path() {
+        assert_eq!(
+            secrets_log_path(Path::new("/repo")),
+            Path::new("/repo/.ade/logs/secrets-scan.jsonl")
+        );
     }
 }
