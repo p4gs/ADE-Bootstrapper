@@ -57,20 +57,47 @@ fn is_executable(path: &Path) -> bool {
     }
 }
 
+/// Candidate filenames for a bare tool name on this platform. On Windows a
+/// bare `claude` must also match `claude.exe` / `claude.cmd` / `claude.bat`
+/// (per PATHEXT); on Unix the name is used as-is.
+fn platform_candidates(name: &str) -> Vec<String> {
+    #[cfg(windows)]
+    {
+        let mut candidates = vec![name.to_string()];
+        let pathext = std::env::var("PATHEXT").unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".into());
+        let has_ext = Path::new(name).extension().is_some();
+        if !has_ext {
+            for ext in pathext.split(';') {
+                let ext = ext.trim();
+                if !ext.is_empty() {
+                    candidates.push(format!("{name}{}", ext.to_ascii_lowercase()));
+                }
+            }
+        }
+        candidates
+    }
+    #[cfg(not(windows))]
+    {
+        vec![name.to_string()]
+    }
+}
+
 pub fn real_which() -> WhichFn {
     Arc::new(|name: &str| -> Option<String> {
-        if name.contains('/') {
+        if name.contains('/') || name.contains(std::path::MAIN_SEPARATOR) {
             let path = Path::new(name);
             return is_executable(path).then(|| name.to_string());
         }
         let path_env = std::env::var("PATH").unwrap_or_default();
-        for dir in path_env.split(':') {
-            if dir.is_empty() {
+        for dir in std::env::split_paths(&path_env) {
+            if dir.as_os_str().is_empty() {
                 continue;
             }
-            let candidate = Path::new(dir).join(name);
-            if is_executable(&candidate) {
-                return Some(candidate.to_string_lossy().to_string());
+            for candidate_name in platform_candidates(name) {
+                let candidate = dir.join(&candidate_name);
+                if is_executable(&candidate) {
+                    return Some(candidate.to_string_lossy().to_string());
+                }
             }
         }
         None
@@ -128,7 +155,12 @@ mod tests {
     #[test]
     fn which_finds_real_binaries_and_rejects_missing() {
         let which = real_which();
+        #[cfg(unix)]
         assert!(which("sh").is_some());
+        // Windows PATH is ';'-separated and binaries carry PATHEXT extensions;
+        // a bare name must still resolve (regression: PATH was split on ':').
+        #[cfg(windows)]
+        assert!(which("cmd").is_some());
         assert!(which("definitely-not-a-real-binary-xyzzy").is_none());
     }
 }
