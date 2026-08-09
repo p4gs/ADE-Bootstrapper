@@ -9,6 +9,11 @@
  * Boundary controlled: the dependency boundary — nothing enters the project
  * (package or AI-native artifact) without policy review, and AI-suggested
  * package names are treated as hallucination-prone until verified.
+ *
+ * Integration over rebuild: sscsb (github.com/p4gs/sscs-bootstrapper) is the
+ * deep SSCS layer — SBOM, signing policy, SHA-pinned CI, vuln + secret scan
+ * orchestration. Like OCEAN/RTK, it is detected + given exact guidance and its
+ * repo state (`.sscsb/config.toml`) is recognized; `ade apply` never runs it.
  */
 import { join } from "node:path";
 import { readIfExists } from "../fsutil.ts";
@@ -36,6 +41,22 @@ export const AI_NATIVE_DEP_KINDS = [
 
 const OSV_REMEDIATION =
   "install OSV-Scanner (e.g. `brew install osv-scanner`) to enable dependency vulnerability scanning";
+
+/** Repo state marker written by `sscsb init` — its presence means the deep SSCS layer is initialized here. */
+export const SSCSB_CONFIG_PATH = ".sscsb/config.toml";
+export const SSCSB_INSTALL =
+  "install sscsb for deep supply-chain hardening — `cargo install --git https://github.com/p4gs/sscs-bootstrapper` or a release binary (github.com/p4gs/sscs-bootstrapper)";
+export const SSCSB_DEEP_LAYER =
+  "sscsb available — run `sscsb init` then `sscsb verify` in this repo for the deep SSCS layer (SBOM, signing policy, SHA-pinned CI, vuln + secret scan orchestration; integration, not reimplementation)";
+
+/** Standard findings for sscsb presence: integrate when present, guide install when absent. */
+export function sscsbFindings(ctx: Ctx): Finding[] {
+  const findings: Finding[] = [toolFinding(ctx, "sscsb", SSCSB_INSTALL)];
+  if (ctx.tools["sscsb"]?.present === true) {
+    findings.push({ level: "info", message: SSCSB_DEEP_LAYER });
+  }
+  return findings;
+}
 
 interface DependenciesPolicy {
   schemaVersion: number;
@@ -190,7 +211,10 @@ export const supplyChainModule: AdeModule = {
   ],
 
   async detect(ctx: Ctx): Promise<Finding[]> {
-    const findings: Finding[] = [toolFinding(ctx, "osv-scanner", OSV_REMEDIATION)];
+    const findings: Finding[] = [toolFinding(ctx, "osv-scanner", OSV_REMEDIATION), ...sscsbFindings(ctx)];
+    if ((await readIfExists(join(ctx.targetDir, SSCSB_CONFIG_PATH))) !== null) {
+      findings.push({ level: "ok", message: `sscsb initialized in this repo (${SSCSB_CONFIG_PATH} present)` });
+    }
     const errors = validateSupplyChainOptions(moduleOptions(ctx));
     findings.push(...errors.map((message) => ({ level: "error" as const, message })));
     return findings;
@@ -227,6 +251,7 @@ export const supplyChainModule: AdeModule = {
     const findings: Finding[] = [
       { level: "ok", message: `wrote ${DEPENDENCIES_POLICY_PATH}` },
       ...(await checkLockfiles(ctx.targetDir)),
+      ...sscsbFindings(ctx),
     ];
 
     if (ctx.tools["osv-scanner"]?.present !== true) {
@@ -287,6 +312,18 @@ export const supplyChainModule: AdeModule = {
         level: "error",
         message: `${DEPENDENCIES_POLICY_PATH} missing or malformed aiNativeDependencies section`,
         remediation: "run `ade apply` to regenerate",
+      });
+    }
+
+    // Deep SSCS layer state (recognition only — never a failure): sscsb owns
+    // its own verification via `sscsb verify`.
+    if ((await readIfExists(join(ctx.targetDir, SSCSB_CONFIG_PATH))) !== null) {
+      findings.push({ level: "ok", message: `sscsb initialized in this repo (${SSCSB_CONFIG_PATH} present)` });
+    } else if (ctx.tools["sscsb"]?.present === true) {
+      findings.push({
+        level: "info",
+        message: "sscsb installed but this repo is not sscsb-initialized",
+        remediation: "run `sscsb init` then `sscsb verify` in the target repo for the deep SSCS layer",
       });
     }
 

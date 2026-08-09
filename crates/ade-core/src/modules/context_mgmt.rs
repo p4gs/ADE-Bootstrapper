@@ -7,7 +7,10 @@
 //!      re-derived from the tree on every `ade apply` — always present.
 //!   2. Detected best-of-breed engines, wired in when installed: OpenWiki
 //!      (Code Brain), CocoIndex (either the `cocoindex` framework or the `ccc`
-//!      CLI), and the opt-in OpenWiki Personal Brain (options.enableBrain).
+//!      CLI), Serena (LSP-based semantic retrieval/editing, MCP-native — MCP
+//!      registration into `.mcp.json` is strictly OPT-IN via
+//!      options.enableSerenaMcp, memory-module convention), and the opt-in
+//!      OpenWiki Personal Brain (options.enableBrain).
 //!
 //! Convention: engines are detected + wired + given exact install guidance;
 //! `ade apply` NEVER force-installs a tool.
@@ -16,6 +19,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use crate::fsutil::read_if_exists;
+use crate::harness::claude::register_mcp_server;
 use crate::modules::shared::{read_json, verify_json_artifact, write_policy};
 use crate::types::{
     ActionKind, AdeModule, Ctx, Finding, FindingLevel, InstructionBlock, ModuleResult,
@@ -29,6 +33,9 @@ pub const OPENWIKI_DIR: &str = "openwiki/";
 pub const OPENWIKI_INSTALL: &str = "install OpenWiki (`npm install -g openwiki`) for an auto-maintained, navigable codebase wiki — MIT-licensed, BYO model key; init with `openwiki --init`";
 pub const COCOINDEX_INSTALL: &str = "install CocoIndex for AST-based semantic code search — `pip install cocoindex` (framework) or the `cocoindex-code` CLI (github.com/cocoindex-io/cocoindex-code); Apache-2.0";
 pub const BRAIN_ACTIVATION: &str = "to enable OpenWiki Personal Brain, set modules.context.options.enableBrain = true in ade.json, then run `ade apply`; initialise with `openwiki personal --init`";
+pub const SERENA_INSTALL: &str = "install Serena for semantic (LSP-based) code retrieval and editing — `uv tool install --from git+https://github.com/oraios/serena serena-agent` (installs the `serena` CLI); MCP-native, free & open-source";
+pub const SERENA_MCP_ACTIVATION: &str = "to register the Serena MCP server with Claude Code, set modules.context.options.enableSerenaMcp = true in ade.json, then run `ade apply`";
+pub const SERENA_MCP_SERVER_NAME: &str = "serena";
 
 /// Directory names excluded from the codemap scan (any path segment).
 pub const SKIPPED_DIRS: [&str; 8] = [
@@ -384,9 +391,38 @@ pub fn cocoindex_state(ctx: &Ctx) -> EngineState {
     }
 }
 
+/// Serena is present if the `serena` binary resolves.
+pub fn serena_state(ctx: &Ctx) -> EngineState {
+    match ctx.tools.get("serena") {
+        Some(info) if info.present => EngineState {
+            present: true,
+            version: info.version.clone(),
+        },
+        _ => EngineState {
+            present: false,
+            version: None,
+        },
+    }
+}
+
 /// Personal Brain is opt-in (reaches outside the repo) — off unless explicitly enabled.
 pub fn brain_opt_in(ctx: &Ctx) -> bool {
     ctx.module_options("context").get("enableBrain") == Some(&serde_json::Value::Bool(true))
+}
+
+/// Serena MCP registration is opt-in — off unless explicitly enabled.
+pub fn serena_mcp_opt_in(ctx: &Ctx) -> bool {
+    ctx.module_options("context").get("enableSerenaMcp") == Some(&serde_json::Value::Bool(true))
+}
+
+/// Serena MCP registration happens only when the opt-in is set AND claude-code
+/// is targeted (memory-module convention: default apply never touches .mcp.json).
+pub fn serena_mcp_enabled(ctx: &Ctx) -> bool {
+    ctx.config
+        .harnesses
+        .iter()
+        .any(|harness| harness == "claude-code")
+        && serena_mcp_opt_in(ctx)
 }
 
 /// Build the context-engines policy — deterministic, re-derivable from the live machine.
@@ -416,12 +452,27 @@ pub fn build_engines_policy(ctx: &Ctx) -> serde_json::Value {
     if let Some(version) = &coco.version {
         semantic_index["version"] = serde_json::json!(version);
     }
+    let serena = serena_state(ctx);
+    let mut semantic_retrieval = serde_json::json!({
+        "tool": "serena",
+        "role": "LSP-based semantic code retrieval and editing (symbol-level find/edit, MCP-native); use instead of whole-file reads and rewrites",
+        "present": serena.present,
+        "enabled": serena.present,
+        "install": SERENA_INSTALL,
+        "mcpOptIn": serena_mcp_opt_in(ctx),
+        "mcpEnabled": serena_mcp_enabled(ctx),
+        "mcpActivation": SERENA_MCP_ACTIVATION,
+    });
+    if let Some(version) = &serena.version {
+        semantic_retrieval["version"] = serde_json::json!(version);
+    }
     serde_json::json!({
         "schemaVersion": 1,
         "fallback": CODEMAP_PATH,
         "engines": {
             "codebaseWiki": codebase_wiki,
             "semanticIndex": semantic_index,
+            "semanticRetrieval": semantic_retrieval,
             "personalBrain": {
                 "tool": "openwiki",
                 "subCapabilityOf": "openwiki",
@@ -470,6 +521,39 @@ fn engine_findings(ctx: &Ctx) -> Vec<Finding> {
             COCOINDEX_INSTALL,
         )
     });
+    let serena = serena_state(ctx);
+    findings.push(if serena.present {
+        Finding::ok(format!(
+            "Serena semantic retrieval wired{}",
+            serena
+                .version
+                .as_ref()
+                .map(|version| format!(" ({version})"))
+                .unwrap_or_default()
+        ))
+    } else {
+        Finding::degraded(
+            "Serena not installed — semantic (LSP-based) code retrieval and editing unavailable",
+            SERENA_INSTALL,
+        )
+    });
+    let serena_mcp_on = serena_mcp_enabled(ctx);
+    let serena_mcp_state = if serena_mcp_on {
+        "enabled (options.enableSerenaMcp = true, claude-code harness targeted)"
+    } else if serena_mcp_opt_in(ctx) {
+        "opted-in but claude-code harness not targeted"
+    } else {
+        "off (opt-in)"
+    };
+    findings.push(Finding {
+        level: FindingLevel::Info,
+        message: format!("Serena MCP registration {serena_mcp_state}"),
+        remediation: if serena_mcp_on {
+            None
+        } else {
+            Some(SERENA_MCP_ACTIVATION.to_string())
+        },
+    });
     let brain_enabled = wiki.present && brain_on;
     let state = if brain_enabled {
         "enabled"
@@ -502,10 +586,40 @@ fn apply_inner(ctx: &Ctx) -> std::io::Result<ModuleResult> {
         Finding::ok(format!("wrote {CONTEXT_ENGINES_PATH}")),
     ];
     findings.extend(engine_findings(ctx));
+    let mut wrote_paths = vec![CODEMAP_PATH.to_string(), CONTEXT_ENGINES_PATH.to_string()];
+    if serena_mcp_enabled(ctx) {
+        let registration = register_mcp_server(
+            ctx,
+            SERENA_MCP_SERVER_NAME,
+            &serde_json::json!({
+                "command": "serena",
+                "args": [
+                    "start-mcp-server",
+                    "--context",
+                    "ide-assistant",
+                    "--project",
+                    ctx.target_dir.to_string_lossy(),
+                ],
+                "env": {},
+            }),
+        )?;
+        let level = registration.level;
+        findings.push(registration);
+        if level == FindingLevel::Error {
+            return Ok(ModuleResult {
+                status: ModuleStatus::Degraded,
+                findings,
+                wrote_paths,
+            });
+        }
+        if level == FindingLevel::Ok {
+            wrote_paths.push(".mcp.json".to_string());
+        }
+    }
     Ok(ModuleResult {
         status: ModuleStatus::Applied,
         findings,
-        wrote_paths: vec![CODEMAP_PATH.to_string(), CONTEXT_ENGINES_PATH.to_string()],
+        wrote_paths,
     })
 }
 
@@ -534,6 +648,7 @@ impl AdeModule for ContextMgmtModule {
                 "Codebase-understanding sources, in priority order (see `.ade/policy/context-engines.json` for which are live):",
                 "- **OpenWiki codebase wiki** (`openwiki/`) when present — read it FIRST for prose + Mermaid architecture understanding. It is auto-maintained; never hand-edit generated pages.",
                 "- **CocoIndex semantic search** when present — use natural-language code retrieval instead of grepping the whole tree.",
+                "- **Serena semantic retrieval** when present — LSP-based symbol-level code retrieval and editing via the `serena` MCP server; registration with Claude Code is opt-in (`modules.context.options.enableSerenaMcp`).",
                 "- **`.ade/context/codemap.md`** — the always-present zero-dependency structural fallback; consult BEFORE any whole-repo scan. Regenerated on every `ade apply`.",
                 "- **OpenWiki Personal Brain** (opt-in, `modules.context.options.enableBrain`) — general-purpose project/research memory across tools (email, notes, web). Distinct from the codebase wiki. NEVER write secrets or credentials into it.",
                 "- Prefer targeted reads over directory dumps; after structural changes run `ade apply` (and re-run OpenWiki) rather than re-walking the tree.",
@@ -570,9 +685,26 @@ impl AdeModule for ContextMgmtModule {
                 kind: ActionKind::Write,
                 path: Some(CONTEXT_ENGINES_PATH.to_string()),
                 description: format!(
-                    "record detected context engines (OpenWiki{}, CocoIndex) and the codemap fallback",
+                    "record detected context engines (OpenWiki{}, CocoIndex, Serena) and the codemap fallback",
                     if brain_opt_in(ctx) { " + Personal Brain" } else { "" }
                 ),
+            },
+            if serena_mcp_enabled(ctx) {
+                PlannedAction {
+                    kind: ActionKind::Merge,
+                    path: Some(".mcp.json".to_string()),
+                    description: format!(
+                        "register the \"{SERENA_MCP_SERVER_NAME}\" MCP server (opt-in, preserves user entries)"
+                    ),
+                }
+            } else {
+                PlannedAction {
+                    kind: ActionKind::Info,
+                    path: None,
+                    description:
+                        "Serena MCP registration skipped — opt-in via options.enableSerenaMcp (.mcp.json untouched)"
+                            .to_string(),
+                }
             },
         ]
     }
@@ -642,6 +774,8 @@ impl AdeModule for ContextMgmtModule {
         };
         if !(matches("/engines/codebaseWiki/enabled")
             && matches("/engines/semanticIndex/enabled")
+            && matches("/engines/semanticRetrieval/enabled")
+            && matches("/engines/semanticRetrieval/mcpEnabled")
             && matches("/engines/personalBrain/enabled"))
         {
             ok = false;
@@ -1297,8 +1431,315 @@ mod tests {
         let block = &blocks[0];
         assert!(block.content.contains("OpenWiki codebase wiki"));
         assert!(block.content.contains("CocoIndex semantic search"));
+        assert!(block.content.contains("Serena semantic retrieval"));
         assert!(block.content.contains("OpenWiki Personal Brain"));
         assert!(block.content.contains(CODEMAP_PATH));
         assert!(block.content.to_lowercase().contains("never write secrets"));
+    }
+
+    // ——— Serena integration (third engine + opt-in MCP registration) ———
+
+    fn config_with_serena_mcp(value: serde_json::Value, harnesses: &[&str]) -> AdeConfig {
+        let mut config = test_config_with(&[], harnesses);
+        if let Some(module) = config.modules.get_mut("context") {
+            module.options = serde_json::json!({"enableSerenaMcp": value});
+        }
+        config
+    }
+
+    #[test]
+    fn serena_absent_engine_disabled_with_install_guidance_in_policy_and_detect() {
+        let dir = make_temp_dir("ctx-serena-absent");
+        let ctx = make_test_ctx(&dir, TestCtxOptions::default()); // no tools present
+        assert_eq!(
+            serena_state(&ctx),
+            EngineState {
+                present: false,
+                version: None
+            }
+        );
+        let policy = build_engines_policy(&ctx);
+        assert_eq!(
+            policy["engines"]["semanticRetrieval"]["enabled"],
+            serde_json::json!(false)
+        );
+        assert_eq!(
+            policy["engines"]["semanticRetrieval"]["install"],
+            serde_json::json!(SERENA_INSTALL)
+        );
+        assert_eq!(
+            policy["engines"]["semanticRetrieval"]["mcpOptIn"],
+            serde_json::json!(false)
+        );
+        assert_eq!(
+            policy["engines"]["semanticRetrieval"]["mcpEnabled"],
+            serde_json::json!(false)
+        );
+        let detected = MODULE.detect(&ctx);
+        assert!(detected
+            .iter()
+            .any(|finding| finding.level == FindingLevel::Degraded
+                && finding.remediation.as_deref() == Some(SERENA_INSTALL)));
+        assert!(detected
+            .iter()
+            .any(|finding| finding.remediation.as_deref() == Some(SERENA_MCP_ACTIVATION)));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn serena_present_semantic_retrieval_enabled_with_version_verify_ok_after_apply() {
+        let dir = make_temp_dir("ctx-serena-present");
+        let ctx = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("serena", "Serena 1.6.2")],
+                ..Default::default()
+            },
+        );
+        assert_eq!(
+            serena_state(&ctx),
+            EngineState {
+                present: true,
+                version: Some("Serena 1.6.2".to_string())
+            }
+        );
+        let policy = build_engines_policy(&ctx);
+        assert_eq!(
+            policy["engines"]["semanticRetrieval"]["enabled"],
+            serde_json::json!(true)
+        );
+        assert_eq!(
+            policy["engines"]["semanticRetrieval"]["version"],
+            serde_json::json!("Serena 1.6.2")
+        );
+        MODULE.apply(&ctx);
+        assert!(MODULE.verify(&ctx).ok);
+        let detected = MODULE.detect(&ctx);
+        assert!(detected
+            .iter()
+            .any(|finding| finding.level == FindingLevel::Ok
+                && finding
+                    .message
+                    .starts_with("Serena semantic retrieval wired")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn default_apply_never_touches_mcp_json_serena_registration_is_strictly_opt_in() {
+        let dir = make_temp_dir("ctx-serena-optout");
+        let result = MODULE.apply(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("serena", "Serena 1.6.2")],
+                ..Default::default()
+            },
+        ));
+        assert_eq!(result.status, ModuleStatus::Applied);
+        assert!(read_file(&dir, ".mcp.json").is_none());
+        assert!(!result.wrote_paths.contains(&".mcp.json".to_string()));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn enable_serena_mcp_with_claude_code_registers_the_serena_mcp_server() {
+        let dir = make_temp_dir("ctx-serena-mcp-on");
+        let ctx = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(
+                    serde_json::json!(true),
+                    &["claude-code", "codex"],
+                )),
+                ..Default::default()
+            },
+        );
+        assert!(serena_mcp_opt_in(&ctx));
+        assert!(serena_mcp_enabled(&ctx));
+        let result = MODULE.apply(&ctx);
+        assert_eq!(result.status, ModuleStatus::Applied);
+        assert!(result.wrote_paths.contains(&".mcp.json".to_string()));
+        let mcp: serde_json::Value =
+            serde_json::from_str(&read_file(&dir, ".mcp.json").unwrap()).unwrap();
+        let server = &mcp["mcpServers"][SERENA_MCP_SERVER_NAME];
+        assert_eq!(server["command"], serde_json::json!("serena"));
+        assert_eq!(
+            server["args"],
+            serde_json::json!([
+                "start-mcp-server",
+                "--context",
+                "ide-assistant",
+                "--project",
+                ctx.target_dir.to_string_lossy(),
+            ])
+        );
+        assert_eq!(server["env"], serde_json::json!({}));
+        // Verify stays green with the opt-in recorded in the engines policy.
+        assert_eq!(
+            build_engines_policy(&ctx)["engines"]["semanticRetrieval"]["mcpEnabled"],
+            serde_json::json!(true)
+        );
+        assert!(MODULE.verify(&ctx).ok);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn enable_serena_mcp_without_claude_code_harness_mcp_json_not_touched() {
+        let dir = make_temp_dir("ctx-serena-no-claude");
+        let ctx = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(serde_json::json!(true), &["codex"])),
+                ..Default::default()
+            },
+        );
+        assert!(serena_mcp_opt_in(&ctx));
+        assert!(!serena_mcp_enabled(&ctx));
+        MODULE.apply(&ctx);
+        assert!(read_file(&dir, ".mcp.json").is_none());
+        let detected = MODULE.detect(&ctx);
+        assert!(detected.iter().any(|finding| finding
+            .message
+            .contains("opted-in but claude-code harness not targeted")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn enable_serena_mcp_false_behaves_like_default_with_opt_in_info_finding() {
+        let dir = make_temp_dir("ctx-serena-false");
+        let result = MODULE.apply(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(
+                    serde_json::json!(false),
+                    &["claude-code", "codex"],
+                )),
+                ..Default::default()
+            },
+        ));
+        assert!(read_file(&dir, ".mcp.json").is_none());
+        let info = result
+            .findings
+            .iter()
+            .find(|finding| {
+                finding.level == FindingLevel::Info
+                    && finding.message.contains("Serena MCP registration off")
+            })
+            .expect("opt-in info finding present");
+        assert_eq!(info.remediation.as_deref(), Some(SERENA_MCP_ACTIVATION));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn pre_existing_user_serena_entry_in_mcp_json_is_preserved_untouched() {
+        let dir = make_temp_dir("ctx-serena-preserve");
+        let user_server = serde_json::json!({
+            "command": "/usr/local/bin/my-serena",
+            "args": ["--custom"],
+            "env": { "PORT": "9999" },
+        });
+        write_ensured(
+            &dir.join(".mcp.json"),
+            &serde_json::to_string_pretty(
+                &serde_json::json!({ "mcpServers": { "serena": user_server } }),
+            )
+            .unwrap(),
+        )
+        .unwrap();
+        let result = MODULE.apply(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(
+                    serde_json::json!(true),
+                    &["claude-code", "codex"],
+                )),
+                ..Default::default()
+            },
+        ));
+        assert_eq!(result.status, ModuleStatus::Applied);
+        let mcp: serde_json::Value =
+            serde_json::from_str(&read_file(&dir, ".mcp.json").unwrap()).unwrap();
+        assert_eq!(mcp["mcpServers"][SERENA_MCP_SERVER_NAME], user_server);
+        assert!(result.findings.iter().any(|finding| {
+            finding.level == FindingLevel::Info && finding.message.contains("preserved")
+        }));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn invalid_user_mcp_json_degrades_serena_registration_file_not_clobbered() {
+        let dir = make_temp_dir("ctx-serena-broken");
+        let broken = "{ not json !!!";
+        write_ensured(&dir.join(".mcp.json"), broken).unwrap();
+        let result = MODULE.apply(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(
+                    serde_json::json!(true),
+                    &["claude-code", "codex"],
+                )),
+                ..Default::default()
+            },
+        ));
+        assert_eq!(result.status, ModuleStatus::Degraded);
+        assert!(result.findings.iter().any(|finding| {
+            finding.level == FindingLevel::Error && finding.message.contains(".mcp.json")
+        }));
+        assert_eq!(read_file(&dir, ".mcp.json").as_deref(), Some(broken));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn verify_fails_when_recorded_serena_mcp_opt_in_drifts_from_live_config() {
+        let dir = make_temp_dir("ctx-serena-drift");
+        // Apply with the opt-in off, then the config flips it on — recorded ≠ live.
+        MODULE.apply(&make_test_ctx(&dir, TestCtxOptions::default()));
+        let drifted = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(
+                    serde_json::json!(true),
+                    &["claude-code", "codex"],
+                )),
+                ..Default::default()
+            },
+        );
+        let verdict = MODULE.verify(&drifted);
+        assert!(!verdict.ok);
+        assert!(verdict
+            .findings
+            .iter()
+            .any(|finding| finding.level == FindingLevel::Error
+                && finding
+                    .remediation
+                    .as_deref()
+                    .map(|remediation| remediation.contains("re-derive"))
+                    .unwrap_or(false)));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn plan_reflects_serena_mcp_opt_in_merge_when_on_skip_info_when_off_never_writes() {
+        let dir = make_temp_dir("ctx-serena-plan");
+        let off = MODULE.plan(&make_test_ctx(&dir, TestCtxOptions::default()));
+        assert!(off.iter().any(|action| action.kind == ActionKind::Info
+            && action.description.contains("enableSerenaMcp")));
+        assert!(!off
+            .iter()
+            .any(|action| action.path.as_deref() == Some(".mcp.json")));
+        let on = MODULE.plan(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                config: Some(config_with_serena_mcp(
+                    serde_json::json!(true),
+                    &["claude-code", "codex"],
+                )),
+                ..Default::default()
+            },
+        ));
+        assert!(on.iter().any(|action| action.kind == ActionKind::Merge
+            && action.path.as_deref() == Some(".mcp.json")
+            && action.description.contains(SERENA_MCP_SERVER_NAME)));
+        assert!(read_file(&dir, ".mcp.json").is_none());
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

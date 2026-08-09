@@ -244,7 +244,7 @@ fn doctor_and_modules_json_have_the_expected_shapes() {
     let doctor = ade(&["doctor", "--dir", dir_arg, "--json"]);
     assert_eq!(exit_code(&doctor), 0);
     let payload = parse_stdout_json(&doctor);
-    assert!(payload["tools"].as_array().expect("tools array").len() >= 10);
+    assert!(payload["tools"].as_array().expect("tools array").len() >= 12);
     assert_eq!(
         payload["harnesses"]["supported"]
             .as_array()

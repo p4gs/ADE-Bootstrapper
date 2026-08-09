@@ -20,6 +20,8 @@ const VERSION_ARGS: Record<string, string[]> = {
   openwiki: ["--version"],
   cocoindex: ["--version"],
   ccc: ["--version"],
+  serena: ["--version"],
+  sscsb: ["--version"],
   bun: ["--version"],
   git: ["--version"],
 };

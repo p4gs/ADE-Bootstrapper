@@ -8,6 +8,9 @@ import {
   DEPENDENCIES_POLICY_PATH,
   DEFAULT_MIN_AGE_DAYS,
   REGISTRY_ALLOWLIST,
+  SSCSB_CONFIG_PATH,
+  SSCSB_DEEP_LAYER,
+  SSCSB_INSTALL,
 } from "../../src/modules/supply-chain.ts";
 import { makeTempDir, makeTestCtx, removeDir, testConfig } from "../helpers.ts";
 import { sha256 } from "../../src/fsutil.ts";
@@ -93,10 +96,69 @@ describe("supply-chain module", () => {
     expect(degraded!.remediation).toContain("brew install osv-scanner");
 
     const present = await supplyChainModule.detect(
-      makeTestCtx(dir, { presentTools: { "osv-scanner": "osv-scanner 2.0.0" } }),
+      makeTestCtx(dir, { presentTools: { "osv-scanner": "osv-scanner 2.0.0", sscsb: "sscsb 0.1.0" } }),
     );
     expect(present.some((finding) => finding.level === "ok" && finding.message.includes("osv-scanner"))).toBe(true);
     expect(present.some((finding) => finding.level === "degraded")).toBe(false);
+  });
+
+  test("sscsb present → detect reports ok + the deep-SSCS-layer guidance (init + verify)", async () => {
+    const findings = await supplyChainModule.detect(makeTestCtx(dir, { presentTools: { sscsb: "sscsb 0.1.0" } }));
+    expect(findings.some((finding) => finding.level === "ok" && finding.message.includes("sscsb present (sscsb 0.1.0)"))).toBe(true);
+    const deep = findings.find((finding) => finding.level === "info" && finding.message === SSCSB_DEEP_LAYER);
+    expect(deep).toBeDefined();
+    expect(deep!.message).toContain("`sscsb init`");
+    expect(deep!.message).toContain("`sscsb verify`");
+    expect(deep!.message).toContain("SBOM");
+  });
+
+  test("sscsb absent → detect carries degraded-level install guidance (cargo install / release binary)", async () => {
+    const findings = await supplyChainModule.detect(makeTestCtx(dir));
+    const degraded = findings.find((finding) => finding.level === "degraded" && finding.message.includes("sscsb"));
+    expect(degraded).toBeDefined();
+    expect(degraded!.remediation).toBe(SSCSB_INSTALL);
+    expect(degraded!.remediation).toContain("cargo install --git https://github.com/p4gs/sscs-bootstrapper");
+    // Guidance only — detect never runs sscsb and no deep-layer message appears.
+    expect(findings.some((finding) => finding.message === SSCSB_DEEP_LAYER)).toBe(false);
+  });
+
+  test("sscsb-initialized repo (.sscsb/config.toml) → detect and verify report it as present/ok", async () => {
+    const ctx = makeTestCtx(dir, { presentTools: { "osv-scanner": "2.0.0", sscsb: "sscsb 0.1.0" } });
+    await Bun.write(join(dir, SSCSB_CONFIG_PATH), "[sscsb]\nversion = 1\n");
+    const detected = await supplyChainModule.detect(ctx);
+    expect(detected.some((finding) => finding.level === "ok" && finding.message.includes(SSCSB_CONFIG_PATH))).toBe(true);
+
+    await supplyChainModule.apply(ctx);
+    const verdict = await supplyChainModule.verify(ctx);
+    expect(verdict.ok).toBe(true);
+    expect(verdict.findings.some((finding) => finding.level === "ok" && finding.message.includes(SSCSB_CONFIG_PATH))).toBe(true);
+  });
+
+  test("sscsb installed but repo not initialized → verify stays ok with info guidance; neither state fails verify", async () => {
+    const ctx = makeTestCtx(dir, { presentTools: { "osv-scanner": "2.0.0", sscsb: "sscsb 0.1.0" } });
+    await supplyChainModule.apply(ctx);
+    const verdict = await supplyChainModule.verify(ctx);
+    expect(verdict.ok).toBe(true);
+    const info = verdict.findings.find((finding) => finding.level === "info" && finding.message.includes("not sscsb-initialized"));
+    expect(info).toBeDefined();
+    expect(info!.remediation).toContain("sscsb init");
+
+    // Tool absent + repo uninitialized → verify adds no sscsb finding at all and stays ok.
+    const absentCtx = makeTestCtx(dir, { presentTools: { "osv-scanner": "2.0.0" } });
+    const absentVerdict = await supplyChainModule.verify(absentCtx);
+    expect(absentVerdict.ok).toBe(true);
+    expect(absentVerdict.findings.some((finding) => finding.message.toLowerCase().includes("sscsb"))).toBe(false);
+  });
+
+  test("sscsb apply integration is guidance-only: findings surface, status still driven by osv-scanner, nothing executed", async () => {
+    const result = await supplyChainModule.apply(
+      makeTestCtx(dir, { presentTools: { "osv-scanner": "2.0.0", sscsb: "sscsb 0.1.0" } }),
+    );
+    expect(result.status).toBe("applied");
+    expect(result.findings.some((finding) => finding.message === SSCSB_DEEP_LAYER)).toBe(true);
+    // Detection + guidance only — apply never runs `sscsb init` (no .sscsb tree appears).
+    expect(await Bun.file(join(dir, SSCSB_CONFIG_PATH)).exists()).toBe(false);
+    expect(result.wrotePaths).toEqual([DEPENDENCIES_POLICY_PATH]);
   });
 
   test("ISC-65: osv-scanner absent → apply still writes policy and returns degraded", async () => {

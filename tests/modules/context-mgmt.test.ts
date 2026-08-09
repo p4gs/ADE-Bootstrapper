@@ -7,6 +7,9 @@ import {
   brainOptIn,
   cocoindexState,
   openwikiState,
+  serenaState,
+  serenaMcpOptIn,
+  serenaMcpEnabled,
   parseCargoBins,
   snapshotTree,
   CODEMAP_PATH,
@@ -14,6 +17,9 @@ import {
   OPENWIKI_INSTALL,
   COCOINDEX_INSTALL,
   BRAIN_ACTIVATION,
+  SERENA_INSTALL,
+  SERENA_MCP_ACTIVATION,
+  SERENA_MCP_SERVER_NAME,
   REFRESH_SENTENCE,
   SECTION_MARKERS,
   type TreeSnapshot,
@@ -383,8 +389,131 @@ describe("context-mgmt: OpenWiki + CocoIndex + Personal Brain integration", () =
     const block = contextMgmtModule.instructionBlocks[0];
     expect(block?.content).toContain("OpenWiki codebase wiki");
     expect(block?.content).toContain("CocoIndex semantic search");
+    expect(block?.content).toContain("Serena semantic retrieval");
     expect(block?.content).toContain("OpenWiki Personal Brain");
     expect(block?.content).toContain(CODEMAP_PATH);
     expect(block?.content.toLowerCase()).toContain("never write secrets");
+  });
+});
+
+describe("context-mgmt: Serena integration (third engine + opt-in MCP registration)", () => {
+  let dir: string;
+  beforeEach(async () => {
+    dir = await makeTempDir();
+  });
+  afterEach(async () => {
+    await removeDir(dir);
+  });
+
+  const serenaMcpConfig = (enableSerenaMcp: unknown, harnesses?: string[]) =>
+    testConfig({
+      harnesses,
+      modules: { context: { options: { enableSerenaMcp } } },
+    });
+
+  test("Serena absent → engine disabled with install guidance carried in policy and detect", async () => {
+    const ctx = makeTestCtx(dir); // no tools present
+    expect(serenaState(ctx)).toEqual({ present: false });
+    const policy = buildEnginesPolicy(ctx);
+    expect(policy.engines.semanticRetrieval.enabled).toBe(false);
+    expect(policy.engines.semanticRetrieval.install).toBe(SERENA_INSTALL);
+    expect(policy.engines.semanticRetrieval.mcpOptIn).toBe(false);
+    expect(policy.engines.semanticRetrieval.mcpEnabled).toBe(false);
+    const detected = await contextMgmtModule.detect(ctx);
+    expect(detected.some((f) => f.level === "degraded" && f.remediation === SERENA_INSTALL)).toBe(true);
+    expect(detected.some((f) => f.remediation === SERENA_MCP_ACTIVATION)).toBe(true);
+  });
+
+  test("Serena present → semantic retrieval enabled with version; verify ok after apply", async () => {
+    const ctx = makeTestCtx(dir, { presentTools: { serena: "Serena 1.6.2" } });
+    expect(serenaState(ctx)).toEqual({ present: true, version: "Serena 1.6.2" });
+    const policy = buildEnginesPolicy(ctx);
+    expect(policy.engines.semanticRetrieval.enabled).toBe(true);
+    expect(policy.engines.semanticRetrieval.version).toBe("Serena 1.6.2");
+    await contextMgmtModule.apply(ctx);
+    expect((await contextMgmtModule.verify(ctx)).ok).toBe(true);
+    const detected = await contextMgmtModule.detect(ctx);
+    expect(detected.some((f) => f.level === "ok" && f.message.startsWith("Serena semantic retrieval wired"))).toBe(true);
+  });
+
+  test("default apply NEVER touches .mcp.json — Serena MCP registration is strictly opt-in", async () => {
+    const result = await contextMgmtModule.apply(makeTestCtx(dir, { presentTools: { serena: "Serena 1.6.2" } }));
+    expect(result.status).toBe("applied");
+    expect(await Bun.file(join(dir, ".mcp.json")).exists()).toBe(false);
+    expect(result.wrotePaths).not.toContain(".mcp.json");
+  });
+
+  test("enableSerenaMcp = true + claude-code harness → apply registers the serena MCP server (argv array, project dir)", async () => {
+    const ctx = makeTestCtx(dir, { config: serenaMcpConfig(true) });
+    expect(serenaMcpOptIn(ctx)).toBe(true);
+    expect(serenaMcpEnabled(ctx)).toBe(true);
+    const result = await contextMgmtModule.apply(ctx);
+    expect(result.status).toBe("applied");
+    expect(result.wrotePaths).toContain(".mcp.json");
+    const mcp = JSON.parse(await Bun.file(join(dir, ".mcp.json")).text());
+    const server = mcp.mcpServers[SERENA_MCP_SERVER_NAME];
+    expect(server.command).toBe("serena");
+    expect(server.args).toEqual(["start-mcp-server", "--context", "ide-assistant", "--project", dir]);
+    expect(server.env).toEqual({});
+    // Verify stays green with the opt-in recorded in the engines policy.
+    expect(buildEnginesPolicy(ctx).engines.semanticRetrieval.mcpEnabled).toBe(true);
+    expect((await contextMgmtModule.verify(ctx)).ok).toBe(true);
+  });
+
+  test("enableSerenaMcp without the claude-code harness → .mcp.json untouched", async () => {
+    const ctx = makeTestCtx(dir, { config: serenaMcpConfig(true, ["codex"]) });
+    expect(serenaMcpOptIn(ctx)).toBe(true);
+    expect(serenaMcpEnabled(ctx)).toBe(false);
+    await contextMgmtModule.apply(ctx);
+    expect(await Bun.file(join(dir, ".mcp.json")).exists()).toBe(false);
+    const detected = await contextMgmtModule.detect(ctx);
+    expect(detected.some((f) => f.message.includes("opted-in but claude-code harness not targeted"))).toBe(true);
+  });
+
+  test("enableSerenaMcp = false behaves exactly like the default (opt-in info finding, no merge)", async () => {
+    const result = await contextMgmtModule.apply(makeTestCtx(dir, { config: serenaMcpConfig(false) }));
+    expect(await Bun.file(join(dir, ".mcp.json")).exists()).toBe(false);
+    const info = result.findings.find((f) => f.level === "info" && f.message.includes("Serena MCP registration off"));
+    expect(info).toBeDefined();
+    expect(info!.remediation).toBe(SERENA_MCP_ACTIVATION);
+  });
+
+  test("pre-existing user serena entry in .mcp.json is preserved untouched", async () => {
+    const userServer = { command: "/usr/local/bin/my-serena", args: ["--custom"], env: { PORT: "9999" } };
+    await Bun.write(join(dir, ".mcp.json"), JSON.stringify({ mcpServers: { serena: userServer } }, null, 2));
+    const result = await contextMgmtModule.apply(makeTestCtx(dir, { config: serenaMcpConfig(true) }));
+    expect(result.status).toBe("applied");
+    const mcp = JSON.parse(await Bun.file(join(dir, ".mcp.json")).text());
+    expect(mcp.mcpServers.serena).toEqual(userServer);
+    expect(result.findings.some((f) => f.level === "info" && f.message.includes("preserved"))).toBe(true);
+  });
+
+  test("invalid user .mcp.json → apply degrades with fix remediation, file not clobbered", async () => {
+    const broken = "{ not json !!!";
+    await Bun.write(join(dir, ".mcp.json"), broken);
+    const result = await contextMgmtModule.apply(makeTestCtx(dir, { config: serenaMcpConfig(true) }));
+    expect(result.status).toBe("degraded");
+    expect(result.findings.some((f) => f.level === "error" && f.message.includes(".mcp.json"))).toBe(true);
+    expect(await Bun.file(join(dir, ".mcp.json")).text()).toBe(broken);
+  });
+
+  test("verify FAILS when the recorded Serena MCP opt-in drifts from the live config", async () => {
+    const applyCtx = makeTestCtx(dir); // opt-in off at apply time
+    await contextMgmtModule.apply(applyCtx);
+    const driftedCtx = makeTestCtx(dir, { config: serenaMcpConfig(true) });
+    const verdict = await contextMgmtModule.verify(driftedCtx);
+    expect(verdict.ok).toBe(false);
+    expect(verdict.findings.some((f) => f.level === "error" && f.remediation?.includes("re-derive"))).toBe(true);
+  });
+
+  test("plan reflects the MCP opt-in: merge action when on, skip info when off — never writes", async () => {
+    const off = await contextMgmtModule.plan(makeTestCtx(dir));
+    expect(off.some((a) => a.kind === "info" && a.description.includes("enableSerenaMcp"))).toBe(true);
+    expect(off.some((a) => a.path === ".mcp.json")).toBe(false);
+    const on = await contextMgmtModule.plan(makeTestCtx(dir, { config: serenaMcpConfig(true) }));
+    expect(on.some((a) => a.kind === "merge" && a.path === ".mcp.json" && a.description.includes(SERENA_MCP_SERVER_NAME))).toBe(
+      true,
+    );
+    expect(await Bun.file(join(dir, ".mcp.json")).exists()).toBe(false);
   });
 });

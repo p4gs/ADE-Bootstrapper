@@ -169,4 +169,6 @@ export const INTEGRATED_TOOLS = [
   "openwiki",
   "cocoindex",
   "ccc",
+  "serena",
+  "sscsb",
 ] as const;

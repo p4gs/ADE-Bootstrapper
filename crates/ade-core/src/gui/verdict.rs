@@ -827,7 +827,7 @@ mod tests {
     #[test]
     fn a_gap_offers_the_first_provider_in_taxonomy_order() {
         let mut caps = all_healthy();
-        for id in ["cocoindex", "ccc"] {
+        for id in ["cocoindex", "ccc", "serena"] {
             find(&mut caps, id).installed = false;
             find(&mut caps, id).version = None;
         }

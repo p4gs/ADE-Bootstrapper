@@ -289,8 +289,8 @@ pub trait AdeModule: Send + Sync {
     fn verify(&self, ctx: &Ctx) -> VerifyResult;
 }
 
-/// The ten integrated tools ADE detects (order = doctor output order).
-pub const INTEGRATED_TOOLS: [&str; 10] = [
+/// The twelve integrated tools ADE detects (order = doctor output order).
+pub const INTEGRATED_TOOLS: [&str; 12] = [
     "trufflehog",
     "pre-commit",
     "gitleaks",
@@ -301,4 +301,6 @@ pub const INTEGRATED_TOOLS: [&str; 10] = [
     "openwiki",
     "cocoindex",
     "ccc",
+    "serena",
+    "sscsb",
 ];

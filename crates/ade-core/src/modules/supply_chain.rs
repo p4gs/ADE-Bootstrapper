@@ -8,6 +8,12 @@
 //! Boundary controlled: the dependency boundary — nothing enters the project
 //! (package or AI-native artifact) without policy review, and AI-suggested
 //! package names are treated as hallucination-prone until verified.
+//!
+//! Integration over rebuild: sscsb (github.com/p4gs/sscs-bootstrapper) is the
+//! deep SSCS layer — SBOM, signing policy, SHA-pinned CI, vuln + secret scan
+//! orchestration. Like OCEAN/RTK, it is detected + given exact guidance and
+//! its repo state (`.sscsb/config.toml`) is recognized; `ade apply` never
+//! runs it.
 
 use std::path::Path;
 
@@ -41,6 +47,24 @@ pub const AI_NATIVE_DEP_KINDS: [&str; 5] = [
 
 const OSV_REMEDIATION: &str =
     "install OSV-Scanner (e.g. `brew install osv-scanner`) to enable dependency vulnerability scanning";
+
+/// Repo state marker written by `sscsb init` — its presence means the deep SSCS layer is initialized here.
+pub const SSCSB_CONFIG_PATH: &str = ".sscsb/config.toml";
+pub const SSCSB_INSTALL: &str = "install sscsb for deep supply-chain hardening — `cargo install --git https://github.com/p4gs/sscs-bootstrapper` or a release binary (github.com/p4gs/sscs-bootstrapper)";
+pub const SSCSB_DEEP_LAYER: &str = "sscsb available — run `sscsb init` then `sscsb verify` in this repo for the deep SSCS layer (SBOM, signing policy, SHA-pinned CI, vuln + secret scan orchestration; integration, not reimplementation)";
+
+/// Standard findings for sscsb presence: integrate when present, guide install when absent.
+pub fn sscsb_findings(ctx: &Ctx) -> Vec<Finding> {
+    let mut findings = vec![tool_finding(ctx, "sscsb", SSCSB_INSTALL)];
+    if ctx.tool_present("sscsb") {
+        findings.push(Finding {
+            level: FindingLevel::Info,
+            message: SSCSB_DEEP_LAYER.to_string(),
+            remediation: None,
+        });
+    }
+    findings
+}
 
 fn build_policy(min_age_days: serde_json::Value) -> serde_json::Value {
     let mut ai_native_dependencies = serde_json::Map::new();
@@ -183,6 +207,7 @@ fn apply_inner(ctx: &Ctx) -> std::io::Result<ModuleResult> {
     )?;
     let mut findings = vec![Finding::ok(format!("wrote {DEPENDENCIES_POLICY_PATH}"))];
     findings.extend(check_lockfiles(&ctx.target_dir));
+    findings.extend(sscsb_findings(ctx));
 
     if !ctx.tool_present("osv-scanner") {
         findings.push(Finding::degraded(
@@ -233,6 +258,12 @@ impl AdeModule for SupplyChainModule {
 
     fn detect(&self, ctx: &Ctx) -> Vec<Finding> {
         let mut findings = vec![tool_finding(ctx, "osv-scanner", OSV_REMEDIATION)];
+        findings.extend(sscsb_findings(ctx));
+        if read_if_exists(&ctx.target_dir.join(SSCSB_CONFIG_PATH)).is_some() {
+            findings.push(Finding::ok(format!(
+                "sscsb initialized in this repo ({SSCSB_CONFIG_PATH} present)"
+            )));
+        }
         for message in validate_supply_chain_options(&ctx.module_options("supply-chain")) {
             findings.push(Finding::error(message));
         }
@@ -351,6 +382,23 @@ impl AdeModule for SupplyChainModule {
                 ),
                 "run `ade apply` to regenerate",
             ));
+        }
+
+        // Deep SSCS layer state (recognition only — never a failure): sscsb owns
+        // its own verification via `sscsb verify`.
+        if read_if_exists(&ctx.target_dir.join(SSCSB_CONFIG_PATH)).is_some() {
+            findings.push(Finding::ok(format!(
+                "sscsb initialized in this repo ({SSCSB_CONFIG_PATH} present)"
+            )));
+        } else if ctx.tool_present("sscsb") {
+            findings.push(Finding {
+                level: FindingLevel::Info,
+                message: "sscsb installed but this repo is not sscsb-initialized".to_string(),
+                remediation: Some(
+                    "run `sscsb init` then `sscsb verify` in the target repo for the deep SSCS layer"
+                        .to_string(),
+                ),
+            });
         }
 
         VerifyResult { ok, findings }
@@ -530,7 +578,10 @@ mod tests {
         let present = MODULE.detect(&make_test_ctx(
             &dir,
             TestCtxOptions {
-                present_tools: &[("osv-scanner", "osv-scanner 2.0.0")],
+                present_tools: &[
+                    ("osv-scanner", "osv-scanner 2.0.0"),
+                    ("sscsb", "sscsb 0.1.0"),
+                ],
                 ..Default::default()
             },
         ));
@@ -541,6 +592,147 @@ mod tests {
         assert!(!present
             .iter()
             .any(|finding| finding.level == FindingLevel::Degraded));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sscsb_present_detect_reports_ok_plus_deep_sscs_layer_guidance() {
+        let dir = make_temp_dir("supply-sscsb-present");
+        let findings = MODULE.detect(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("sscsb", "sscsb 0.1.0")],
+                ..Default::default()
+            },
+        ));
+        assert!(findings
+            .iter()
+            .any(|finding| finding.level == FindingLevel::Ok
+                && finding.message.contains("sscsb present (sscsb 0.1.0)")));
+        let deep = findings
+            .iter()
+            .find(|finding| {
+                finding.level == FindingLevel::Info && finding.message == SSCSB_DEEP_LAYER
+            })
+            .expect("deep-layer info finding present");
+        assert!(deep.message.contains("`sscsb init`"));
+        assert!(deep.message.contains("`sscsb verify`"));
+        assert!(deep.message.contains("SBOM"));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sscsb_absent_detect_carries_degraded_level_install_guidance() {
+        let dir = make_temp_dir("supply-sscsb-absent");
+        let findings = MODULE.detect(&make_test_ctx(&dir, TestCtxOptions::default()));
+        let degraded = findings
+            .iter()
+            .find(|finding| {
+                finding.level == FindingLevel::Degraded && finding.message.contains("sscsb")
+            })
+            .expect("degraded sscsb finding present");
+        assert_eq!(degraded.remediation.as_deref(), Some(SSCSB_INSTALL));
+        assert!(degraded
+            .remediation
+            .as_deref()
+            .unwrap()
+            .contains("cargo install --git https://github.com/p4gs/sscs-bootstrapper"));
+        // Guidance only — no deep-layer message when the tool is absent.
+        assert!(!findings
+            .iter()
+            .any(|finding| finding.message == SSCSB_DEEP_LAYER));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sscsb_initialized_repo_detect_and_verify_report_it_as_present_ok() {
+        let dir = make_temp_dir("supply-sscsb-init");
+        write_file(&dir, SSCSB_CONFIG_PATH, "[sscsb]\nversion = 1\n");
+        let ctx = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("osv-scanner", "2.0.0"), ("sscsb", "sscsb 0.1.0")],
+                ..Default::default()
+            },
+        );
+        let detected = MODULE.detect(&ctx);
+        assert!(detected
+            .iter()
+            .any(|finding| finding.level == FindingLevel::Ok
+                && finding.message.contains(SSCSB_CONFIG_PATH)));
+
+        MODULE.apply(&ctx);
+        let verdict = MODULE.verify(&ctx);
+        assert!(verdict.ok);
+        assert!(verdict
+            .findings
+            .iter()
+            .any(|finding| finding.level == FindingLevel::Ok
+                && finding.message.contains(SSCSB_CONFIG_PATH)));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sscsb_installed_but_uninitialized_verify_stays_ok_with_info_guidance() {
+        let dir = make_temp_dir("supply-sscsb-uninit");
+        let ctx = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("osv-scanner", "2.0.0"), ("sscsb", "sscsb 0.1.0")],
+                ..Default::default()
+            },
+        );
+        MODULE.apply(&ctx);
+        let verdict = MODULE.verify(&ctx);
+        assert!(verdict.ok);
+        let info = verdict
+            .findings
+            .iter()
+            .find(|finding| {
+                finding.level == FindingLevel::Info
+                    && finding.message.contains("not sscsb-initialized")
+            })
+            .expect("info guidance present");
+        assert!(info.remediation.as_deref().unwrap().contains("sscsb init"));
+
+        // Tool absent + repo uninitialized → verify adds no sscsb finding at all.
+        let absent_ctx = make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("osv-scanner", "2.0.0")],
+                ..Default::default()
+            },
+        );
+        let absent_verdict = MODULE.verify(&absent_ctx);
+        assert!(absent_verdict.ok);
+        assert!(!absent_verdict
+            .findings
+            .iter()
+            .any(|finding| finding.message.to_lowercase().contains("sscsb")));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn sscsb_apply_integration_is_guidance_only_status_still_driven_by_osv_scanner() {
+        let dir = make_temp_dir("supply-sscsb-apply");
+        let result = MODULE.apply(&make_test_ctx(
+            &dir,
+            TestCtxOptions {
+                present_tools: &[("osv-scanner", "2.0.0"), ("sscsb", "sscsb 0.1.0")],
+                ..Default::default()
+            },
+        ));
+        assert_eq!(result.status, ModuleStatus::Applied);
+        assert!(result
+            .findings
+            .iter()
+            .any(|finding| finding.message == SSCSB_DEEP_LAYER));
+        // Detection + guidance only — apply never runs `sscsb init`.
+        assert!(!dir.join(SSCSB_CONFIG_PATH).exists());
+        assert_eq!(
+            result.wrote_paths,
+            vec![DEPENDENCIES_POLICY_PATH.to_string()]
+        );
         let _ = std::fs::remove_dir_all(&dir);
     }
 

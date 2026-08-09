@@ -10,6 +10,10 @@
  *        - OpenWiki (Code Brain): an auto-maintained, navigable prose+Mermaid
  *          codebase wiki (MIT). `openwiki/` dir; refreshes from git diffs.
  *        - CocoIndex: AST-based semantic code search / retrieval (Apache-2.0).
+ *        - Serena: LSP-based semantic code retrieval and editing, MCP-native
+ *          (free & open-source). Registration of its MCP server into
+ *          `.mcp.json` is strictly OPT-IN (options.enableSerenaMcp) — the
+ *          default apply never touches `.mcp.json` (memory-module convention).
  *        - OpenWiki Personal Brain: a DISTINCT opt-in sub-capability of
  *          OpenWiki — general-purpose agent memory synthesised from external
  *          sources (email, notes, web), complementary to (not the same as)
@@ -24,6 +28,7 @@
 import { join } from "node:path";
 import { readIfExists } from "../fsutil.ts";
 import { readJson, verifyJsonArtifact, writePolicy } from "./_shared.ts";
+import { registerMcpServer } from "../harness/claude.ts";
 import type { AdeModule, Ctx, Finding, ModuleResult, PlannedAction } from "../types.ts";
 
 export const CODEMAP_PATH = ".ade/context/codemap.md";
@@ -36,6 +41,11 @@ export const COCOINDEX_INSTALL =
   "install CocoIndex for AST-based semantic code search — `pip install cocoindex` (framework) or the `cocoindex-code` CLI (github.com/cocoindex-io/cocoindex-code); Apache-2.0";
 export const BRAIN_ACTIVATION =
   "to enable OpenWiki Personal Brain, set modules.context.options.enableBrain = true in ade.json, then run `ade apply`; initialise with `openwiki personal --init`";
+export const SERENA_INSTALL =
+  "install Serena for semantic (LSP-based) code retrieval and editing — `uv tool install --from git+https://github.com/oraios/serena serena-agent` (installs the `serena` CLI); MCP-native, free & open-source";
+export const SERENA_MCP_ACTIVATION =
+  "to register the Serena MCP server with Claude Code, set modules.context.options.enableSerenaMcp = true in ade.json, then run `ade apply`";
+export const SERENA_MCP_SERVER_NAME = "serena";
 
 /** Directory names excluded from the codemap scan (any path segment). */
 export const SKIPPED_DIRS = ["node_modules", ".git", ".ade", ".claude", ".cursor", "dist", "build", "coverage"] as const;
@@ -263,9 +273,28 @@ export function cocoindexState(ctx: Ctx): EngineState {
   return { present: false };
 }
 
+/** Serena is present if the `serena` binary resolves. */
+export function serenaState(ctx: Ctx): EngineState {
+  const info = ctx.tools["serena"];
+  return info?.present === true ? { present: true, version: info.version } : { present: false };
+}
+
 /** Personal Brain is opt-in (reaches outside the repo) — off unless explicitly enabled. */
 export function brainOptIn(ctx: Ctx): boolean {
   return ctx.config.modules["context"]?.options?.["enableBrain"] === true;
+}
+
+/** Serena MCP registration is opt-in — off unless explicitly enabled. */
+export function serenaMcpOptIn(ctx: Ctx): boolean {
+  return ctx.config.modules["context"]?.options?.["enableSerenaMcp"] === true;
+}
+
+/**
+ * Serena MCP registration happens only when the opt-in is set AND claude-code
+ * is targeted (memory-module convention: default apply never touches .mcp.json).
+ */
+export function serenaMcpEnabled(ctx: Ctx): boolean {
+  return ctx.config.harnesses.includes("claude-code") && serenaMcpOptIn(ctx);
 }
 
 interface ContextEnginesPolicy {
@@ -289,6 +318,17 @@ interface ContextEnginesPolicy {
       enabled: boolean;
       version?: string;
       install: string;
+    };
+    semanticRetrieval: {
+      tool: "serena";
+      role: string;
+      present: boolean;
+      enabled: boolean;
+      version?: string;
+      install: string;
+      mcpOptIn: boolean;
+      mcpEnabled: boolean;
+      mcpActivation: string;
     };
     personalBrain: {
       tool: "openwiki";
@@ -327,12 +367,25 @@ export function buildEnginesPolicy(ctx: Ctx): ContextEnginesPolicy {
     install: COCOINDEX_INSTALL,
   };
   if (coco.version !== undefined) semanticIndex.version = coco.version;
+  const serena = serenaState(ctx);
+  const semanticRetrieval: ContextEnginesPolicy["engines"]["semanticRetrieval"] = {
+    tool: "serena",
+    role: "LSP-based semantic code retrieval and editing (symbol-level find/edit, MCP-native); use instead of whole-file reads and rewrites",
+    present: serena.present,
+    enabled: serena.present,
+    install: SERENA_INSTALL,
+    mcpOptIn: serenaMcpOptIn(ctx),
+    mcpEnabled: serenaMcpEnabled(ctx),
+    mcpActivation: SERENA_MCP_ACTIVATION,
+  };
+  if (serena.version !== undefined) semanticRetrieval.version = serena.version;
   return {
     schemaVersion: 1,
     fallback: CODEMAP_PATH,
     engines: {
       codebaseWiki,
       semanticIndex,
+      semanticRetrieval,
       personalBrain: {
         tool: "openwiki",
         subCapabilityOf: "openwiki",
@@ -363,6 +416,21 @@ function engineFindings(ctx: Ctx): Finding[] {
       ? { level: "ok", message: `CocoIndex semantic search wired${idx.version !== undefined ? ` (${idx.version})` : ""}` }
       : { level: "degraded", message: "CocoIndex not installed — semantic code search unavailable", remediation: COCOINDEX_INSTALL },
   );
+  const serena = policy.engines.semanticRetrieval;
+  findings.push(
+    serena.present
+      ? { level: "ok", message: `Serena semantic retrieval wired${serena.version !== undefined ? ` (${serena.version})` : ""}` }
+      : {
+          level: "degraded",
+          message: "Serena not installed — semantic (LSP-based) code retrieval and editing unavailable",
+          remediation: SERENA_INSTALL,
+        },
+  );
+  findings.push({
+    level: "info",
+    message: `Serena MCP registration ${serena.mcpEnabled ? "enabled (options.enableSerenaMcp = true, claude-code harness targeted)" : serena.mcpOptIn ? "opted-in but claude-code harness not targeted" : "off (opt-in)"}`,
+    remediation: serena.mcpEnabled ? undefined : SERENA_MCP_ACTIVATION,
+  });
   const brain = policy.engines.personalBrain;
   findings.push({
     level: "info",
@@ -386,6 +454,7 @@ export const contextMgmtModule: AdeModule = {
         "Codebase-understanding sources, in priority order (see `.ade/policy/context-engines.json` for which are live):",
         "- **OpenWiki codebase wiki** (`openwiki/`) when present — read it FIRST for prose + Mermaid architecture understanding. It is auto-maintained; never hand-edit generated pages.",
         "- **CocoIndex semantic search** when present — use natural-language code retrieval instead of grepping the whole tree.",
+        "- **Serena semantic retrieval** when present — LSP-based symbol-level code retrieval and editing via the `serena` MCP server; registration with Claude Code is opt-in (`modules.context.options.enableSerenaMcp`).",
         "- **`.ade/context/codemap.md`** — the always-present zero-dependency structural fallback; consult BEFORE any whole-repo scan. Regenerated on every `ade apply`.",
         "- **OpenWiki Personal Brain** (opt-in, `modules.context.options.enableBrain`) — general-purpose project/research memory across tools (email, notes, web). Distinct from the codebase wiki. NEVER write secrets or credentials into it.",
         "- Prefer targeted reads over directory dumps; after structural changes run `ade apply` (and re-run OpenWiki) rather than re-walking the tree.",
@@ -412,8 +481,22 @@ export const contextMgmtModule: AdeModule = {
       {
         kind: "write" as const,
         path: CONTEXT_ENGINES_PATH,
-        description: `record detected context engines (OpenWiki${brainOptIn(ctx) ? " + Personal Brain" : ""}, CocoIndex) and the codemap fallback`,
+        description: `record detected context engines (OpenWiki${brainOptIn(ctx) ? " + Personal Brain" : ""}, CocoIndex, Serena) and the codemap fallback`,
       },
+      ...(serenaMcpEnabled(ctx)
+        ? [
+            {
+              kind: "merge" as const,
+              path: ".mcp.json",
+              description: `register the "${SERENA_MCP_SERVER_NAME}" MCP server (opt-in, preserves user entries)`,
+            },
+          ]
+        : [
+            {
+              kind: "info" as const,
+              description: "Serena MCP registration skipped — opt-in via options.enableSerenaMcp (.mcp.json untouched)",
+            },
+          ]),
     ];
   },
 
@@ -421,14 +504,28 @@ export const contextMgmtModule: AdeModule = {
     const tree = await snapshotTree(ctx.targetDir);
     await ctx.artifacts.write(CODEMAP_PATH, buildCodemap(tree));
     await writePolicy(ctx, CONTEXT_ENGINES_PATH, buildEnginesPolicy(ctx));
+    const findings: Finding[] = [
+      { level: "ok" as const, message: `wrote ${CODEMAP_PATH} (${tree.files.length} files mapped)` },
+      { level: "ok" as const, message: `wrote ${CONTEXT_ENGINES_PATH}` },
+      ...engineFindings(ctx),
+    ];
+    const wrotePaths: string[] = [CODEMAP_PATH, CONTEXT_ENGINES_PATH];
+    if (serenaMcpEnabled(ctx)) {
+      const registration = await registerMcpServer(ctx, SERENA_MCP_SERVER_NAME, {
+        command: "serena",
+        args: ["start-mcp-server", "--context", "ide-assistant", "--project", ctx.targetDir],
+        env: {},
+      });
+      findings.push(registration);
+      if (registration.level === "error") {
+        return { status: "degraded" as const, findings, wrotePaths };
+      }
+      if (registration.level === "ok") wrotePaths.push(".mcp.json");
+    }
     return {
       status: "applied" as const,
-      findings: [
-        { level: "ok" as const, message: `wrote ${CODEMAP_PATH} (${tree.files.length} files mapped)` },
-        { level: "ok" as const, message: `wrote ${CONTEXT_ENGINES_PATH}` },
-        ...engineFindings(ctx),
-      ],
-      wrotePaths: [CODEMAP_PATH, CONTEXT_ENGINES_PATH],
+      findings,
+      wrotePaths,
     };
   },
 
@@ -470,6 +567,8 @@ export const contextMgmtModule: AdeModule = {
       e === undefined ||
       e.codebaseWiki?.enabled !== expected.engines.codebaseWiki.enabled ||
       e.semanticIndex?.enabled !== expected.engines.semanticIndex.enabled ||
+      e.semanticRetrieval?.enabled !== expected.engines.semanticRetrieval.enabled ||
+      e.semanticRetrieval?.mcpEnabled !== expected.engines.semanticRetrieval.mcpEnabled ||
       e.personalBrain?.enabled !== expected.engines.personalBrain.enabled
     ) {
       ok = false;

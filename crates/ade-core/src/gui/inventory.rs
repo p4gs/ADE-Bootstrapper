@@ -97,7 +97,7 @@ pub struct CapabilityDef {
 
 const V: &[&str] = &["--version"];
 
-pub const CAPABILITIES: [CapabilityDef; 17] = [
+pub const CAPABILITIES: [CapabilityDef; 19] = [
     // ── Integrated tools (mirrors INTEGRATED_TOOLS — asserted by test) ──
     CapabilityDef { id: "trufflehog", name: "TruffleHog", kind: CapabilityKind::Tool, capability: "secret-scanning", description: "Secret scanner wired into the pre-commit boundary by the secrets module", bins: &["trufflehog"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("trufflehog"), guidance: None, process_names: &[] },
     CapabilityDef { id: "pre-commit", name: "pre-commit", kind: CapabilityKind::Tool, capability: "hook-orchestration", description: "Git hook framework the secrets module uses when present", bins: &["pre-commit"], version_args: V, method: LifecycleMethod::Brew, pkg: Some("pre-commit"), guidance: None, process_names: &[] },
@@ -111,6 +111,8 @@ pub const CAPABILITIES: [CapabilityDef; 17] = [
     // ccc exposes no version command (verified against the shipped CLI: its
     // only global flags are --install-completion/--show-completion/--help).
     CapabilityDef { id: "ccc", name: "CocoIndex Code CLI (ccc)", kind: CapabilityKind::Tool, capability: "semantic-search", description: "cocoindex-code CLI — alternate CocoIndex entry point (context module)", bins: &["ccc"], version_args: &[], method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install from https://github.com/cocoindex-io/cocoindex-code"), process_names: &[] },
+    CapabilityDef { id: "serena", name: "Serena", kind: CapabilityKind::Tool, capability: "semantic-search", description: "LSP-based semantic code retrieval & editing MCP server (context module)", bins: &["serena"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install with `uv tool install --from git+https://github.com/oraios/serena serena-agent` (installs the `serena` CLI)"), process_names: &[] },
+    CapabilityDef { id: "sscsb", name: "sscsb", kind: CapabilityKind::Tool, capability: "supply-chain-hardening", description: "Deep software supply-chain security bootstrapper — SBOM, signing policy, SHA-pinned CI (supply-chain module)", bins: &["sscsb"], version_args: V, method: LifecycleMethod::Manual, pkg: None, guidance: Some("Install with `cargo install --git https://github.com/p4gs/sscs-bootstrapper` or a release binary (https://github.com/p4gs/sscs-bootstrapper)"), process_names: &[] },
     // ── Harness CLIs (mirrors HARNESS_ADAPTERS — asserted by test) ──
     CapabilityDef { id: "claude-code", name: "Claude Code", kind: CapabilityKind::Harness, capability: "coding-harness", description: "Anthropic's coding harness CLI", bins: &["claude"], version_args: V, method: LifecycleMethod::Npm, pkg: Some("@anthropic-ai/claude-code"), guidance: None, process_names: &["claude"] },
     CapabilityDef { id: "codex", name: "Codex", kind: CapabilityKind::Harness, capability: "coding-harness", description: "OpenAI's coding harness CLI", bins: &["codex"], version_args: V, method: LifecycleMethod::BrewCask, pkg: Some("codex"), guidance: None, process_names: &["codex"] },
@@ -131,7 +133,7 @@ pub struct CapabilityGroup {
     pub why: &'static str,
 }
 
-pub const CAPABILITY_GROUPS: [CapabilityGroup; 9] = [
+pub const CAPABILITY_GROUPS: [CapabilityGroup; 10] = [
     CapabilityGroup {
         id: "secret-scanning",
         name: "Secret Scanning",
@@ -146,6 +148,11 @@ pub const CAPABILITY_GROUPS: [CapabilityGroup; 9] = [
         id: "dependency-scanning",
         name: "Dependency Vulnerability Scanning",
         why: "AI agents add dependencies fast — including typosquatted, hallucinated, or known-vulnerable packages. Scanning against the OSV database catches known-bad versions before they ship.",
+    },
+    CapabilityGroup {
+        id: "supply-chain-hardening",
+        name: "Supply Chain Hardening",
+        why: "Dependency scanning catches known-bad packages, but the rest of the supply chain stays exposed. SBOMs, artifact signing, SHA-pinned CI, and secret/vulnerability scan orchestration make what you build provably what you ship.",
     },
     CapabilityGroup {
         id: "sandboxing",
@@ -1238,7 +1245,11 @@ mod tests {
                 .collect()
         };
         assert_eq!(providers("secret-scanning"), vec!["trufflehog", "gitleaks"]);
-        assert_eq!(providers("semantic-search"), vec!["cocoindex", "ccc"]);
+        assert_eq!(
+            providers("semantic-search"),
+            vec!["cocoindex", "ccc", "serena"]
+        );
+        assert_eq!(providers("supply-chain-hardening"), vec!["sscsb"]);
         assert_eq!(providers("coding-harness").len(), 7);
         // Status rows carry the group id through detection.
         let disabled = std::collections::BTreeSet::new();

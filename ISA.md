@@ -504,6 +504,11 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - **learned:** integrity checking must enumerate the *territory*, not the *ledger*. Verifying only what you recorded means an attacker's contribution is verified by omission — and in a system whose whole job is telling an agent which rules are binding, an unnoticed extra rule is the highest-value place to plant one.
 - **criterion now:** ISC-146/146.1 — the lockfile enumerates the entire `.ade/` tree; any file present but unknown to the lock fails verify and requires an explicit `ade lock` to adopt.
 
+**2026-08-09 — two integrated-tool capabilities added, in BOTH trees (oracle + Rust), parity held**
+- **Serena** (`serena`, oraios/serena) joins INTEGRATED_TOOLS (now 12) and the context module as a third engine beside OpenWiki/CocoIndex: `serenaState`/`serena_state` detection, a `semanticRetrieval` entry in `context-engines.json` (degraded finding + `uv tool install` guidance when absent), and OPT-IN MCP registration (`serena start-mcp-server --context ide-assistant --project <dir>`) gated on `modules.context.options.enableSerenaMcp` per the memory-module convention — default apply never touches `.mcp.json`. GUI inventory: third `semantic-search` provider (manual recipe).
+- **sscsb** (`sscsb`, p4gs/sscs-bootstrapper) joins INTEGRATED_TOOLS and the supply-chain module as the deep SSCS layer: present → ok + info guidance (`sscsb init`/`sscsb verify`: SBOM, signing policy, SHA-pinned CI, vuln+secret scan orchestration); absent → degraded install guidance (`cargo install --git …` / release binary); `verify` recognizes `.sscsb/config.toml` as initialized/ok. Detection + guidance + state recognition only (OCEAN/RTK convention) — `ade apply` never shells out to sscsb. GUI inventory: new `supply-chain-hardening` capability group (10 groups, 19 capabilities).
+- Both features TDD'd with mirrored bun + cargo tests; `scripts/parity-check.sh` PASS unchanged (no new allowlist entries — both trees emit byte-identical artifacts, including the new `semanticRetrieval` policy block and instruction bullet).
+
 ## Verification
 
 All evidence gathered 2026-07-12 on this machine (macOS, bun 1.3.10, git 2.50.1).
