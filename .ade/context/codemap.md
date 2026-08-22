@@ -8,8 +8,6 @@ Consult it before scanning the tree.
 - `.cocoindex_code/`
 - `.github/`
 - `.serena/`
-- `Plans/`
-- `assets/`
 - `bundles/`
 - `crates/`
 - `docs/`
@@ -22,19 +20,19 @@ Consult it before scanning the tree.
 
 ## File Counts by Extension
 
-138187 files total (skipping node_modules, .git, .ade, .claude, .cursor, dist, build, coverage). Top 10 extensions:
+140178 files total (skipping node_modules, .git, .ade, .claude, .cursor, dist, build, coverage). Top 10 extensions:
 
 | Extension | Files |
 | --- | --- |
-| .o | 118869 |
-| (no extension) | 5730 |
-| .json | 2953 |
-| .timestamp | 2695 |
-| .d | 2481 |
-| .rmeta | 2337 |
-| .rlib | 1502 |
-| .bin | 792 |
-| .lock | 268 |
+| .o | 120569 |
+| (no extension) | 5851 |
+| .json | 3011 |
+| .timestamp | 2752 |
+| .d | 2537 |
+| .rmeta | 2390 |
+| .rlib | 1531 |
+| .bin | 846 |
+| .lock | 286 |
 | .dylib | 94 |
 
 ## Entry Points

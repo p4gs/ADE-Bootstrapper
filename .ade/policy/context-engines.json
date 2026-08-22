@@ -25,6 +25,17 @@
       "present": true,
       "role": "AST-based semantic code search / natural-language retrieval; use instead of whole-tree grep",
       "tool": "cocoindex"
+    },
+    "semanticRetrieval": {
+      "enabled": true,
+      "install": "install Serena for semantic (LSP-based) code retrieval and editing — `uv tool install --from git+https://github.com/oraios/serena serena-agent` (installs the `serena` CLI); MCP-native, free & open-source",
+      "mcpActivation": "to register the Serena MCP server with Claude Code, set modules.context.options.enableSerenaMcp = true in ade.json, then run `ade apply`",
+      "mcpEnabled": false,
+      "mcpOptIn": false,
+      "present": true,
+      "role": "LSP-based semantic code retrieval and editing (symbol-level find/edit, MCP-native); use instead of whole-file reads and rewrites",
+      "tool": "serena",
+      "version": "Serena 1.7.0"
     }
   },
   "fallback": ".ade/context/codemap.md",

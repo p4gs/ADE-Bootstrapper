@@ -33,6 +33,7 @@ This project has a sandbox contract at `.ade/policy/sandbox.json`. Operate insid
 Codebase-understanding sources, in priority order (see `.ade/policy/context-engines.json` for which are live):
 - **OpenWiki codebase wiki** (`openwiki/`) when present — read it FIRST for prose + Mermaid architecture understanding. It is auto-maintained; never hand-edit generated pages.
 - **CocoIndex semantic search** when present — use natural-language code retrieval instead of grepping the whole tree.
+- **Serena semantic retrieval** when present — LSP-based symbol-level code retrieval and editing via the `serena` MCP server; registration with Claude Code is opt-in (`modules.context.options.enableSerenaMcp`).
 - **`.ade/context/codemap.md`** — the always-present zero-dependency structural fallback; consult BEFORE any whole-repo scan. Regenerated on every `ade apply`.
 - **OpenWiki Personal Brain** (opt-in, `modules.context.options.enableBrain`) — general-purpose project/research memory across tools (email, notes, web). Distinct from the codebase wiki. NEVER write secrets or credentials into it.
 - Prefer targeted reads over directory dumps; after structural changes run `ade apply` (and re-run OpenWiki) rather than re-walking the tree.

@@ -1,5 +1,5 @@
 <!-- ade:begin -->
-<!-- Managed by ADE Bootstrapper — generated from .ade/instructions.md; do not hand-edit this block; run `ade translate` to regenerate. content-hash:0f2e9256f9c75fc685d231bbd4accea6bc7db6e1e8cfc5a6fb2dee21c4ff9ef4 -->
+<!-- Managed by ADE Bootstrapper — generated from .ade/instructions.md; do not hand-edit this block; run `ade translate` to regenerate. content-hash:f47d3df9eb65960c1790a04ca521531db9af9f5dca1b24bfe01779ac1b7a6ebe -->
 
 # ADE Baseline Instructions
 
@@ -36,6 +36,7 @@ This project has a sandbox contract at `.ade/policy/sandbox.json`. Operate insid
 Codebase-understanding sources, in priority order (see `.ade/policy/context-engines.json` for which are live):
 - **OpenWiki codebase wiki** (`openwiki/`) when present — read it FIRST for prose + Mermaid architecture understanding. It is auto-maintained; never hand-edit generated pages.
 - **CocoIndex semantic search** when present — use natural-language code retrieval instead of grepping the whole tree.
+- **Serena semantic retrieval** when present — LSP-based symbol-level code retrieval and editing via the `serena` MCP server; registration with Claude Code is opt-in (`modules.context.options.enableSerenaMcp`).
 - **`.ade/context/codemap.md`** — the always-present zero-dependency structural fallback; consult BEFORE any whole-repo scan. Regenerated on every `ade apply`.
 - **OpenWiki Personal Brain** (opt-in, `modules.context.options.enableBrain`) — general-purpose project/research memory across tools (email, notes, web). Distinct from the codebase wiki. NEVER write secrets or credentials into it.
 - Prefer targeted reads over directory dumps; after structural changes run `ade apply` (and re-run OpenWiki) rather than re-walking the tree.

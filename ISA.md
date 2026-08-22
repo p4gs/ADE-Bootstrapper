@@ -489,8 +489,15 @@ permission shape. ADEB adopts the current path rather than copying sscsb's older
       functional, but never committed, so it protected nobody who wasn't the exact machine
       it was generated on. `openwiki/` is explicitly OUT — a different tool's separate
       uncommitted output, unrelated to `ade.json`'s module set, not this phase's call.
-      `.ade/manifest.json`'s `ccc`/`openwiki` entries hand-corrected from stale `null` to
-      `"present"` (Max's F7) before staging, and `ade lock`/`ade verify` re-run clean after
+      `.ade/manifest.json`'s `ccc`/`openwiki` entries were hand-corrected from stale `null`
+      to `"present"` once (Max's F7) — that hand-fix was NOT durable: a later `ade lock`
+      silently regenerated the file back to `null`/`null` from its own (differently-sourced
+      than `ade doctor`'s) detection path, proving the hand-fix was fighting the tool's own
+      reproducible output rather than correcting it. Final state ships whatever `ade apply`
+      itself produces after this PR's rebase onto fresh `origin/main` — `null`/`null` for
+      `ccc`/`openwiki` (the tool's own current, reproducible answer) plus two NEW entries,
+      `serena` and `sscsb`, picked up from origin/main's own `4461e60` integration work.
+      `ade verify` PASS on this exact committed state, not a hand-patched one
 - [x] ISC-332: research-before-implementation logged as its own dated entry in `##
       Decisions` (this section's header note is the content; this claim is the pointer
       making it a first-class, gate-checked entry rather than prose that could rot)
