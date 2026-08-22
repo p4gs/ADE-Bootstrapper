@@ -11,4 +11,4 @@
 [[IgnoredVulns]]
 id = "RUSTSEC-2026-0192"
 reason = "Linux-only transitive dep (sctk-adwaita); ade-control-center is macOS-only. Mirrors deny.toml's [graph] targets scoping. Re-review if the GUI ports to Linux/Windows."
-ignoreUntil = "2027-02-22"
+ignoreUntil = 2027-02-22T00:00:00Z
