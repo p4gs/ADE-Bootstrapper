@@ -1,0 +1,11 @@
+# Managed by ADE Bootstrapper (secrets module).
+# Note: scans the files pre-commit passes (staged names, working-tree bytes) —
+# the framework's standard contract for local hooks.
+repos:
+  - repo: local
+    hooks:
+      - id: trufflehog
+        name: TruffleHog secret scan
+        entry: trufflehog filesystem --results=verified --fail --no-update
+        language: system
+        stages: ["pre-commit"]

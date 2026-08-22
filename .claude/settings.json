@@ -1,0 +1,34 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "sh .ade/hooks/audit-log.ts",
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ]
+  },
+  "permissions": {
+    "ask": [
+      "Bash(rm -rf:*)",
+      "Bash(git push:*)",
+      "Bash(npm install:*)",
+      "Bash(bun install:*)",
+      "Bash(pip install:*)",
+      "Bash(git branch -D:*)"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Bash(rm -rf /:*)",
+      "Bash(git push --force:*)",
+      "Bash(sudo rm:*)"
+    ]
+  }
+}

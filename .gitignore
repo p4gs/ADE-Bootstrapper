@@ -8,3 +8,16 @@ coverage/
 /target/
 crates/ade-control-center/bundles/
 /bundles/
+
+# ADE Bootstrapper — agent memory (sensitive, never committed)
+.ade/memory-store/
+# ADE Bootstrapper — observability
+.ade/audit/
+# ADE Bootstrapper — secrets hygiene
+*.pem
+*.key
+id_rsa
+id_ed25519
+.ade/logs/
+# CocoIndex Code (ccc)
+/.cocoindex_code/
