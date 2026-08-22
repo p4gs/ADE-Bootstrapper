@@ -5,7 +5,7 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 241/243
+progress: 239/243
 mode: autonomous
 started: 2026-07-12T08:49:30Z
 updated: 2026-07-26T15:25:00Z
@@ -457,12 +457,24 @@ permission shape. ADEB adopts the current path rather than copying sscsb's older
       (not the unmaintained `slsa-github-generator` — see research note above), with a
       verify step in the same workflow proving `gh attestation verify` succeeds against the
       built artifact before the workflow is considered evidence of anything
-- [ ] ISC-329: branch protection on `main` via a GitHub Ruleset (not classic branch
+- [x] ISC-329: branch protection on `main` via a GitHub Ruleset (not classic branch
       protection — matching sscsb's own audited "no-bypass-for-admins" precedent, since
       classic protection's admin-bypass is exactly how the chalk/debug and lottie-player
       maintainer-takeover incidents happened): deletion + non-fast-forward + required
       signatures blocked, `bypass_actors: []`, required status checks matching this
-      workflow's actual CI job names exactly (not aspirational names)
+      workflow's actual CI job names exactly (not aspirational names). Created LAST,
+      after every other push this phase needed — a `pull_request` rule blocks direct
+      pushes, including the owner's own, so bootstrapping it before finishing this
+      phase's own commits would have locked this session out mid-run. Required checks
+      widened past Max's F3 finding: `rust`/`oracle`/`parity` (pre-existing) PLUS
+      `trufflehog`/`gitleaks`/`opengrep`/`trivy` — the four new deterministic
+      pass/fail gates, now that F1/F3 fixed their gating semantics. CodeQL/Scorecard/
+      SBOM/OSV-Scanner deliberately left as code-scanning-alert/informational rather
+      than blocking, a recorded choice not an oversight: they're the more
+      exploratory/false-positive-prone class for a solo maintainer, unlike the four
+      required ones which are deterministic secret/vuln/SAST gates. Ruleset id
+      `21214621`, `gh api repos/p4gs/ADE-Bootstrapper/rulesets/21214621` confirms
+      `current_user_can_bypass: "never"`, matching sscsb's own ruleset shape exactly
 - [x] ISC-330: `.github/dependabot.yml` added covering `cargo`, `bun` (its own native
       ecosystem key, GA Feb 2025 — corrected from an initial `npm` mistake per Max's F2),
       and `github-actions`, on a weekly cadence, so SHA-pinned actions and dependencies
