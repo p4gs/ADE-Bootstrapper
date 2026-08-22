@@ -1,0 +1,14 @@
+# RUSTSEC-2026-0192 (ttf-parser, unmaintained) reaches Cargo.lock only through
+# sctk-adwaita (winit's Wayland client-side decorations), which is Linux-only —
+# ade-control-center refuses to install off macOS (see deny.toml's own
+# [graph] targets scoping, which already excludes this advisory from
+# `cargo deny check` for exactly this reason). osv-scanner scans Cargo.lock
+# without cargo-deny's target awareness, so it flags a dependency that never
+# actually compiles into the shipped binary. No fixed version exists upstream
+# (ttf-parser is unmaintained) — the mitigation is target scope, not a patch.
+# Re-review when the GUI ports to Linux/Windows (deny.toml's own trigger) or
+# by this expiry, whichever comes first.
+[[IgnoredVulns]]
+id = "RUSTSEC-2026-0192"
+reason = "Linux-only transitive dep (sctk-adwaita); ade-control-center is macOS-only. Mirrors deny.toml's [graph] targets scoping. Re-review if the GUI ports to Linux/Windows."
+ignoreUntil = "2027-02-22"
