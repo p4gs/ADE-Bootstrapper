@@ -14,7 +14,7 @@
     "check": "bun run typecheck && bun test --coverage"
   },
   "devDependencies": {
-    "typescript": "^5.9.0",
+    "typescript": "^7.0.2",
     "@types/bun": "^1.2.0"
   }
 }
