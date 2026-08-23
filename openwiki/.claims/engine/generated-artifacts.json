@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:88dab43efae8cef4657ac6121a5015db2363d55db1589e987653476d6fb11ba2",
+  "claims": [
+    {
+      "id": "claim_2e9d895272e542558f077ce10574d6d5",
+      "statement": "Ownership classes are behavior rather than annotations: nothing on disk is labelled, the class is simply which writer produced it, so generated means the artifact writer, user-owned means a write guarded by an existence check, and co-owned means a merge into a file ADE does not own.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L192-L207",
+          "version": "repo-lines-v1:sha256:8105239bf6a3de66cbaab144454aac4ea7723ed9a813c7c9a69af304602df3e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2NDk5YmNlZTY3M2E1ZDZmYjQzNzk5ZWIxOGFiODEwZjQzMzM2ZDdjNWI4YzIwZTBkZDI5MjFhM2IwMWIwYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhOWE3OWU1ZjIzYjQ4MTZmODAyMGZjMWNhYTYwOWY1MTU5ZjdmMDU2YTAwYTBlZTMxZjAwNjNiYWNmZDMyZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhZjZlMDQzZjMxYTM2ZmNmYzkyNjM0M2Y4MDY0OTlhYzI3ODE5NTJjZWE3NTgxNzI5NDczYTNjYTUyM2NhZjQifQ"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/modules/shared.rs#L8-L12",
+          "version": "repo-lines-v1:sha256:586637eccc9651c6f86689fcd7aeaab1d7121e13d33dfd440ed892800fd0675d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQyYzU4YTkxMzk0MWE0NmY3YmE4NTI1NjJjMzg5NmI2M2RjNzcwMzI4OTVkNGM5ZjM3YzI4NGU3Y2NlZWY2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA0OGQ0M2NiNjk3MTU0ZTkzYmIzOTI3OTNkMjZhZGQxNTMyYmE0Y2UxNjc2YWI5YjYwYjcxODBkOTg0YTZhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmQ2NWU5MGMzMmIxNzJjMmRhMjE0MzdiMzMxMjQyZDM2Y2YzMTA1OWZhOWYwY2I4NDcxOWM3OTJhNzJkNDRjYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_144deb891c4348b7889d2cf8bff27857",
+      "statement": "Only the generated class is hash-locked, because lockfile scope is exactly the ADE-owned tree minus the audit directory; co-owned and user-owned files are protected by markers, subtraction and existence checks instead.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L87-L113",
+          "version": "repo-lines-v1:sha256:5d9b4f8950a20e8bf77c35dd11697c61e5d6021546bad7e3d1d139fe8f9d8d20:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjYjM3Y2YwNDIyNWEzYWE5ZGFkZWNkZGZhMmM0NGQxMDAzOTNjNTgzZWUzZWVlMDBiOWJkN2UwNjMxZTIyNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NzYwNWVlOGYyZDE3ZTE5MGUwNWJmYWM5OGFjOWFlZGFmZTQzNTEwNTJkYzZhYmZiZjg3ZmIxYTRlMjM1OWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dca0ebc710d14a62b67925495d150310",
+      "statement": "Every JSON policy artifact goes through one deterministic writer so key order is sorted and output is byte-stable across runs.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/shared.rs#L8-L12",
+          "version": "repo-lines-v1:sha256:586637eccc9651c6f86689fcd7aeaab1d7121e13d33dfd440ed892800fd0675d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQyYzU4YTkxMzk0MWE0NmY3YmE4NTI1NjJjMzg5NmI2M2RjNzcwMzI4OTVkNGM5ZjM3YzI4NGU3Y2NlZWY2NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA0OGQ0M2NiNjk3MTU0ZTkzYmIzOTI3OTNkMjZhZGQxNTMyYmE0Y2UxNjc2YWI5YjYwYjcxODBkOTg0YTZhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmQ2NWU5MGMzMmIxNzJjMmRhMjE0MzdiMzMxMjQyZDM2Y2YzMTA1OWZhOWYwY2I4NDcxOWM3OTJhNzJkNDRjYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b21a72e6e6e1439da2ff75a2208390f7",
+      "statement": "The guardrails module emits seven rule files named from a static list and sorted before writing.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L117-L120",
+          "version": "repo-lines-v1:sha256:893b816d4f5f6e9379ea44e87bcac201c1273e5aed171883cf403bc9203e4520:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmM4OWIyZDM0ZjZjMWUwOTVkYTljODlhNWMwMTcyNmQ2ZjhmNTQ2ZGFhYTFhMGQxMDMwOWFlMTA0MTBjNjBmZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmVkZjQxZjA3NWYwM2Q5MzUyMWM5NTJjYTYzNzIwZTlkM2M2YmMyY2U2ZjRmZjdlZmJmMTFjNjYwZDVjZmNhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDYwMWNjNDQ0MDJhMzg5N2YyZTI4YzEzOTFjYWY5ZTViNDc3YjY2ODBjNDViYjM5Njk2MDNlY2Y3Mzk4ZDcyNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzkyYjk2ODU5MmE5NmI4ZWI3YTMyYWI3N2RmNmUxM2Q4Nzg0MzdhNDEwZmJiMzQwMzdlNTg0YTAyN2M5ZTVlMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_28f861f5c4e34aa395322b4edf8e7778",
+      "statement": "The codemap is the one generated artifact whose content depends on the user's own repository tree, so its hash legitimately changes when the user's code changes even though nothing about ADE changed.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L493-L510",
+          "version": "repo-lines-v1:sha256:6f45eeca1026024f2c8d2c5a55458ac28e141e624350f910b4eb23e47ff4b4da:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5YjJlYTkyMzBhMDllYjFkZmUyM2IyYTg0MzgwMjYwODZkY2MyNDk3MTI1ZmY1MjViZDQ0Y2RlNzkzZDE3ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMGFlNTBhOGI2ZmMwYjUxYTg1ODMwOGE5NTE5NGI1ZDhlNGM0NTQ4OTdmMDUxNWJjYjEwNjc5ZWQ0NmQ4NWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwZmFmNThjZWM1MDJkM2FhM2VmZjIwZTU3ZThlYWY1OTY3ZWYzMmQzYjZkOGM2MDI5ZDY2MDg1MWVhMjNiMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b58cc599689483ab4958df877bd7cfc",
+      "statement": "The audit log is written directly rather than through the recorded artifact writer, precisely because it is mutable runtime state excluded from lockfile scope.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/observability.rs#L158-L177",
+          "version": "repo-lines-v1:sha256:d6a0da2bd0022b20505eef9724f77e8a30e197969a404677886405dd89604557:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhZTY1ZDMyYzU5MzdjNjUzNjM5MGY2MTY3NjgzNTI2Mzg1Njk0NDRkOGQ5YjI3YTUwYTExODZjZTUyNzM3NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZGE3OGVlNTk4NzhmMjhlZjgwZGM3ZWJiNzU5NTk0MjJiODc0NmUxMGU5MDhmNGY2MGI0YzBmNmM1NzY2NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1NjZkZTYyNGY5NzlhZDc5MDY2ODNjMmNlMDIwNGJiOTcyNTY2OTMxYWFjYjkyYTlkOTJkNjRhODdhMDM5NzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_daee09ec7ccb442580250d59b4405168",
+      "statement": "The pre-commit configuration file is written only when absent; an existing file is never modified, and a broken invocation in it is flagged rather than rewritten.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/secrets.rs#L175-L207",
+          "version": "repo-lines-v1:sha256:a2a47a4d85400bcf5840c4cdc8f71a56a0ed19886cfee7718670394204de26f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZGE4MDEwNjJmOTM1Y2VhZGIxMjc2ZGUyYzZjYTRiMTE5NGZmMzIyY2MxNmE4N2MyODYwYmU0N2MxMGZiMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyY2MwZDQ0ZGRlMzkxMDE4YTQ1OWMwNmIwOTBlZWVjOGRmNTA0MTg4Mjk3MzIwMmQwYTc2NWZjOTM1NjRjYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1MmU3OTA4YWJiYWZiNWY2MWZjYWJmYzlkZjNmYzJkNjkxZGNmZjFlYjRkZWY2ZjMxMTBkMTRkZmY5YWYyZmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a759fa6a21347068ef9529b2c4ee84f",
+      "statement": "The git pre-commit hook is co-owned via a marker plus a rename-aside chain rather than by merging.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/secrets.rs#L208-L237",
+          "version": "repo-lines-v1:sha256:dfc29a793381e8de3157925abb447ac865e70852ffe31c11b8aa40dbe1f907b1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2YjQwOWMxYTE2YWY3ZDU0NWQzMzdmYzJkMmQ3ZmFmZThlZWY0MWIzMzIwNWVlNTVkOGVlODY5NGI4ZjY5ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3Mjc2NzI0NWRmZDA3NGI1MDdhNzdhYTZhNWI0NGU2ZWIwMjYyMGM1NzFiMzRhOTBkYjEyYWUyNjZkNjgyODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxMmM1MjE1MjVjMGUxOWVmODkwYTY1MjIwM2YxODE3YzAyMDlmM2M0NmY3N2Y2MjQ3MWEyMTU2ZmQ2NjcxYjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_13949b20faec4dd49743f40a22744ac4",
+      "statement": "The gitignore is co-owned through additive line insertion under labelled headers, with three different modules appending three separate blocks.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L180-L207",
+          "version": "repo-lines-v1:sha256:40455568d310dacf337a97aaddd72c5aeca1ea8870e3eb679ec5cdab45f0dc4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNzIxMDZlOWIwOTg5NDc5ODFhNjJlMjllN2I1ZDE1ZTBmYjI3ODk2ZWIyMTUyMGM4MmYzNDM3MzUwMmUyYzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjY2Y2MDNkYjA1NDMxZmFhYTNmODAzNWFjMTZjNGRkYmI1NGY4ZThmNzZhYjUxMmYyMmYzOTM5OTQxNTUxNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3Yjc1ZDQ0OWRjMWQ3MTU5OTEwNzAxYjg2NjUwZTI0NDAxNzRlNTliMDljNmEzMzg1NmZiZDNjNGY0NzQzZGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5350d30a12b947f2845d407e7b79c8f5",
+      "statement": "The MCP configuration file is written only when the memory module is explicitly opted in and claude-code is targeted; otherwise it is never created or touched.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L41-L96",
+          "version": "repo-lines-v1:sha256:aeacbee86c5df2b86836278b689762bae7d67069db6a1ea06b2ec7e6cc95e3a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzM2U2YTljYmM0Mjc2NzczMDMxMjMyM2RmODkyODAzNTIwYmNmNjljMzI1MjYwZjE1NWEzOTMwMjBkZjFmYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwNjNjNGQxYWY4Y2Q4OWJiMGJkZDc2NTdmZmNiZjY4MDZhNjEwZDc5ZDZjOGQ0YzMwN2MyNDFkZjM5MDA1MjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwOWVhN2NmODQ2OTVhODY4YTkzMmQ2ZjQ1NjNkZGIxMjA2YWRlNGFjNDk3ZDNhYmFhNGU5NDU2ZWRiMWYzNmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_664d44c5bafe4fdc8287f7eaa198390b",
+      "statement": "A module's reported written paths are not the same set the lockfile covers, because reported paths include co-owned files outside the ADE-owned tree that are never hash-locked.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L154-L154",
+          "version": "repo-lines-v1:sha256:bb065fe5a69fe3e3541983797387a8c5d3cb9fafe02f104cb777639f93c889d4:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmIwNjVmZTVhNjlmZTNlMzU0MTk4Mzc5NzM4N2E4YzVkM2NiOWZhZmUwMmYxMDRjYjc3NzYzOWY5M2M4ODlkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmIwNjVmZTVhNjlmZTNlMzU0MTk4Mzc5NzM4N2E4YzVkM2NiOWZhZmUwMmYxMDRjYjc3NzYzOWY5M2M4ODlkNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTRmZmM5NTZkMGRiZTE2ZGE0Mzk5NTRhZmE1NmU4YmNlMmExMGMwNDNkNDhkOWFiMTc4NmVhMjZlMTA0ODE1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTgzZWNlN2Q1MDFiZmNiYzBmMmRiNWZjM2I2MGZmNmMwZmQ3NTY1MGY5YWI1ZGUwYWJhNGNhN2VjYTAwODllOSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

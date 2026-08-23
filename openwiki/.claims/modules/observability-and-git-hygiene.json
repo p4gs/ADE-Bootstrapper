@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:fb9c2ad9097d2edd19d740c47dbff10c118669d59097018ec34c64f9efc202f2",
+  "claims": [
+    {
+      "id": "claim_32517490f6d14ea28febef91f19f91fd",
+      "statement": "The observability module genesis-initializes the audit chain only when the log is absent, writing directly to disk rather than through the recorded artifact writer because the log is mutable runtime state outside lockfile scope.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/observability.rs#L158-L177",
+          "version": "repo-lines-v1:sha256:d6a0da2bd0022b20505eef9724f77e8a30e197969a404677886405dd89604557:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhZTY1ZDMyYzU5MzdjNjUzNjM5MGY2MTY3NjgzNTI2Mzg1Njk0NDRkOGQ5YjI3YTUwYTExODZjZTUyNzM3NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU5ZGE3OGVlNTk4NzhmMjhlZjgwZGM3ZWJiNzU5NTk0MjJiODc0NmUxMGU5MDhmNGY2MGI0YzBmNmM1NzY2NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1NjZkZTYyNGY5NzlhZDc5MDY2ODNjMmNlMDIwNGJiOTcyNTY2OTMxYWFjYjkyYTlkOTJkNjRhODdhMDM5NzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f59e8ef7112e44d9918e44d2b8858bfb",
+      "statement": "The shipped hook keeps a TypeScript filename while its body is POSIX shell, a documented divergence from the oracle, and it is wired only when claude-code is a configured target.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/observability.rs#L34-L38",
+          "version": "repo-lines-v1:sha256:47d80ee784370da6f1911fc37c262ff27b0fff5a51035c2fff4bc476cc47d71f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzk1N2FjYzhmYTA2YzcyYWM3OGVjZTM2MTk0ODZhY2MyY2U3MDAxYzBlOGU2NTI3N2EyODdlMWM0OTQ0MGMwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmIyMWNjNGE0MDUzMDRiNzk4ODE1ZGY5MzgyMDdmMjI1NTI0NTQ5ZDM5MTQzYzM3MThiYTMwNTViYjQyM2RkNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTQ1OGM1NTRjZmE2NDgwMGZhODU3ZjEwOWM3MjY0MjQ3YzI5NmQ2NjJiNTU3ODA2NGM1MTA1YTMwNzY2NDY4ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWIxZWZjMDc5MWQ4NTEwMzhhOTgwMWUwM2Y1OTIyMDZhMTMyOTJhNTgwMWYxMjE3NGJkZGFmZTM2Zjg2NzZlNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1c8818dbd84446b180800ed5b5b0131c",
+      "statement": "The module's own verify checks the chain without a checkpoint while the pipeline and the audit command pass the lockfile's, so the module-level check alone would accept a truncated chain.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/observability.rs#L373-L404",
+          "version": "repo-lines-v1:sha256:c71738cd26e034cc99dc9f993749f2069c2cae760b314a198dc290441aa3dec6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZDhjOWVjMThjYmI2MzkwMjBkNDY0YWUzMWRkMGQzNDNhNWZmOGFjMDJlY2Q4ZjA2ZjI1ZWRmM2Y4ZGJjYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhOWY4NmQyOGU3ODRmOWZkMzFmYjcyZDE1ZjYwY2JjZWFhZmRkNjY5Y2JkNWI2ZGE3ODg4YTAyMzMyMWViYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5MmU1M2Q1ZGFkMTM4OTQ4NWM5YjQ4NmY2N2QwYWM5YzRhOGQ3ZTMzOTM0MjdiYzUwMGIzNDZhZGYxMGRjZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8ce7e14caf0b4356b72ac8bfcbea306d",
+      "statement": "The audit directory is git-ignored by default and the only escape is an option that must be exactly boolean true.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/observability.rs#L195-L211",
+          "version": "repo-lines-v1:sha256:06e4e4b6f5827b2ac2da19f708e9f3b5a8d8b485817225f900c3b736a8bfa99c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMGVjODZlMGJiY2FkNTYwMTE5OTJlYTI1N2FkMDRiOTM3OGNkNTRlMWE3NDM2N2VjNjg4ZGVkNGVkNTZkMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlNTU2NDI2MTNiNzM1OThhYjNlMzU4OWU1ODMyNGI2OGNhNjg4MmQyZTA2MTY1YzFhMmM4NDE2MWYxZjI4YmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0593f2ddec404edaa0cf90fe4591a522",
+      "statement": "The git-hygiene module writes a fully hardcoded contract with no option surface: protected branches are literally two names and cannot be extended through configuration.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/git_hygiene.rs#L23-L33",
+          "version": "repo-lines-v1:sha256:7cae21358ae5b998da84e639b39a6277474b0e21ebe0cf08f0e1eaa5f7aca3ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2ZDU3Yzk2OTI4OTcyNWY1MDE3NDU1NDZiZjBmMzBjNWNhMjE0Njk5MWEyNDkyM2EzMDM5MmQ5N2M3OTZhYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4ZjJhNGZhODg5ZmE0NGNjNWUyNGFjZTdlMWRlOGY4OGQzZDQ3YjNhMTAzNzIwMGY1YWJkNjkxNjUzNTYyNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiOTBkNzdkODU2ZTI0ZjQ5MDg4NmFjMWJmZjI4NzhlOGE2MzQyZGE3NDA3NGZiZmJmMDE4ZjdiOWU2Y2U2MGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1dc015bb91c4f6daeebb30e8f8f2040",
+      "statement": "It reports rather than enforces: it installs no git hook, sets no git configuration, and configures no server-side branch protection, delegating enforcement to an external tool.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/git_hygiene.rs#L9-L12",
+          "version": "repo-lines-v1:sha256:76aa7232d60761ac31d92da39e1425f5970e91ac032fca2bcd996290c2e99c0a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZhZjM0YTQyNDdjOThhMzg1NzhmOTVmOTY3ZWY5OGU5YWNmMWRhOWZjOTdmMWQ0YjA5NjMxZTE0N2VhZDgwZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTY1ZmFlZWVmM2NkYmY3MWYyM2VjOTA5ZjYwNWQ0OTM1ZDhiZDdkYWVlOWJjNjQ5YWYzMjc4M2EyNWM1ODM5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmRjMThjZDAxOTdiNmRiMWI2YWJhZTk3YTg5NTRhMWQzNGM4YzAyZTJkZTliZDRhMjNjZjM0MjNiNTJhZGQxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmNmODIwNzI3NDgwNmE0Nzg0ZGRlYTk1ZDI4NGY3MzNiOThjMTE2NmIzNjQ2ZmNlNjVhMWQzZDljMDZkYTk2ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_042e7c71f376404d9c5abb3138f1c32a",
+      "statement": "Commit-signing posture is observed only in detect and never in verify, so a repository with signing disabled never fails verification.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/git_hygiene.rs#L58-L78",
+          "version": "repo-lines-v1:sha256:b841bd809786533dce88e3844dde126d2587afacbe3b56b658a682a691eb7235:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1OTMyYmI4MDg5Yjg4ZmJjMzQzYjFkNDFhOTBmNTE5NjljM2MzMDUzZjg2ZTVhNmQ1MjhjOGI2MWE5ZmMxZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YzRiMWFlNjEyZDU2NDcwOWFiOThmMjk2MGNjNTk0ODhlNjgxYjg3OWM0NjIyYTQwYjdlZGVhZGZmN2M1ZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyOGRmNTY4MWI0OTUwOWE1YWIwMDUzY2QxMzM3NmJjZjMzMDVjOWE1NTI2OWNjYzgwM2EwOTQwZDY2NTI4NmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5fe757793e284245ada004d38cf9ee19",
+      "statement": "Its verify re-derives only two invariants, leaving the pull-request requirement, history-rewrite rule, branch naming and commit style written but never re-verified.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/git_hygiene.rs#L181-L201",
+          "version": "repo-lines-v1:sha256:0f90ce353ac867ee88c9d0401cd67f93de10172c2c99b38b766320f37fea1c02:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkNzg0MjRkMDk4NTBkYTcyYTE0MThhODc5OWQ2YzEyNzQxYzUxMmUwZTBmOGU2NzZjYzI1ODM2MjExZDQ5NzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2NWFjOWIxMzRhYWZmYjllMjkwN2MwNjg5MTI4OWI4ZjZlODI5OTBmOTRlMzI4NjZhNjAxNWNjNDkwYjdjNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4MjM4OGM3YjI1MDU5NzRmYWI2NzZkMWE5YmNmNjI2YTFjMmUzMjQ0MWFjYzE0ZjczZTI0MWJjM2Q5MzJlYzQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

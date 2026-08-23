@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:37bb47a9a169ea8070385bc3f3a7c2ab96d8ae182fe4e4184c7c44a202bbb9cd",
+  "claims": [
+    {
+      "id": "claim_9cad3e510f7445709568306b36722544",
+      "statement": "The scaffolding module writes three templates and no policy file, with a single coverage-floor option interpolated into two of the three.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/scaffolding.rs#L16-L27",
+          "version": "repo-lines-v1:sha256:8e92d0fe1bc1ae4a4dec5df8d557ae5ca5c72d593e06c01bc70e4577427e2b07:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjZDYyNzU5OGJmOGZiNjFkZTg2Y2RlYzhlYmUxYjI5NTE2ZmM0M2M2ZmIzM2RmNGRhYWNjMGEzNWJiMDUxMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlZjQ0ZTI4NmUwNDI5NTlkMjk4ODU5NTE2ZTAxZGE0ZmFiMDg3M2JkZDdjMDJkMDdjYTE0OTk2YWQwNWM3ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4ZGUxNzBmOWEzYzEwNmE1YjgwMDJiYWRlYmIxYzkyYzBlM2QzMjc4N2M0YmJkNWE1ZTExOTM2OWU1YmNiZGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d49878eaafb746618fda5ae586c8c50e",
+      "statement": "Its verify is a heading check rather than a content check, so a repository can pass verification with a checklist whose coverage line was silently lowered.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/scaffolding.rs#L254-L283",
+          "version": "repo-lines-v1:sha256:cca47db398675e0c9e52e3b0ba24f8f6c58cc5d3bb9fbe8a50dfac58126626de:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMGYwNDgxODhhMTBhZWYwNzI4YjhlNzk1ZDZmMjY3ZGE5ODIzNWNhOGYzZDIyY2NjYzk3MDU4NjU4N2ZhODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MjE2MDRiMzVmYzQwYWYwMGNiYTRlZWEyZmQ1ZTJjM2FmMTg2M2IzOTExODVkN2JmNGJiMDllNzJkMGM4YjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e99a835af57e4908a073168352f8ce50",
+      "statement": "The templates are documents rather than gates: nothing in ADE runs the checklist, measures coverage against the floor, or lints commit messages.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/scaffolding.rs#L145-L181",
+          "version": "repo-lines-v1:sha256:7fcb7955fd41ab341cffcbc883a485206c93f516e5023204649c8ba6cc1ef2e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0MzU3ZmI0ZTRhMTM5Nzg5ZDRkODQ4OGRhNDAwODhhYjAyMzVmYzVmY2MzYmIxYmJhNmFjMDI4ZDA1MGVhMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkZWQ4YWVmNGRjYWJlZjE0ZWIwODVjOWM2YmJjOTA4M2YzMzJhMmVlNzM5MDEwNmYyYWQ3OTg4MWE2NDQ4MWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNjBkYWZiMWM0ODAyZGNlMmM4NzI0ZWEyNzNmOWExOWJmM2I0Njk2OWJiZmYwNzFjN2Q1YzI3OGIyYWE0NDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bad9e4bee2194146b161e62143c6ac44",
+      "statement": "The memory module's MCP registration requires a conjunction of an explicit boolean option and a configured claude-code target, compared by exact value so a string does not qualify.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L41-L47",
+          "version": "repo-lines-v1:sha256:0cb196ef3be32dd05d296c78ff877ccc8fa0fa209c2014c6f00428d65a9be272:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjMzZTZhOWNiYzQyNzY3NzMwMzEyMzIzZGY4OTI4MDM1MjBiY2Y2OWMzMjUyNjBmMTU1YTM5MzAyMGRmMWZhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjA2M2M0ZDFhZjhjZDg5YmIwYmRkNzY1N2ZmY2JmNjgwNmE2MTBkNzlkNmM4ZDRjMzA3YzI0MWRmMzkwMDUyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzI4ZGY1NjgxYjQ5NTA5YTVhYjAwNTNjZDEzMzc2YmNmMzMwNWM5YTU1MjY5Y2NjODAzYTA5NDBkNjY1Mjg2ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_098044af8119471097b3a9ce2b0cf229",
+      "statement": "By default the MCP configuration file is never touched and the module says so with an informational finding naming the activation step.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L88-L96",
+          "version": "repo-lines-v1:sha256:cb105224771017fc07ec157a1d9c5ec48313df869371af6a3194ed557b362500:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTZiNDA5YzFhMTZhZjdkNTQ1ZDMzN2ZjMmQyZDdmYWZlOGVlZjQxYjMzMjA1ZWU1NWQ4ZWU4Njk0YjhmNjk4NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzA5MjY1NTg0OWEwYjk2ZjAzMmUwYjE1MmEzMTlkNzk1ZWQ2OGE5ZGY0ODQxMzUxODYxMzg5YzljNDkxODNkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTA5ZWE3Y2Y4NDY5NWE4NjhhOTMyZDZmNDU2M2RkYjEyMDZhZGU0YWM0OTdkM2FiYWE0ZTk0NTZlZGIxZjM2ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4822d884b6934d6d8ce392cb16bae987",
+      "statement": "When opted in the registered server is launched with an empty environment map, so ADE writes no credential.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L66-L75",
+          "version": "repo-lines-v1:sha256:531ac3967cd93b87886dca1bbf241f86a3bb30905907135c62ae52a1e49cbf41:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkMTBhODA0MGFmM2YxN2UxYTA1NGNkYjI3MmQ1ZWE4NGM1MjJmY2QyNjc0NDhhNmM3MWExZGE2ZDJmMWViZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmYTA3N2FhMTIyMTgyYzFlNzBmN2EyMjRiNGIyNjNkMjc4ZDQzODRmMjI5MGE1MmVhNDg5OTQxYTk4MmI2YzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjZjBlOTNmOGRkYWRkYzY3OTgyZDg5YjUzMmQ5M2UwYjIwZDljMTNmZGRiY2MyNmE4ZTBjNDNiZTY5YTQ5YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ODk4ZGYxMGExOGUzNWE0ZWUyNzFhNTBiZDljOGJkN2FmMjhkM2NhZmYzZGYxZGZkNjM0ZjE1NTYxNTI3ZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d77127b1d2740caad5ceba6164eb8fa",
+      "statement": "The memory store is git-ignored unconditionally on every apply regardless of the opt-in, and the verify match is exact-line equality so a broader ignore rule does not satisfy it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L57-L64",
+          "version": "repo-lines-v1:sha256:de9172bb7439013495fe548b4b9ad3eb9ff17b3391caded869aeb90ca9b2c7e8:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlhZmI3MmFiYzRmOTBmOGUwMzBhMzM4MTZiZmJjN2QyYzFlNWZjZGVjZTNlMTk5YjY1NGI0NGM1YzYwZDk2YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjNhNzdjMDNlMDc2MTdhN2M3NGIzYTVlMGNjNDE2ZjQ4NGNjOTAwOWQxY2ZiZDJkNzU3YzVhNWE5ZDRkMDMxMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTNlYzcyNzY4M2JmY2NiYzQ5ODFlMjkxNDczZmE2NjYwNTNkNWQ1ZjMyZmQzZDU0ZTE2YzkwODA4MGRkNDM0MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjQwYWNmZGY5NjhkN2VlMDJhYmEzMWM5NjQ2Y2Y0OTk5YTU5OGU3YzNmN2U5YTk3NDg1YTcwNDYyYzY1MDY3OCJ9"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L224-L239",
+          "version": "repo-lines-v1:sha256:73f73b5a6dc47671fb172b9a7dfa4ead22a4ebaa3da986e5449e25b27418cde6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NjkwNTRmZDBlZGJmMWQ1MDQ5MDljZDk2YjliYmQ4YmVkYTg5M2M1M2JkZTkzNWI4NTNkMmM4MjAzNDYxZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhOWY4NmQyOGU3ODRmOWZkMzFmYjcyZDE1ZjYwY2JjZWFhZmRkNjY5Y2JkNWI2ZGE3ODg4YTAyMzMyMWViYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5MmU1M2Q1ZGFkMTM4OTQ4NWM5YjQ4NmY2N2QwYWM5YzRhOGQ3ZTMzOTM0MjdiYzUwMGIzNDZhZGYxMGRjZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eaddd6cf09b84ff9a906507da48bcc04",
+      "statement": "ADE never installs, runs or health-checks the memory server; it writes an invocation and what that package does with data is outside this codebase.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L66-L75",
+          "version": "repo-lines-v1:sha256:531ac3967cd93b87886dca1bbf241f86a3bb30905907135c62ae52a1e49cbf41:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkMTBhODA0MGFmM2YxN2UxYTA1NGNkYjI3MmQ1ZWE4NGM1MjJmY2QyNjc0NDhhNmM3MWExZGE2ZDJmMWViZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmYTA3N2FhMTIyMTgyYzFlNzBmN2EyMjRiNGIyNjNkMjc4ZDQzODRmMjI5MGE1MmVhNDg5OTQxYTk4MmI2YzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjZjBlOTNmOGRkYWRkYzY3OTgyZDg5YjUzMmQ5M2UwYjIwZDljMTNmZGRiY2MyNmE4ZTBjNDNiZTY5YTQ5YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ODk4ZGYxMGExOGUzNWE0ZWUyNzFhNTBiZDljOGJkN2FmMjhkM2NhZmYzZGYxZGZkNjM0ZjE1NTYxNTI3ZDIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

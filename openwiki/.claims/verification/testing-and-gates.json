@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:37f5b52dbf97034f3390fe2b6090330e6eeea5a4b3fa31b7c8bb48e62229830f",
+  "claims": [
+    {
+      "id": "claim_ff6cf297135142e5bf0d6d624f92df37",
+      "statement": "Three continuous-integration jobs run in parallel with no dependencies between them, so any one can fail the run.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L1-L13",
+          "version": "repo-lines-v1:sha256:43bfd7fa54b024b875c3316a523c723258967ca0348f4b9f4c23d2381b1f006d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZTFiMzJmYTA5MDc5YWUyZjAwMDFmZmYwZWNhMjdiNDk4NTk1N2Q0ZWI0ODU3OTI5YjNjZjA1OGZhYWU1NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ODYzNDNiNGZhZGU5OWEwYzBiYTcxMmIzMGI3OTc3YmY0ZjliMTVkOGY2ZDk1MzViYzhiZGM2NmFjOWFkZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMGRhMjkxOGJlNDQ3YTFkMGYyYTJiMWVjYmUyOGY4ODZmZTJkNzQwODQ4ZmY5N2Q2M2MyMzM4MzU5ZDIzNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2c7e4a501d7433b8492387e8a668e81",
+      "statement": "The Rust job enforces six gates in a fixed order, with formatting and lint before tests and coverage last because it needs a second instrumented build.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L13-L37",
+          "version": "repo-lines-v1:sha256:c5dd3768ec5a8ea62a10512644664203083fc3ab2157fb6121487ebf34137ee4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ODYzNDNiNGZhZGU5OWEwYzBiYTcxMmIzMGI3OTc3YmY0ZjliMTVkOGY2ZDk1MzViYzhiZGM2NmFjOWFkZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YzIwZDcxNTlkNmE4YWU5NmU5NmYyNzY1MjJiZmVjNTQzNzU2OWUwMjM1OGQxYzJmMmRlNzE4N2M3MmJmYWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImViNzJiZDI5OGE2ODY1YTQyNzE2YjEzZDgwNjQxNDAwYjVhOWZlN2QyMmNjYTgyNWRiOWY0NGExMzVhYmE5NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMTg4ZGIwNGI3MjA3ZTQzNzdiNjAwNGRkNTY1NThlZjI4NmM5YmI1N2M3OTQwMjBjN2E1YWVhZjEwZGYwNGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7e73bea8492a4938a1c59c7c431ee46e",
+      "statement": "Lint promotes every warning to an error across all targets including test code.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L22-L23",
+          "version": "repo-lines-v1:sha256:67d6474f266d1d924aea3f3c3984d566e717055cfd5208616be05463378c8cd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRhZTQzYWFhNjViNDJjMTZkODIzMDk1MzQ5ZTMyY2JiMTFiZjNmY2M1OWNiMmE4M2JmOGI1ZGQ0YzAzM2I4OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZmOTg3MTNhMGJhNmY0ZGJkNWQ2Y2FjNjc5MDFmYjQ0ZmYyYzBkZWY1YWQ0ODFlMmMzNmYzYzc2ZjE4Y2EwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA4Y2EwZWExYzcxZjZjNTM4ZGFhNjI3NTYzODYwYTk3MzhmODgzM2UwMjAwMmExZTBhNmE0YjhhMWMxZTQ0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTA1YWRhMzE2MmYzMjIxMWY3MWNmMWE3ZWQ3OWU1YzNjOGIyNjhlZWY1NjVhMDM0ZmEyNzY5ZGJkNjI1ZGI0NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7546772341474912a93dd680099bc8bc",
+      "statement": "The Rust coverage floor is ninety-five percent lines and functions, with exactly two crates excluded by filename regex and the exclusion documented on the ground that every decision they display is computed in the covered core.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/coverage-check.sh#L1-L17",
+          "version": "repo-lines-v1:sha256:5859cabcfdf5fddd0e4999bc07fd24e6fc945e237185b6abc6b8403d9cd737a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTVmYzA0YTgwYzk1MmY0OWNlNDE4ODYyN2M1M2IwZmJlOGM0NDA0MWI5NTJkNTkyYWNkMWRlOTk4NjE0NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYzQzNGZkM2M3ZTgzMGZmOTFkY2Y2ODgwMzM4NzNlNDM2YTQ4YjliNzNkY2FmMmQ2ODFjMDZhNzVlMWE0ODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a5a1d420d0ce469eaf9b5ef96278e9ec",
+      "statement": "The TypeScript floor is the same but opt-in per run, so a contributor running the plain test command sees green while below the floor.",
+      "evidence": [
+        {
+          "resource": "repo://bunfig.toml#L1-L6",
+          "version": "repo-lines-v1:sha256:a767cf8aa8a6ee0c80da94458cd296fcb7435ed7b09f610f6d733cd3580f8f03:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBmN2NhNDA3MTljMDlhMzhjYjA3MmNjMWUzMGE4OWI1ZjM2NTE2ODJkYWJmODljYjJkNzJmYTQzODI5ZmMxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGVkYmEzY2YyN2JjNzA2Y2Q0MzU4OWU1NTVkMjNkMGIyNDIzODY5ZmYyZWQwZjhhNDI0ODI2NzM4ZGVmZTdiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTBmNTU4NGNiNDdjNjYyYTk4ZmIxMThhNTAzN2EyMGU2M2Q3Zjk4ZjAzODg4MzhhYTEyMzljZjMyZTNjNTlmOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f42ea390ed0944c2b99c20c1edd48aad",
+      "statement": "The glyph ban covers the emoji ranges and the geometric status marks, and its scope deliberately excludes the frozen reference tree whose glyphs are fixture output rather than product interface.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/emoji-ban.sh#L1-L23",
+          "version": "repo-lines-v1:sha256:1aa7d4ddb6577d2c2a05d052c1d5f01c55d94cfe3ee7fe9d742aaa07c5cd4161:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NzVmOTI4NTQ2YWVlNzg1NWNiMWRiOWFmYzhhYjNmMWE4YTM0ZDQzZGU1YmJkNjJmNzA3NmQ3YmE5ZjM5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmOWJkMmRjMWU3YzU5NzIwNTI3M2QyZDZmYjFhOTIwYzAzMmRhMGNjZGZhMWFkOWVjMThmY2FiZWI3Mjc4YTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMTMyMGEyYTg0MGU0ZmYwYTNmODY1NGNjZjdmZGIzMmZhZmVkZWNiYTkzMmNkZTRjOGMxZmFmNjU3NjExYjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_16f46778fea043f295636ae5e1d51a69",
+      "statement": "The glyph script distinguishes all three search-tool exit codes and hard-fails when the tool is absent, so a missing dependency cannot produce a false pass.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/emoji-ban.sh#L27-L41",
+          "version": "repo-lines-v1:sha256:cd7b3ff0f9ec7d8cc871074b42e0f90fdab08b01f9a8b18e658cf2ffb6279eb2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMmFjZWU3MGQ2MWFlODdhZDA4OGNhNjRhNDNiNzZmYzg4YmEwMzk1YjIzOTI2NDY1NjJiNzFmZTlmYTBlOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0YTJiZWNmZjhhZmIzNGRiMjYwZGFiYzk2OTE1ZmZlY2ZkZTg0ODkyOTU0MWM2MTkzZGU2ZDE2NGMyMWU4ZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMTMyMGEyYTg0MGU0ZmYwYTNmODY1NGNjZjdmZGIzMmZhZmVkZWNiYTkzMmNkZTRjOGMxZmFmNjU3NjExYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b16cce90923e4b099b7e3b7fe4f14b0e",
+      "statement": "The dependency policy restricts the evaluated graph to two targets, which suppresses one advisory reaching the tree only through a platform-specific path, and states the condition for removing the restriction.",
+      "evidence": [
+        {
+          "resource": "repo://deny.toml#L8-L22",
+          "version": "repo-lines-v1:sha256:6b2ef275c362362ef5440524b3643a589305e6595184b559a4a195bc9dacbb5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhMzA3NWZlZjZjZjQzM2ViN2FkMDYxYWRmNzk0YzNhYWU2NmM4YzdhMTZkMzUwYmM1ZDExMGRkYzBlNGZkZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxODRmNTI3ODQxN2Y4Mjk1MWY5YjFlYzBiMWFjNDhhOWI1OTVkMjg3OWQ4YTEyMDJhYTk5ZGRjMWU4ZDhkY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkODNjZjA3MmIyYzZkNTUyNDQ4YzI1Yjk0NDVjNDVlN2I1ODhjYzE0Y2Q5ZGI1ZDcxNDA3NWE0OTE3MjNmMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3c0588309da046c8b96a6c14101838be",
+      "statement": "No hermetic-invocation environment variables are required to run either suite; the isolation that exists is built into the tests, pointing state and home directories at disposable fixtures rather than being demanded of the developer.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/tests/cli.rs#L62-L75",
+          "version": "repo-lines-v1:sha256:1c8b609a4398a8c8b5e13675bbbfe21bc01e06feb2ade971c4826b6dbd8cb82c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MTc4ZjY4NWY2ODNmNmFiODQyZDdjYzg4MDM5N2JiZTc5OWYxNDdmMmI0NmNjZDJmN2QyOGQxMzY0ZDMwYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYWU5YjYzYTFlMTQ1OTk3MTgzNzdiNzBkYzY0OTkxOTY4OTVlMWI1NDlhYTMyZmNlYjZlZWM4MGFlZTU2NjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YjVjNjUzODAwNmZhY2RmZGE4ODdkYjFjM2JlN2MwZGJiMGRkNTllNGNlNGQ0NGJmZTIzOTE3OGM5YjNjNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczNWIxNDY1OWU0NDgyZWI4NmY5YzU2ZjQxZDQzYzU4MDNjMTNhZmMzNTdlY2FjZmYwNTA4ODM5MmY5YzYwZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b827ab11f13044d280ea3f6f83d29c2b",
+      "statement": "Secret leakage into generated files is gated by dedicated anti-tests that plant a sentinel in the environment and assert no generated file contains it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L970-L986",
+          "version": "repo-lines-v1:sha256:831ea67127353ddda075ab48d678a04cb396340c4dd9f173ab7c85517b604994:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiOTExNjFkNmQ4MTFlMzI0MmMxODkxY2JjOTJjZTQ2ZDdlMWIwZmU2YTk3NjY3M2Q1OTJkMjI2N2JmZjE4NzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzOGIzZGFlMjQ4YTY2YWYzNjMxZTBmMWUwYWYxMjNmNjJmNzA1ZDRhYmVlZmRiMWUyNDhhOWVhYTJmOWFhOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2MDRkZDlkMjJjOTQ3MTZlMjVlNGZmNTFkNzhlOWU4NTllMGM4MzYwMjk5YThhYWRkN2NlZjUzN2ZiMjM1OTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1NGY4Nzg1YjVhNzNlMTM1YmQ3ZjAwOTEyZTViN2RiNzlkNzI3ZDJhYzMyOGU0YWEyMGYwMTVlYjE4MDIwOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_13034449a081495bb70975af51373385",
+      "statement": "Three continuous-integration jobs run in parallel with no dependencies between them, so any one can fail the run.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L1-L13",
+          "version": "repo-lines-v1:sha256:43bfd7fa54b024b875c3316a523c723258967ca0348f4b9f4c23d2381b1f006d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZTFiMzJmYTA5MDc5YWUyZjAwMDFmZmYwZWNhMjdiNDk4NTk1N2Q0ZWI0ODU3OTI5YjNjZjA1OGZhYWU1NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ODYzNDNiNGZhZGU5OWEwYzBiYTcxMmIzMGI3OTc3YmY0ZjliMTVkOGY2ZDk1MzViYzhiZGM2NmFjOWFkZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMGRhMjkxOGJlNDQ3YTFkMGYyYTJiMWVjYmUyOGY4ODZmZTJkNzQwODQ4ZmY5N2Q2M2MyMzM4MzU5ZDIzNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_31668ac13c894d14aa5455d37870a1b8",
+      "statement": "The Rust job enforces six gates in a fixed order, with formatting and lint before tests and coverage last because it needs a second instrumented build.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L13-L37",
+          "version": "repo-lines-v1:sha256:c5dd3768ec5a8ea62a10512644664203083fc3ab2157fb6121487ebf34137ee4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ODYzNDNiNGZhZGU5OWEwYzBiYTcxMmIzMGI3OTc3YmY0ZjliMTVkOGY2ZDk1MzViYzhiZGM2NmFjOWFkZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YzIwZDcxNTlkNmE4YWU5NmU5NmYyNzY1MjJiZmVjNTQzNzU2OWUwMjM1OGQxYzJmMmRlNzE4N2M3MmJmYWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImViNzJiZDI5OGE2ODY1YTQyNzE2YjEzZDgwNjQxNDAwYjVhOWZlN2QyMmNjYTgyNWRiOWY0NGExMzVhYmE5NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMTg4ZGIwNGI3MjA3ZTQzNzdiNjAwNGRkNTY1NThlZjI4NmM5YmI1N2M3OTQwMjBjN2E1YWVhZjEwZGYwNGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2f285e337c6c45738ba59db41300e59b",
+      "statement": "Lint promotes every warning to an error across all targets including test code.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L22-L23",
+          "version": "repo-lines-v1:sha256:67d6474f266d1d924aea3f3c3984d566e717055cfd5208616be05463378c8cd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRhZTQzYWFhNjViNDJjMTZkODIzMDk1MzQ5ZTMyY2JiMTFiZjNmY2M1OWNiMmE4M2JmOGI1ZGQ0YzAzM2I4OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZmOTg3MTNhMGJhNmY0ZGJkNWQ2Y2FjNjc5MDFmYjQ0ZmYyYzBkZWY1YWQ0ODFlMmMzNmYzYzc2ZjE4Y2EwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA4Y2EwZWExYzcxZjZjNTM4ZGFhNjI3NTYzODYwYTk3MzhmODgzM2UwMjAwMmExZTBhNmE0YjhhMWMxZTQ0NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTA1YWRhMzE2MmYzMjIxMWY3MWNmMWE3ZWQ3OWU1YzNjOGIyNjhlZWY1NjVhMDM0ZmEyNzY5ZGJkNjI1ZGI0NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_19905fd46fab43ada184c79de22137c6",
+      "statement": "The Rust coverage floor is ninety-five percent lines and functions, with exactly two crates excluded by filename regex and the exclusion documented on the ground that every decision they display is computed in the covered core.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/coverage-check.sh#L1-L17",
+          "version": "repo-lines-v1:sha256:5859cabcfdf5fddd0e4999bc07fd24e6fc945e237185b6abc6b8403d9cd737a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTVmYzA0YTgwYzk1MmY0OWNlNDE4ODYyN2M1M2IwZmJlOGM0NDA0MWI5NTJkNTkyYWNkMWRlOTk4NjE0NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYzQzNGZkM2M3ZTgzMGZmOTFkY2Y2ODgwMzM4NzNlNDM2YTQ4YjliNzNkY2FmMmQ2ODFjMDZhNzVlMWE0ODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d639545d886842adb867aa87eb40c6de",
+      "statement": "The TypeScript floor is the same but opt-in per run, so a contributor running the plain test command sees green while below the floor.",
+      "evidence": [
+        {
+          "resource": "repo://bunfig.toml#L1-L6",
+          "version": "repo-lines-v1:sha256:a767cf8aa8a6ee0c80da94458cd296fcb7435ed7b09f610f6d733cd3580f8f03:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBmN2NhNDA3MTljMDlhMzhjYjA3MmNjMWUzMGE4OWI1ZjM2NTE2ODJkYWJmODljYjJkNzJmYTQzODI5ZmMxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGVkYmEzY2YyN2JjNzA2Y2Q0MzU4OWU1NTVkMjNkMGIyNDIzODY5ZmYyZWQwZjhhNDI0ODI2NzM4ZGVmZTdiMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTBmNTU4NGNiNDdjNjYyYTk4ZmIxMThhNTAzN2EyMGU2M2Q3Zjk4ZjAzODg4MzhhYTEyMzljZjMyZTNjNTlmOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fdfde4afcdc84a49bc5443eeb00f419b",
+      "statement": "The glyph ban covers the emoji ranges and the geometric status marks, and its scope deliberately excludes the frozen reference tree whose glyphs are fixture output rather than product interface.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/emoji-ban.sh#L1-L23",
+          "version": "repo-lines-v1:sha256:1aa7d4ddb6577d2c2a05d052c1d5f01c55d94cfe3ee7fe9d742aaa07c5cd4161:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NzVmOTI4NTQ2YWVlNzg1NWNiMWRiOWFmYzhhYjNmMWE4YTM0ZDQzZGU1YmJkNjJmNzA3NmQ3YmE5ZjM5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmOWJkMmRjMWU3YzU5NzIwNTI3M2QyZDZmYjFhOTIwYzAzMmRhMGNjZGZhMWFkOWVjMThmY2FiZWI3Mjc4YTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMTMyMGEyYTg0MGU0ZmYwYTNmODY1NGNjZjdmZGIzMmZhZmVkZWNiYTkzMmNkZTRjOGMxZmFmNjU3NjExYjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_147adefd98e64550a782938de0a84a87",
+      "statement": "The glyph script distinguishes all three search-tool exit codes and hard-fails when the tool is absent, so a missing dependency cannot produce a false pass.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/emoji-ban.sh#L27-L41",
+          "version": "repo-lines-v1:sha256:cd7b3ff0f9ec7d8cc871074b42e0f90fdab08b01f9a8b18e658cf2ffb6279eb2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxMmFjZWU3MGQ2MWFlODdhZDA4OGNhNjRhNDNiNzZmYzg4YmEwMzk1YjIzOTI2NDY1NjJiNzFmZTlmYTBlOTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0YTJiZWNmZjhhZmIzNGRiMjYwZGFiYzk2OTE1ZmZlY2ZkZTg0ODkyOTU0MWM2MTkzZGU2ZDE2NGMyMWU4ZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMTMyMGEyYTg0MGU0ZmYwYTNmODY1NGNjZjdmZGIzMmZhZmVkZWNiYTkzMmNkZTRjOGMxZmFmNjU3NjExYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_78b30c3b71bc413baf03a7f95a8b852e",
+      "statement": "The dependency policy restricts the evaluated graph to two targets, which suppresses one advisory reaching the tree only through a platform-specific path, and states the condition for removing the restriction.",
+      "evidence": [
+        {
+          "resource": "repo://deny.toml#L8-L22",
+          "version": "repo-lines-v1:sha256:6b2ef275c362362ef5440524b3643a589305e6595184b559a4a195bc9dacbb5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhMzA3NWZlZjZjZjQzM2ViN2FkMDYxYWRmNzk0YzNhYWU2NmM4YzdhMTZkMzUwYmM1ZDExMGRkYzBlNGZkZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxODRmNTI3ODQxN2Y4Mjk1MWY5YjFlYzBiMWFjNDhhOWI1OTVkMjg3OWQ4YTEyMDJhYTk5ZGRjMWU4ZDhkY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkODNjZjA3MmIyYzZkNTUyNDQ4YzI1Yjk0NDVjNDVlN2I1ODhjYzE0Y2Q5ZGI1ZDcxNDA3NWE0OTE3MjNmMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd58a89017784892902bbed1fdb200b3",
+      "statement": "No hermetic-invocation environment variables are required to run either suite; the isolation that exists is built into the tests, pointing state and home directories at disposable fixtures rather than being demanded of the developer.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/tests/cli.rs#L62-L75",
+          "version": "repo-lines-v1:sha256:1c8b609a4398a8c8b5e13675bbbfe21bc01e06feb2ade971c4826b6dbd8cb82c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MTc4ZjY4NWY2ODNmNmFiODQyZDdjYzg4MDM5N2JiZTc5OWYxNDdmMmI0NmNjZDJmN2QyOGQxMzY0ZDMwYTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkYWU5YjYzYTFlMTQ1OTk3MTgzNzdiNzBkYzY0OTkxOTY4OTVlMWI1NDlhYTMyZmNlYjZlZWM4MGFlZTU2NjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YjVjNjUzODAwNmZhY2RmZGE4ODdkYjFjM2JlN2MwZGJiMGRkNTllNGNlNGQ0NGJmZTIzOTE3OGM5YjNjNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczNWIxNDY1OWU0NDgyZWI4NmY5YzU2ZjQxZDQzYzU4MDNjMTNhZmMzNTdlY2FjZmYwNTA4ODM5MmY5YzYwZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4520a7e191914bcba3677d5a60416639",
+      "statement": "Secret leakage into generated files is gated by dedicated anti-tests that plant a sentinel in the environment and assert no generated file contains it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L970-L986",
+          "version": "repo-lines-v1:sha256:831ea67127353ddda075ab48d678a04cb396340c4dd9f173ab7c85517b604994:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiOTExNjFkNmQ4MTFlMzI0MmMxODkxY2JjOTJjZTQ2ZDdlMWIwZmU2YTk3NjY3M2Q1OTJkMjI2N2JmZjE4NzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzOGIzZGFlMjQ4YTY2YWYzNjMxZTBmMWUwYWYxMjNmNjJmNzA1ZDRhYmVlZmRiMWUyNDhhOWVhYTJmOWFhOGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2MDRkZDlkMjJjOTQ3MTZlMjVlNGZmNTFkNzhlOWU4NTllMGM4MzYwMjk5YThhYWRkN2NlZjUzN2ZiMjM1OTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1NGY4Nzg1YjVhNzNlMTM1YmQ3ZjAwOTEyZTViN2RiNzlkNzI3ZDJhYzMyOGU0YWEyMGYwMTVlYjE4MDIwOTMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

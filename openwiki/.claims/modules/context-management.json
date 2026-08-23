@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:09092de46c3bb4dc5471e751d0536d010d413a5cbdc174dd89b8c9f0305ee207",
+  "claims": [
+    {
+      "id": "claim_6165a31685554d98aa0c017123c78ccb",
+      "statement": "The codemap is unconditionally re-derived on every apply while the engines policy only records what is installed, and apply never force-installs an engine.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L5-L13",
+          "version": "repo-lines-v1:sha256:00839e80b34d53256544af936e42abd0d21241450109f0f30afa03271810b559:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk4NjMzMTQ4ZWU0N2Q4NzlkYjkyOWM4NjA4YzI0ZTM3MGUyMjM5NzNkOTMyZTIyZmRjMWNlOGU1M2I3Yzg3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2M5MGIwZmZkYWEwNTUyNTM2NzU4ODZhYTExM2IwMDJjZTg1MTRiYzk3ZjcwNmM2ZWRlODkzZTRiZjExZDdmNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzVhZmUwZTQxNTI2ZjY5MzZjNzExNTRkY2E2OTIxMjIzOWZlYzVjNDgyMGM4NWFhZjMzZmNlOTlmMzAyNWI0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmQzY2NkODMzMWRlOTVhYzc0MTczMTE0NTA5NzRhMDhjZDc5Nzg4MDkzZjlkZWE5MDg0YWYzYjI0ODc0MDBlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_aa6df5357b414f938486025807a68387",
+      "statement": "Each engine's enabled flag is derived from binary presence rather than repository contents, so the wiki directory name is a convention string the module never checks for.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L355-L385",
+          "version": "repo-lines-v1:sha256:ec5a47c321c16e899f2c583c5659814ce23bae33ce7da0bd88801e95eaffcaa9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNTZhZjBkNmUwZTcyYWUyNWEyYTAzMmUzM2FjOGRhMmNjNTk2YTNlNTUyOWFkNmI4YjAwMTg4OTQ2ODFmYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlOGU3ZWExMjA2NjdhNjUyMjA4NWIwY2Y1OTkzYzczZDVmYjBmMTBhZjZkYjQwMzY1NTU4NWZjZWRiNjYzYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjNzBkNmJkMTE3YWZlZDQ4ZmQxYTI0MjcwZDE3NzY5MTk1ZjI4NDgzYTc4MDQ5NWRhYjVlNDRmM2JhNmY2YzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ddb3ad21a60a43898f139266792fe487",
+      "statement": "The Personal Brain requires a conjunction of tool presence and an explicit opt-in because that capability reaches outside the repository, with the opt-in recorded separately so opted-in-but-absent stays distinguishable.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L387-L390",
+          "version": "repo-lines-v1:sha256:ce0c331a4811c3ddc70fe3e5d5d0631ae30dfe3d619f6229db229726a8af1601:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjU0ZGI3NTJjMGY5NGVjYjdjNzkwZjNmZThmMGQyNzc1ZWE1MjYwN2NjOWI4ZjVjYzI4ODhlMmE3MmJkMjZjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTllNzYzNTVjZjExOTk0ODBjM2Y5OTgzNmIxNDg2Yzg0MWQ4OTFmYWFkOTA0YzYwOGUwOTMwMjJkMzc1N2FlZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjQxNWFhZDhjZGVkNDk2MjVhYWI5NWMzYWVhYTg5OTIwYmJlNWQyNjM2OTExNjUxMzVjZGJlMzQxMWE3NjBmNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_24da3965bc6a468b8fbce303ec1541bb",
+      "statement": "The skipped-files list exists to defeat apply-order drift rather than to reduce noise, because those root files are generated at different points of the pipeline.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L45-L56",
+          "version": "repo-lines-v1:sha256:6021b5f4668f097c7aca10f26756abe0daf43f180b2e683168b7c4f64d0348d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3YzMyNDk4Mzk1Y2EwODFhM2RjZGQ3OGM3MDlkNjZhZWY3NjkyNWUyYzVkZmY1NWUxNGViYWU2MjU3NWNjYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyNjlkNGYzMWViYTg0ODg1YTJlN2IxOWY3OGU0MTIxM2FkNGU4YTU3ZDc1ZjY5ZWZlOTM5Mzg1MjFlYTBmYjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNTMxNWE1OWRmNGQzNzQ3MjUzY2QwNmNmNTlkODFkOTE0YzFmMWQzNTFiMDVjOWE3OGU2ZjM0NWEzYzg3NWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d75e56b590ec4e208673b161bd438ec2",
+      "statement": "Build output is not excluded from the codemap scan, so in a built Rust project the extension table is dominated by object files and conveys nothing about the source tree.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L33-L43",
+          "version": "repo-lines-v1:sha256:5f3b71a400d26d089fc5a95cd0b4dc46727e0373cc6f2d6d207198763f7109e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5NmYzNDMwODliMzRjMjYwZTBhOTc0Y2NkOTQ5NjIxZGRjNTgxNjc3YzdjZjAxYjIxMGFkMDI2YzIzZmJkNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3ZjU5YWZjNzAyNjk4NTM5MTIwNjk3MjVhMzE1YzljODY3YWU3NjI1NDAzM2NiNmMyNDZiMjk2OTZlZTQ4NjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMzZjMDMxOGIxYTkwMTJlOGJiNzA2Mjg4ZWNmNmVhN2VhZTI5ZTU5ODkyZTliN2VhODYwODM2OTllZjhjZWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_540680f5668643b2976a70b13a3ca648",
+      "statement": "Drift detection compares exactly the three engines' enabled booleans against a freshly rebuilt policy rather than the whole document, so installing an engine after apply fails verify while a changed version string does not.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L638-L658",
+          "version": "repo-lines-v1:sha256:31a5192fb965b7f29cf38d8146fbce49f47eac97d774fc4310a96a3e653eb295:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjNjljYWNlYTliMDhiMzZlMjJiZjlmM2M3Mzg4MzhiMDJiZTNkOTk3OGEzMWZjMDNmNGFkY2E2NmQ4OWY0M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5ZDFhNzc1ODUyNDk0NThlYTVkM2UzNzIzYzE0MTNkMzk1OTJjN2VhMWZmNmI4MDI3ODhjNTMzNzEwYjE3YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5MmU1M2Q1ZGFkMTM4OTQ4NWM5YjQ4NmY2N2QwYWM5YzRhOGQ3ZTMzOTM0MjdiYzUwMGIzNDZhZGYxMGRjZDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33ba97739aec4bef8cf3acc664ff2c6a",
+      "statement": "Verify cannot detect a stale codemap: the marker and refresh-sentence checks are structural, so a codemap describing a tree that no longer exists passes green.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/context_mgmt.rs#L591-L660",
+          "version": "repo-lines-v1:sha256:ae3951a55f4390efffe9d390d61a0baffbe534a1f0433a78b7992596a2e45cb9:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMGYwNDgxODhhMTBhZWYwNzI4YjhlNzk1ZDZmMjY3ZGE5ODIzNWNhOGYzZDIyY2NjYzk3MDU4NjU4N2ZhODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxODczNmE5ZmJkMzQxM2YzMzcxNGYwMTNhZjQwY2M5NGNhNzdhNThjOWViYmQwZDA1NzI4ZDY1YjQ0MTg3YzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

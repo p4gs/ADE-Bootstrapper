@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2a31bac12f0812b806c42087a5092805748301cdae86b0847a429a54a580813e",
+  "claims": [
+    {
+      "id": "claim_7d31f35ce0a0442299e9e08d3f002241",
+      "statement": "The CLI is a single non-recursive match on one command string with no argument-parsing dependency, and nothing checks that the dispatch arms and the help table stay in sync.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L387-L995",
+          "version": "repo-lines-v1:sha256:a20c354701a09d71975b4d8db210c092209c8c7cef4f85c602cd8dd712d05d5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0OGU5NDA1MDkyZGJmYjMwZDdhMjFhYjIxZjU3YTcxZmY3MjUwYjc3NzUyZWIxOTA4NjBmNGU3MTYyZTBmNjhiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODkzZjQwZTM3ODFlYjg5NmM4MmQwNDZhMDgwNjdhMTFlMzVjZGYyZjFkZmFmMjZmZWE5MGI4ZGI2Njc2NDEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4YzRhMTA1MTcxMjJkYjhlNzBmMDZlZmEyYjAwZDM5NzU3NDNiMTNlNjhlYzU5NTViNzVjOWNlNWQ1NDc4NTc4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_b29a4859848f404e82e733e09e5165dc",
+      "statement": "The exit contract is three-valued, with usage errors reserved for parse failures, unknown commands and unknown sub-verbs.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L357-L367",
+          "version": "repo-lines-v1:sha256:698d206aab455679578cd619351fe85594441ff28074126996d7edc58fe3e30f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwYjllZWU5MWJjMGIxYTc3YjVmMjI0ZmQ2OTQ1ZjNkZWMyMzRlNTU5NmI5NDc1YzkwYzVhZWM5ZTZhZTIwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjYjBkYTQxMzEyNWVkNzM3N2FlNjc5NTgxMjdiZDhiZWI1ZjZjYTBiODMzMGNlMDE4OTRjZjQzOTYyZjc2MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4NzcwOTlkZjZkYWEyMWJkNDc3NmI2M2U5ZTMyODk4Yzc2ZmNlY2IzMTgzMTg5NzFlYWE1MTZmYjg5MTc1YzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3fe3058b3d344ae686a6beb101c57dde",
+      "statement": "The audit command deliberately breaks the sub-verb pattern: unlike the other grouped commands it has no catch-all usage-error arm, so an unknown sub-verb falls through to chain verification.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L748-L811",
+          "version": "repo-lines-v1:sha256:70a79dc356f06fe8d50b798890b46de900dd7cdf3a9cf021b06ae4c07a6933b7:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExNDE2NmZhNjUzMzdjYjIwMTdkZDVlNWVlNDI3YzFkYjQ2MjFkZmUwZDZhZWQ1MDMwMDY2YTUyZjA5NWM1Y2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkNjBjZDVjN2ZhOTRiMWRiZGVmMmMyYjZhNmE3NGMxMzY1Y2JjOGQ1ZGZiZmMxZjc5NzAyY2YzOGFkZTg2MjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiY2NiMDEyZjJjMWMyNjg4ZjViZGQwZTkxNTc5OGE5MzdmMDAxMTQ2OTk2YWJkMjU4ZTNhMjRkM2VhNGI4YTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e44798ca61f441528d73a6e2ae9db323",
+      "statement": "JSON purity is structural rather than defensive, because the engine crate contains no print statements at all and every emitted byte originates in the CLI.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L184-L193",
+          "version": "repo-lines-v1:sha256:a751709d21e159e33d822317f8254c287e06e7b72a30ed35865dc86787f4ca53:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwMmZlYzZiOTNlYzE5Njc1MzMyNDYzZWVmNzllZDAwYjMzODc0ZDM0NzE4YWI0ZTEyMDVlYTc4ZDczZjY3OTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2YzUxODJmZmRkOGRhN2Y0MGYxZmExNzk0Mjc2NmZhNjVmNDliNWYyYjdkMjc3ODEzNGU0ZjcwNDA0MzYwMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6d1353bc93df4dd3bbdecaeb3ee782db",
+      "statement": "Two writers bypass the single emit function and are the exceptions to audit when changing output: the config-loading error path and the scan sub-verb, which always prints compact JSON.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L226-L242",
+          "version": "repo-lines-v1:sha256:66be3f2812d8691ea5b54f890b43ef729a800dbaff81d2bf8895b3510fa38ce1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MmI1YmFlZGVlNzdlYzE2YWU1ODVmY2Q2OTZjNWRmNmQ1MTFkNDMwNTBlZDhkY2NhMTlkNmMzMTRiZDI2NGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhNWQzYWQ3MTdmNDI4ZGJmZGRkZGEyNDE0MWZmNGQ1MTgxMjhmYWJjNzk1M2VlZDhiMzVmNzA3MWNlZTZlY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5Y2U0YjZkMDM1Y2EzMDg1OWJkNTkxYzdkM2YxMDFiNWNmZDdkOWQ0NDYwZTRjNGNhMjY2YjdkMTBjYzA5Y2IifQ"
+        },
+        {
+          "resource": "repo://crates/ade/src/main.rs#L967-L981",
+          "version": "repo-lines-v1:sha256:584e87955fb831d9d97f150c8af50049e5752d1a18b9528ff264c5a9c4eb32a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5N2IzNmM4ZGY5OGVhYTQ1Y2MyZjhhNzQxZWE5M2NlZDUwZmFhNjlkZjY4OWZhYjdmMWIzNDlkMjNhOTI1YWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MjJjNDJjZDE5YzZkMDNkODA4YzQ1MjcyMDU1MjgyNWI3ZWExYzViNDkxYjIxODUxMWNhYzc0MTVjZjlkOWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjYmM5MTNiNjRmYjcwYmU0Y2ViMmY2ZTdlMjI0ZDBiODFlY2ZmYjliMmNkZDExODMxMjdmYzhkMjJlNjRjNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2NGEzZjVhNWMxYjEyMTFhYWI0YzdkYmIwM2IzMTFjNjcwMTFkMjdlMzAzNmY0NGIyMTYyYjdhMTQwZjE1NDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8facc76fa2764c8f99440035802979d4",
+      "statement": "Emit degrades silently on serialization failure, so a serialization defect surfaces as an empty or null document with a success exit code rather than as an error.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L186-L189",
+          "version": "repo-lines-v1:sha256:0def40de1335eca62ef2f8695ff68fa4e007d511bcbad8d1b72947289a2e82cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODJjNmJmYjRjNTMwYjA0NDExMzg0OTQ0NWE5YmQyNjZiMzU4NzQwMjEzODU4Mzk3MzVhODgwNGU5OGY2ODc1NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWU3NWM3MGQ5NDYzNjI1ZTEwNzlmZDhmYzhlZTYyYWQyZTkyYzQyYmVhYWJmZDg1Yjc4ZDhlMGE0OTc5Yjk0YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDY4NDZiYzA5YzY3YmVlNTcyYzg2OWUwOWVmYzUzNzlkYThiMzliNzc3MjhmMGU5OGU5MzAzZGZiMjQ5ZDcwZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzg3MTdlZGJhN2MwYWVhMzZlMTBjYzFjYjRmOTRmNDMwZmQ4MmM5YmY3OGE2ZmIyMDU0MzU4MzViNDRhY2NjNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_988bb43a2e2e434f8f4b493260ca390a",
+      "statement": "Flags are global rather than per-command and are accepted after any command, with a repeated directory flag last-wins and only the last parse error surviving.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L129-L182",
+          "version": "repo-lines-v1:sha256:41d7e5f6969c1ab2716bc67bc4bcf52d3c56660e797687dc39c514e5d6924dd9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlODMzYWU3ZjE2YjY3NTg5ZDc5YjM5NjU3YmFmOGU0ODE2MDQ3ZmY3NzA5Nzk4ZjJiZWZhYTM5NDJiYTZmMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOWI0NTc3NzliZjJhZjBiMzhlOWNkNjdmYzFlN2QwYTZjNjgxYTdhNjZjMDM0NTUzZjVkMDdlNmQ3YzMyZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2ODQ2YmMwOWM2N2JlZTU3MmM4NjllMDllZmM1Mzc5ZGE4YjM5Yjc3NzI4ZjBlOThlOTMwM2RmYjI0OWQ3MGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_acab03fb23914934bc2a642f520dd6d5",
+      "statement": "The directory flag is silently ignored by the commands scoped to the machine-level home directory rather than rejected.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L812-L822",
+          "version": "repo-lines-v1:sha256:30a6f1da91b2903bd87f8b39725831096395adb6e24c690d82b8ac6a712653b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxNmY4ZWU0ZWUzNDQwNjFhNzM5ZWQ0MzBkNWM1MDM5MjU1M2JiNGI1ODc3YzZjNjBhOWVjZGM5YWVmMzAwYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZjMwODEwZjg3NTdiZGU0MTkyYmFhNmQ3OGVkYjkzNWZhYTNlMGYwZTk3NDU0MDFjNzUyNjUwMGJmYmI4MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEwNmE5MTk2NTY1NDk2NDU2MmZhMjYyZDBiZDg1MzE5N2JkYWQ2NThhMzFlN2I3ZTg1MmMxMzFlN2JlMzFkNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzMTBhZWIzMDEwYTM1MzgzNGJkZjBlODgyNGNhOTdmNTMyMWMzMTNlYzNjMDcyYmQ3YTE3ODE5MDYyMGMxZjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3dafa0cf41f34f72bbb606335c14bbbc",
+      "statement": "The status row's findings field is skipped during serialization, so findings are retained for the desktop apps but structurally cannot reach the CLI's JSON.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/report.rs#L47-L56",
+          "version": "repo-lines-v1:sha256:99284cc36461c1554e491aec1e0ca82bc1e7e7056680207910a9188284a98b60:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNjk4OWZmZTM3YjYwMGViYmY2MGRmODllODk3OWY5MGUzYWUyN2ViMDJmMDc3MmE0OTk1ZjAzOTcwNmY2ZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3MmJjYTAwYTNhZmE3MjA2OTdlZjk4ZTJiNTZlODg2ZGVlNWZhYzg2ZGRkYjVmY2Q3ODlhN2VhZjdjOTIyZDQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

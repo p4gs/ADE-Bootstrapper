@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:54abed67d71e8ec9f00a4682b8a15ff4694ef50063002516e53e4ffe2a9c043a",
+  "claims": [
+    {
+      "id": "claim_4239e015f44d42cc8cdde2971bfcab59",
+      "statement": "A module is a static singleton behind a trait object with no dynamic loading, so adding one means editing two files and nothing discovers modules by convention.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/registry.rs#L1-L27",
+          "version": "repo-lines-v1:sha256:a0aa213b70d305987b66b5827c9a7fbe01d8bb193520e67b133aa04c78d787a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYTYyMGFiZWYxZWE1YTA2ZWUzNmVkYTYwY2RjYWE1MDhiYTVjMTdjZTE2OGM2YTA2OTcxOTJiOWE5ZmM5ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1OTc2MTE1OWE1MmM3OWQ3OTA4ZDlkODQwMjg1ZWU3M2RmYjNiMDBkMTkxMjkzMmVjOGJmODBjMGViMmU4ZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2d397976c8c443da1e34fce7b472f38",
+      "statement": "Registry order is load-bearing twice, as both the apply order and the instruction-composition order, so reordering it silently rewrites the generated instruction file and breaks the lockfile hash.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/instructions.rs#L32-L44",
+          "version": "repo-lines-v1:sha256:155dae3328877d2793a32b756b60b7bd0d76393e06edea9031bdb735b6162152:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyY2FlN2YzZTU1ZmYwZGViYmIxZjY3MjgzYjA0MTQxODcxNjQ5YWJkMWViZWNlNWJlYjUwNDg0MDZiYTk4MzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzMDVlYTg1M2Q4YTlkZTUyN2FiMjQ1YTlmYmQ3YzdhOGZjZWQ4NDIyYTI4NDFiNDZlZGFkZWFhZWZjMjRiN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzYzczMGY0ZDJlZDI3OWJmNmM0MDE1NWUwM2Y0MDMzNmM2YjRiY2UwNDk3MDRlYTkwMWFiZDFkNDgwOTBmMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_36ed0ed506bf4af7865cb7c990f94232",
+      "statement": "The detect method is never called in any shipping code path; its only call sites are test modules, so it is an extension seam kept warm by unit tests rather than a runtime stage.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L274-L290",
+          "version": "repo-lines-v1:sha256:0b0c227afad068f5cd6a3031635d862c770e63d55fbe3d989a9c21dfc4515007:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZDk4OWY3YmViZDZkM2RkYmZmYjNlZjJlYTEzZjQ1YmRjYWZiMDA5YTlhM2RkYWYxODg2NjMzYTA1NWNlMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiZTdkN2NiMjExMzcyMzA1ODczODZkZGEyMDljZTI1NGNlMGQzYjkwZDE3MTc1NjczNjNiODVlNGY0OWMyNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0YWVlZTkzMjRkYmFlOWI0NWZiMDcxZjIzNzBjZjViOWEwYmEwMzJkODdlODk3YTU5M2RiMGEwYmI0YjAzMmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0bee4ac1e3af4b3f860f0e82dd6fafff",
+      "statement": "Degraded is a first-class success: a module that wrote its artifact but found its enforcing tool absent returns degraded and the apply still exits zero, while only Failed fails the run.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L318-L321",
+          "version": "repo-lines-v1:sha256:41db346245beed6cf8800ade9ae4493f2551569bbed4c835829a4fe0d3e0f9cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzU4ZGY0ZmYzNzUwZDhkZmI5YzdkNjI0YjAzMTBhNjVjZjYzMWI1YjhkMWIzZTAzZWExYWZlMjc1NDA0N2ZhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWU1OTFiMDNhYTAyYTFjZDAyNjU5ZGI1YjllNTQ3ZTRmNjY4ZWVlMTdkMzg1NmJkMWM1YjVhMzhhZTQ1M2FkOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGY1M2YxNDFhYzFjM2I2YTdlYTc1NjFiYWFhZDBlZTkxMzY3NzRiMDdjZGI2NjFjYTRjNDQ2MDhiNzgzM2ViYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWIwNDU4YTgxZDg3NTdiYWI5MGIxYmM0NDcwYjA0OTQyODBjZjBiY2ExMTY4NDZhY2M1MWZlZWQ4N2QyZGY5ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8817559e4a6c4df4b1ee46de69c31be4",
+      "statement": "A module's reported written paths field is documented as feeding the lockfile but is never read for that purpose, so a module writing outside the ADE-owned tree gets no hash coverage.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L148-L155",
+          "version": "repo-lines-v1:sha256:01c6855ece9e863eb3a1c64553b62476108c746eee2e1b16290455b94f4dd034:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ2NTQ2MDY5NmU5NWU1M2RkODY4ODNiN2U1OWM3NjJmN2VkNDkwNjdkMGY3MDVmOGNlNDRmNDRmMGMxYjhiMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjhmOThlOTE1Yzk5NzIyNDk2NjU2NmJmYjc1MWY1MmJlZGIxM2Y0N2NmZDcyMzY4ZmJmMjVjYWUwNTI3NDg2OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTU5NTViNzViYTAxMGQ5Y2JjNzc2MmQzZjE3NjdlM2Y4ODJkNzQzYWFmZmQ0YzE0ZDVmOGY2YzM0Mzk4NWNlMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6e48246be6cd4c30a158ec8fed68ac0d",
+      "statement": "Integrate-never-force-install is realized as a shared helper that turns an absent tool into a degraded finding carrying install guidance, never a subprocess install.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/shared.rs#L20-L29",
+          "version": "repo-lines-v1:sha256:40fcc70d486c2bc310d81191cd81be781f758b80758d682481656abe07d17a9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4YTg0MTkyMjU4YjE0Y2I4N2U2YWE5Y2U1ZDEzYzhhYWIwZjUwMmQxYjg4M2U5MTdiODJkNjFmNDVlNzI0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjYzE0ZTYxOWIwYmFlZThhYTA4NTJlY2U1ZjY2Y2I2NjNkZDU3YmQzYzk3ODUxY2NiYzIxNTE1ODgzMjQ4NWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzNDI2ZjJiNzgwNjgyYTJmODRkNzQzZjA3NjcyYzJhMWQyMDc1ZWJhYTMwNGNhOTU5NjVhYzY3NzlhZDI1ZjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b04a4b897c4e4c67b2887426357d859a",
+      "statement": "Option validation is per-module and opt-in, with options fetched untyped by id and returning an empty object when unconfigured.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L171-L184",
+          "version": "repo-lines-v1:sha256:ffd2059e4a7d3d5203e9b242d83cb574f57dfd61686e14583cab9a7945e0d8d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkNjU0NjA2OTZlOTVlNTNkZDg2ODgzYjdlNTljNzYyZjdlZDQ5MDY3ZDBmNzA1ZjhjZTQ0ZjQ0ZjBjMWI4YjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlMjExM2M4MmQxZTNmZGZlYTMxOTkzNjkxYWFlNTU3NmIyOGJiMjQ0YzFhZjM1MjE5NGNjZmU5NDU4ZGUxYzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5ZjYzYjExMDhiZTc1ZWUyMGE0MGNhYzc2Y2Q5ZWJkOGIzMzI2ODg2YTM2NmEyZjNmYTQxYjdmMmQ2MmZjYzMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

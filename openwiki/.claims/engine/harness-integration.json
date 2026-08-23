@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:12a8fda1533822225cb8f82b3c1d8709266c3d7538b31bbaddc29a91013c274b",
+  "claims": [
+    {
+      "id": "claim_c01c0d32de704b06b32b3afa9988b999",
+      "statement": "Seven coding agents are declared as a const array with no dynamic registration seam, each carrying an instruction-file path, CLI names, detection signals and three capability flags.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/adapters.rs#L6-L91",
+          "version": "repo-lines-v1:sha256:7b0630c8d4b79ba6a13bf7790bac43e01f7663f46421f1631e91b337ee8af39e:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMWI2OTZkMWU3NzhkMTU2MGFmMjczOWU4MzYyMjk5ZmE3ODUxZWRjMDNlM2FjY2IzOTk2YTI3MGIyODFiNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlOTczOGJiOGUwMjNjNTNhN2NlYWVhNWJmOTI3MjU5NDU5ZGRkOWMyZjEyZjVhZGFlZmZkYWU5YzlhYjhiZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiYTczZjhjY2Y3NWM5NmJmM2JmM2M3OTIwMDA0NTdlN2FkNmQzNDI0YzMyMjJlMGMxMDMxNDZjMTk0OTg0ZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_13af96077d5b48c890802694b7633e0f",
+      "statement": "Capability flags are the enforcement boundary: only claude-code has hooks, only claude-code and opencode have permissions, and the remaining agents receive instruction text and policy files only, so they get ADE's guidance without ADE's enforcement.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/adapters.rs#L13-L90",
+          "version": "repo-lines-v1:sha256:e80cfc2782daada6539d9e223a77939d3f58bd01b899907e8a91e62af288f98b:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MzNmZjMzMjUwZDZlYWI1ZmFmYWFhMzMwYmYzODU1Y2Q1MTYzODRmNTAzNzgwMzI5NDA0ODEzZjFjN2Y0OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmMGNkYjk3MmE3YmZiN2VkMjQ2ZjlmZjY3MjM4NWU1NWY0OTY4ZmMxMTA0M2RjNWI2ODRkNTFkZmEzMWRiY2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNjEzM2Y0NDg1NTIxYWYzNmUzMTk2MGY1NzdkYmMyYTNmMWQ0NDY3ZjE1OWZkMTM1NTdkODU3ZDgwMzk5MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhYzI3Y2ExODBmZGE1ZDU0YzI5YTg1MzM4NjkzMDFhNTBiMDhkODJlZGEzNmE3MDQyZmQ2MDljYmVkNzcwMTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_40fc9f12929243cfbcb3acada47cb2e6",
+      "statement": "Every Claude-side JSON mutation passes through one merge function that refuses non-objects and unparseable JSON with distinct messages, so permissions, MCP registration and hook wiring share one refusal contract and one determinism guarantee.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/claude.rs#L15-L48",
+          "version": "repo-lines-v1:sha256:1c29e3d18eca9d437aef76457c578812dbcd0e92f76e0f9cbce0413d6c7f3b16:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwOWRjZDM0YzgzODJiMjc0OGVmODY2Zjg3Mjc3ZTA3YWFmYTcwMzM5OTBjYzUyNjc2YzdiNTE5ZDI3NDk2OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3NThhZjdhZmNiYjQ3NmFjYTBhYjNiOGJmMDM4OTBkZTNmZGEyNjMyMDc1NjM5MGRlM2UxYjM2OTdjZTdkMmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5NWFhMzRlM2MxNzM0MmIyZTQwZDBlMzYzZTgzYjQ3NThkZTVjOWVlNTM2YzJiZGEyOTE0ZDcxN2E4Y2NmNzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7d7378458eb84e05a4ef726f9daa8ef6",
+      "statement": "MCP registration checks for a same-named server before merging and returns an informational finding preserving the user entry, rather than relying on the merge to win the collision.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/claude.rs#L52-L85",
+          "version": "repo-lines-v1:sha256:51c8cfa5cfd1e3d361baed537b222ec60b874c2c0c5366be515f1f73f8275070:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5MDVmMmM4Mjk0NzFkN2ViMDc1MDJmZWEwNTI0YWRiMTk5MmZiNDAwNDcyZGE3NTIwYWE3ZDBkN2Y3YmM0NWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NWFhMzRlM2MxNzM0MmIyZTQwZDBlMzYzZTgzYjQ3NThkZTVjOWVlNTM2YzJiZGEyOTE0ZDcxN2E4Y2NmNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzMGRjYmJlOTRlZDQ2OWUzOTE5Y2Q3N2VmYjc0MGJmNGJiMWM2OGYzYjIyNDhiYjcwYTRhODAxOGFhNmMwNDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b9338a1d6a840968f576175a29dba30",
+      "statement": "Hook wiring is expressed entirely as a settings patch, so idempotency is a free consequence of signature-based array deduplication on identical entries.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/claude.rs#L90-L113",
+          "version": "repo-lines-v1:sha256:5813990ab4b791515665bf85e2d921359c66f3337c9e3e8844d87b675147fafd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5ODFjOWFlZDY2NTI2NjBhYzgxM2QzYjhmNzZmN2YxZTM4ZjAwMTVmNzI2YThjNWQ5MzYzZDUwNDczYzg1YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjNDQ4ZDQ3YTY2M2QyOTEzMjMyY2JmNjBlMGMxYzI4YjVmNTRiZTA4MWNhMGU3MzBlYzViMDE5Nzg0YzYxOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM1NTUxZTY3YmMyMzg1OTRmN2RhYzRjZDM3MjBjOTIzNDhmNTY5YTU1Y2NkODdhNWU4ZWNmM2MxOTdiZmJlNzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5e1b670b25fc40bf87fdbb2256f0251c",
+      "statement": "The shipped audit hook keeps the oracle's TypeScript filename but its content is POSIX shell that executes the ade binary, and it drains stdin and exits zero when ade is not on PATH, so a repository bootstrapped without ade on PATH silently records nothing.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/claude.rs#L115-L138",
+          "version": "repo-lines-v1:sha256:06168847ebb268d6c0bd7eb6c543577d48ea4c3e628b480c8def6d06d79f3350:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjMWNjYzEzMGEwNDczMjFiYjIxYWFhMWViODM2NTFjMGIwNTAwYmMxNDA5MGQwNDM4YjI4ODA4Y2NkZDI1NGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmYWNhMWU4YWJiOTYzODQ1NTFhZTI4MWE3MWYyNzFmYjg0MDBiNjI3NTUzMjMzOTViNDViMjliMDRlMTY0ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc34f11fe7e347e0911374cc6cc44a60",
+      "statement": "A refused merge downgrades the module to Degraded rather than Failed and drops the settings path from its written paths, so a broken user settings file degrades the bootstrap instead of aborting it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/observability.rs#L183-L192",
+          "version": "repo-lines-v1:sha256:d76bd23ef602041f6d744f6ef3f129d63ac9b3016b0e7a787cd283c462bd04f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMzNlODdjZDViNDlkNGZjZDRjNTdkMTE4ZDkxYjcxMTJhZGEwMDc5YWUzOGFlODkwM2ZiOTNkYmZmYjQ5NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzYTg0NTYzNjAwYmNmZGFjN2RiYWM0YjUwYjdlYTgwMDdlMjUzYmQ4OTBhOWE1MjRiYTRmN2I1YzgyMGY3ZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4NTJjODY2NjQ1NWY4NjJkNDBlZGFiZDBkNjgwODJlMmZhNjc3MGEyNDFmNDQxNGNjZGViNTIzMTZkMGU3NzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c6d4831b48fd4fe4b902319f4d1698fb",
+      "statement": "The OpenMemory MCP server is opt-in: without the explicit option the MCP configuration file is never created or touched, so credential-bearing integrations are not registered by default.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/memory.rs#L41-L47",
+          "version": "repo-lines-v1:sha256:0cb196ef3be32dd05d296c78ff877ccc8fa0fa209c2014c6f00428d65a9be272:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjMzZTZhOWNiYzQyNzY3NzMwMzEyMzIzZGY4OTI4MDM1MjBiY2Y2OWMzMjUyNjBmMTU1YTM5MzAyMGRmMWZhNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjA2M2M0ZDFhZjhjZDg5YmIwYmRkNzY1N2ZmY2JmNjgwNmE2MTBkNzlkNmM4ZDRjMzA3YzI0MWRmMzkwMDUyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzI4ZGY1NjgxYjQ5NTA5YTVhYjAwNTNjZDEzMzc2YmNmMzMwNWM5YTU1MjY5Y2NjODAzYTA5NDBkNjY1Mjg2ZSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

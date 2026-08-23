@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:bd2800a08000294a71fc72b19aeb3731e06034eebfdeba394134bd09dbbc56af",
+  "claims": [
+    {
+      "id": "claim_9acb2e859a3a4da9be133307bb58c05c",
+      "statement": "Every module's apply and verify runs inside catch_unwind, so a panicking module is reported as a Failed result and the run continues instead of aborting.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L229-L237",
+          "version": "repo-lines-v1:sha256:81d1efc7920951cdf5a4e9fb149d1470c0c612c1f79fbda12d52073bc46b4bf5:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBmYTRlM2IwNzMxNzRjNzMwOGI2NWE1OWYyMzc5NjI5YzZjYTIzYTNkMzk4OGMwNWUyODQ2NmVhZjhiNGE1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGU0NjJiZDg1ZWEzNTIyODIyYTlhZDNlYjI0MDk5YjAzMmExYjYyN2JlY2ZkN2M1ODMxZTk5MjdkNGJhYzQwZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzUwMmRkMjU5ZDA4N2RkNjBmNTlhOTJlOGUzMTc2YjNiY2Q4YWU0MzgyNWMxM2I1ODcwM2M4MTIwM2RmNmNmZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWU3YmUwZjU5YzFiOWU1YTgwMTVjODE4MWI2MmFjNTYwNjlkNTRhMTVkNzVmYjNjNGE4NzAwMjE0MDdlYzFkYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2335022b4ab34d7db735cf235986e1b2",
+      "statement": "Module execution order is the literal vector order of registry::modules(), a hand-maintained list with no dynamic plugin loading, and that same order is the instruction-composition order.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/registry.rs#L1-L27",
+          "version": "repo-lines-v1:sha256:a0aa213b70d305987b66b5827c9a7fbe01d8bb193520e67b133aa04c78d787a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYTYyMGFiZWYxZWE1YTA2ZWUzNmVkYTYwY2RjYWE1MDhiYTVjMTdjZTE2OGM2YTA2OTcxOTJiOWE5ZmM5ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1OTc2MTE1OWE1MmM3OWQ3OTA4ZDlkODQwMjg1ZWU3M2RmYjNiMDBkMTkxMjkzMmVjOGJmODBjMGViMmU4ZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_947c74de873048a2b67f5f99ae481569",
+      "statement": "plan_pipeline performs no writes and hardcodes the four core-owned actions, so ade plan describes core behavior no module can contribute to.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L166-L207",
+          "version": "repo-lines-v1:sha256:f2267372e78438f255fe0e8be146e09c1444a0b22b8cbd43ebb49a36b1303654:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZDNmM2MxM2UwMTA0OWY4ZjEyOWMxNTdjMmU5ZTc2MjNkZjM4YjU0MzUxOWY0YzkwMzI0OGM1Njk5YjhmNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYjNlN2IyOWE1M2M2NThiY2FlNmVjZDFmYzFiZDhkMTJhYTMwODAwNWFjNGY0NzM2OTlmOGI0NmQ3ODM0MzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_442606d821c04a99af6a165c5ca047cd",
+      "statement": "A module disabled in ade.json is reported Skipped with the finding 'disabled in ade.json' and produces no audit event, because the audit push happens only inside the enabled branch.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L215-L250",
+          "version": "repo-lines-v1:sha256:4ac3b06147d0d5b6baf9bea4a3853c23e897d9982754e31d4163dd9c3affdd1b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NjI1MjgxZWUxNDZjZGQwN2IzYzNhMTEwNzQ1MzNjMGQ2ZTYyZDAxODYxOGZkZjQyZjhkY2E2YjBkMWE3MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5YzEzNTkwNjY1NjMyM2QxYzVlYTQxNjU0ZWU2NmFmYjU4NWFjZGNmYWVhY2ExMjFkNWUzMGJmMTkzZWVkZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyMDhiYWI0ZTJiMzI3MDlhYTdhOGQ0NjcyMWViNWZjODQ0MzU0YjI3YWZlMDFhYWVlNzI4NjdjNDhjMDUzMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiZjZiNDBhNGNkNWFhNTRiMGIwOTIzMmQ2YjQwYTRkYzA4NWRlMDQyYjA0ZThhM2M5Yzc3OWY5ZTI1MzE2NzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7a7c97cde3e147548e63a72693499575",
+      "statement": "Instruction composition, the user-owned local stub, translation, lockfile generation and audit append are core-owned steps that run unconditionally after every module and cannot be disabled through ade.json.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L258-L315",
+          "version": "repo-lines-v1:sha256:91899ea72de39c292fc2b6fb9b0a5eb6b83f2ccb87d57b9bf64e885e5ef24e25:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZGIxYTYwMDZlYTJjNWYwMWZjMWQ3NGJkNTQ1MDkxMzM5ZmI5NGQ5MDA2MjFhN2NhMjZkZGM1ZWM5MWM3YWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxOTMxYzE2ZjM5Mzg3N2FhYWJiNTFmYWZiY2Y2ODYxMDEyOGU4ZjAxOTM5ZTIxZjBhNTFiNDM0MzAyMGYzYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MzdmNTkyNmQxMDA1Yzc5NDI4M2EzYTI3ZWYzZWVmYWM5M2M2N2E3NTg4MDg5ZTE0MGM0N2RiMDg5MzhhOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e98b7c88a6054229ae43faf43b09b411",
+      "statement": "ApplyReport.ok is derived only from module statuses and translate results; the instructions write, local stub write, audit append and lockfile write all discard their errors, so a green apply does not prove ade.lock.json was written.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L262-L305",
+          "version": "repo-lines-v1:sha256:ff4c4941f696fd2d516f85ae561128d104ae89fdc7727207c6302cd35cb99b87:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YTljMGQwMWJlMzhhYzk0Mjk0ZjFmYWI4MjU2MDEwODMyYzQ2OThlMzY1ZTUyNWQ5N2EyOTVlNWFkZjJiOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2NDBhZWY1ZjljZDlmMjFmZWU2ZTAzZDQ1YTEzNmI5YmU1YTczYmUxNTY0NDYwZjRiZmZhN2ZkMmMyMWU1NzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0MGFiMTYxNmE5ZWZlOTU4NDMwZjIzYjEwOGQwYWU5MTkwZmY2MzFlMWNmMmY5ZTFiYTNhNmEyYWY4MTc2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MTZmZmI1NjhlZTc5ZTEzY2YyMGM1MTRhMzUyYzAzNGI4NTgzYTAxODk4NDA0MTg3N2RlOTUzZGE4ZmVhNDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e376c9a5e4d9404c816e7b86434c980d",
+      "statement": "The lockfile's audit checkpoint is computed after the run's own events are appended, so the lockfile always commits to a chain that includes the run that wrote it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L297-L315",
+          "version": "repo-lines-v1:sha256:d7aa8a7ff1f0b8c154cc0fcfd29af23791692692c83d8e088ce906b1056405af:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmYTNjNjk1NGEwMzZiOWQ5YWM5Y2Y3MWIxYTZlZDM2ZDkyMjhlMmVmYzUwOWMyM2M4MjhhZDkzOGQ5MjIwNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZGIxYTYwMDZlYTJjNWYwMWZjMWQ3NGJkNTQ1MDkxMzM5ZmI5NGQ5MDA2MjFhN2NhMjZkZGM1ZWM5MWM3YWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyY2MwZDQ0ZGRlMzkxMDE4YTQ1OWMwNmIwOTBlZWVjOGRmNTA0MTg4Mjk3MzIwMmQwYTc2NWZjOTM1NjRjYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MzdmNTkyNmQxMDA1Yzc5NDI4M2EzYTI3ZWYzZWVmYWM5M2M2N2E3NTg4MDg5ZTE0MGM0N2RiMDg5MzhhOTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5166fce816b341c594b9e5640c35e3e4",
+      "statement": "verify_pipeline conjoins four independent verdicts and omits disabled modules from report.modules entirely, so a consumer sees fourteen rows rather than fifteen when one module is off.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L341-L395",
+          "version": "repo-lines-v1:sha256:5408655b0201577a97f9d8d4e919a8b067ed287b6bc5a048d67916c2294b5941:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4ZDU2YTgxMDU3ZjZjMWIxMTkzNWZhNzAzZGY3ODU5OWEzZjRlZmZkMzk5MzIyN2E1Mjk0OTA1MWI3M2IzNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyNzYwZDdjODk5ZGY2NWVmYWQ4NDVhMWMyMTgyYmVhNzg4YzI2MGNkMDJjZjc1NDFlMzVjZTM5ZDhmMzY3MWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMWM4MzdkNzY1NDU4OTQwY2NkNTNiMTI1N2NhYjA2YmYwMjU2NjhjZTBiZTBkOTNhMGM2YjA4MTNkYjFhYTkifQ"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L412-L419",
+          "version": "repo-lines-v1:sha256:f886161e7ebc8fe79e1f88964a1873327bc808f1e751dbf162b8dd6d5987782c:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTdmMmRkMDczODA2ZDE1MDk2ZWY0NGRkYTljOTk5YmJmZTgwNzM4NTdlZGIzNTUyYTBkMGM1M2FhMzlmMDgxMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDc5OGMzNTUwNzRkM2RlY2IxNmZlODQ3ZjFjM2Y5NjBlZDc1MzU2MjIxYjQ2YzkxNjMwMDRlMjMyOTUxMTMxZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2JiYmIyNzE3MDUzMjdhZGI5MGE5NjllMTc0ZjViMTQ2NDVjNjY5MGQ4NmJhNWVkNDVjZGMyYmVmOGJkOTdjMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a76d414da5124ce2b15aea6525a77f45",
+      "statement": "A translation refusal such as a symlinked instruction file is recorded verbatim in the tamper-evident log as 'refused: <error>' and fails the whole apply.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L274-L295",
+          "version": "repo-lines-v1:sha256:45ecbaf17f83be5c44dc1374d20fb2ff460fb05a96c7eba26bd3f6efe3944330:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyM2RmZDIzMmQzODVkOGQyNWU4ZTc4ZTUzNWE4YWJjNzUwZmRkMzA2OTczYTg4ZmFlNmU4NjdhMWEwNTEyNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMzU2NDk4MWVjZjg1MDIxYTYzZjBiOTkzYWQxMDFlNWQ3ZjM3NTAwZDc1YWEwZjZkMmY0MzEyOGVmMWQxNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_86489ee1e9de4b1db6d10a7db1ebaaa9",
+      "statement": "The comment declaring .ade/instructions.local.md never hash-locked is contradicted by the code: walk_ade excludes only .ade/audit/, so the user-owned file is hashed into the lockfile and editing it makes ade verify fail, reporting a user-owned file as a generated one.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L265-L266",
+          "version": "repo-lines-v1:sha256:cdf2ab298523fb6c60b08ea97836d754a51c9be4cb4136825e35130bf3241528:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmMyMGQzN2UzZTQyZTA1YTQ5YTU3MzAzMjIwOGViMzNiMzgxNGFiZDZlYjg3YWRkMThiNTAyNGYzMjRlMGUwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWRlNGM5ODFiM2MxNjJkMWUyNmQ4MDkwODNhNzQzNDIzOTA2ZmQ2Y2I5ODI1MGRjMzkwYmM3ZDVjN2E0YWZjZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzQ5NmU2OTQ2ODJiNmViYjdhNmQ3Yjg0NDZhOWQ0ODVlYzNmMmY1MWU1MWU3OWY4YWNiYzU4MzU3MzU4NGE1OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWExZTNhNjNkOWMyZTBiZjgzYzUzMzAwNGFlNTlhN2EyMzQ3MGFmZGJhZTFjNmJjZTVjODQ2MTRiNjIwOWY1OSJ9"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L100-L112",
+          "version": "repo-lines-v1:sha256:d02fc6d653cd771b7b7c38a89e54193644d8b1fe2c52dd5472d0dbcd0f2c1664:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4OTc3MWZlMWI2NjI4ODc1YWEyM2U3ZGJlNGFhNzE0NjFkMDBjZGZiNjZkZGYxMWI5ZDgyMGFjNTg5N2ZkZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyNDUzZTk5YzkxODE1ZDU2OWRhOTRhZjBkNzU0ZmI4N2JhYjRmMDFkNjM1NzE3ZjFlMWY2NDA1MjliYTMxMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1NzE0ZWEyZDRjYmM4NGM0ODY5ZTM1ZjQyZDQ3ZjgxNDQzOWEwMDRlNTAxODQzMjU0MGNjOTZjMDNkMjQyYmUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

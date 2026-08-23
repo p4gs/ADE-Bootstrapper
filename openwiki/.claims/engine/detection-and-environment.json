@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:70affe190d0bb43c103a78008a761f99c7ebd912fa8275e6dbd2a3d9b7cd1059",
+  "claims": [
+    {
+      "id": "claim_b930396cfdab4aeaa56cb30791455f5a",
+      "statement": "PATH resolution exists because a process launched from Finder, Dock or launchd inherits only /usr/bin:/bin:/usr/sbin:/sbin, which made a fully equipped developer machine report every capability as missing.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/envpath.rs#L1-L15",
+          "version": "repo-lines-v1:sha256:3c85dadc0ac214ac6a5dbfe4c079383b7b67a1c43200668d38e0cd99a51a89a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YWZjZTFmNzMwZDBiMjM1ZTZhNGU0ZjhhNjE5NmRhMDU3NDY1YWZlNTdhZGZhNDU2YTQ0M2I4YjJjODBjZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlM2UwYjdjMGY1Y2Q2MDQ5MTkwMzA4NmQ4YWVlMGYxMDNmMWMyZTYxZGQ1NTE3NDEyNDYxYWI5YzgwOWRkYTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0ZTIyODhlNWMzNzI4Yjg2M2UyOGI4NmExMTgwYjliNDlkMTRiZGQxZGE1YmMzYmQyY2ZmODNkMjI3MDE1MjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6c2bc618d6b24c8f86ff9c3d94926a7d",
+      "statement": "effective_path merges login-shell PATH, then inherited PATH, then conventional install directories, deduplicating while preserving order, so the shell's answer wins because it is what the owner would get in a terminal.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/envpath.rs#L46-L74",
+          "version": "repo-lines-v1:sha256:dbf89279b9fabbcab9450524f9ba99f9f6ac2c615b2127304321fc2276eaf82a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyYzBlNDMzZmQ4MzNiZGM4NmUyNTAyYzA3YzY2YTdlYjhmOWRhM2Y3ZjJlODI0NTBlNTdmN2M1MDY3ZjhiNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2ZWU3NTE2YjljNjE3ZGU0N2NjMDE5NTc5NDcyNTNhZWVmZmE1NTM0NGY4NjE4M2U0NmE4ZTA2ZDIwN2UzZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlMmQ3MWZlYzFmMmQ0ZWY2MzQ0MDVkOGMzNjYyNDdlMmE0M2VhMjkyMjY1YzBmMWQxOWUyYjA2Y2NmZjAwZTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e7501eaf32c4d67b30316c239d23bee",
+      "statement": "The login-shell probe refuses to execute a SHELL value that is not an absolute path, so a relative SHELL cannot be resolved against the current working directory.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/envpath.rs#L76-L100",
+          "version": "repo-lines-v1:sha256:3821c6644c34588912e813bf82cb1147ac4052e62a978dcbab9f1cd6b4ace320:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxMWU4YjYyZTMzYmM0ODQxYzg2YTUyYmJmZDQyNGFlNDFlMGJiZWE4MjQyMmQxMGUwZDIwYjlmMzA1ZmI0MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkYjIxMTA3YmYxZjA4M2ZhM2IxNzU1Mjk3OGNmZjY3NDAwNWEzNTkxNTcyZDQ1NGEyMzlhMDFmNjczODBlN2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6f942be289814ac0ab943b5ff1a02d02",
+      "statement": "A failing or nonsensical login-shell probe yields no shell contribution rather than poisoning PATH: the result must be non-empty and contain a slash to be accepted.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/envpath.rs#L94-L99",
+          "version": "repo-lines-v1:sha256:eb21b847140a2cd47d82b26a3416b48940a194a876ad4c8306538cd1f315acc2:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjVjOTkxMjliYmVhZDdmZTY3ZDQxMGY2OGYyNDMwOWNiZTc5Y2U4NTk0ZTE4NGM3NDkyOGU2ZDNiMTNlNjcwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBmOGJlYTlkMTQ3NTM4MjRmNzhjZGRjN2UwYzJjZDUxMTJkMzAxNDc2ODNhMzQwYTU5NGIxZGRiMDFlMzZmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGJmOTAyZGYyNWY1NGU5YzU1NWFlZDRiM2UwMzZiMTdlYzZmODMxMTdiZGIwZWU2Y2MxNWFlZTRmYWUzYjljZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTUyMTYwNGIzNWZjNDBhZjAwY2JhNGVlYTJmZDVlMmMzYWYxODYzYjM5MTE4NWQ3YmY0YmIwOWU3MmQwYzhiMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c6f24386509144a6826479d596349809",
+      "statement": "real_exec injects the resolved PATH into every child process so detection and the actions it launches search the same locations, with the single exception of the login-shell probe itself to avoid circularity.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/exec.rs#L11-L26",
+          "version": "repo-lines-v1:sha256:26f8ea8bc0d69c570be12ea342d9db6acab6995097832ce989a42a18cc8d6acf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1Nzg4ZDk1MzI2M2RlZWZjNTJlN2FkZDA0NTFiOTA1NjczZDA5MmM4YTY1MGYwNjVmZjBhYTgxZmY1MGRkZDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmYzY3MGY0Zjg5ZTA5ZmJiZTZiYmQzNDZhMWEwODEwMjQ1YWQ0MGNjZGYyYzY0ZjkyMGMwODM2NDBjMzU1NWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNjIxMjY2NTQ2OWM4ZDBlMWViMmQyODc5ODc2NGYyNzA2ZjU3NmZjODYyNzM4MDMwMDBmNmYzZGJmMWRjNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NjVlYjlkMGE4N2RhYzA0ZmZhYWNmZjNjYTFmMTJmMTBiMzc1ZTgwZDA5YmYzMmI1NGYwZTdhMWQxZDhjNDcifQ"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/exec.rs#L66-L79",
+          "version": "repo-lines-v1:sha256:56e12a1472af526d2918c577837022b8fecdef7841ad6eb7a80f0d0859a4c4db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkYzZiODZmMmFhYmMwMzVkMmQzNzNjODZhN2MzZjQzMDNkM2ViZmJlNjk0NmEwODU1YjJmYmQ4YmQ1Mjg4MWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2NDk4ZmYxNTdlNzIzZjQ5ZGE3ZWQxNmZkYmZhY2I4Njg4M2Q5MmU0OGY3ZDZkN2E5M2UwZDRiYzY4NTI4ZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmOWZmOWVhNzk0MGM5ODc4YWJjYzg0OTFkZWE1YWZjM2Y3NzYxZDZiZTMxNWMyYmVhMjgwNGU1NDc4NzMxNTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7bed272ee7184450a9e79ae518e9f35d",
+      "statement": "The resolved PATH is computed once into a OnceLock because a which probe runs roughly every four seconds in the desktop app; the consequence is that a PATH change mid-process is never picked up.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/exec.rs#L81-L92",
+          "version": "repo-lines-v1:sha256:b3bdb8494377de9a14ad4b7e2dc535abdbfe712174c715af27a823a83e4cee87:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyOThlYzIwODcxZmUwNDQxOTRjMzk5ODc4YjYwYjFlMTc2N2NiNzVjY2MxNTY1ZTQzNzkwN2JmMTI5NmU4ZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEwMDUxNmQ3Y2JhYWZiMmYwMDYxMjdkNGRhOWE1NTA3OTNiN2IxNGYxODFmZmY5M2Q4NTcxYzc0MGE0ZTU2MWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmMjg4MmJkMGNiYjhlNWE3ZTliMGVlZmExZGExMzMwMmQ1MTkxZjkzMTJmM2FhNDc1ZTA5NTA1MzI0M2NhN2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a74a58128dff4c9a9b6d3d44ef48d180",
+      "statement": "Execution never panics: empty argv and spawn failure both return exit code 127 with the error on stderr.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/exec.rs#L36-L48",
+          "version": "repo-lines-v1:sha256:f821e17d7bee0d77f99f0fae9d1f900c69d0de79e548f41c22dfad6a591074e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ZTA3MGIyNDZiODllNDc1NzRmNWQxNTYyYWFiNzQ5MDAxMjNlODYyMzRkYzU0NjU0NjYwYWUyNTMzMDMxMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxYWU5OGVmMzIzMjZkMzc4ODYxZWVkOWVkZDM0N2IzOTM2YTIzOWVjNmNjNTI5MjJkMzNhM2UzYjE1NTliNmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhYTlmY2NmMGFhNDRjZDI4MzcwNDc3M2MwMTVmNjc3NGY3YzU5NWM4ZTI2MjEwM2Q3Y2JhZjUyZDU3MWQ3NGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlMGY4MmUzZjI2M2U1M2NkMDExNTNjZjkyMjNkMGRhYmQxZjM2MTY5MDBiOWE0YWYxZDE5NTczODlhZmM1NWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4520a907304b4b738aae4c1914157481",
+      "statement": "Tool detection treats presence and version as independent facts: a tool found on PATH whose version probe exits nonzero is reported present with no version, and stderr is used as the version source when stdout is blank.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/context.rs#L26-L53",
+          "version": "repo-lines-v1:sha256:0a6120281101cb617932f2deb5c8b51e85e179d1ed47fc21a9fca3c9b7e2b74c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxNWJjZjEzYWUzNzc3MWY1NzkyZWY3NWVlMGM1NWU0YmVmNDVjNThiOWM4YTA0YmVkM2EyYmZhMzA3OTJlMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwMzY2ZTUxNjZhZWU0M2EyZGM4ZmU3YmNmYWQ5MTRjYzFmZTYwMDJiZTQ0NjQ1MWUwMWM5MWEwOWY0OTQ2MDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNjQ3ZDRkYmI3ZGU1MDM5MzM4MDJlMWQ3NDU5YzBmNWMxYThjZmU2ODkwMzBmMDc1ZjYzOGI1NjgzZWI4ZWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_115a7f45997f461794e1ca2b4603a301",
+      "statement": "Repository harness detection tests configuration signal paths on disk while machine harness detection tests whether any of the adapter's CLI names is on PATH; the two answer different questions and must not be conflated.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/context.rs#L72-L93",
+          "version": "repo-lines-v1:sha256:134091cb29d3bd018a930f2259079b9a726a7bbc4d78dce7e193455a0ba2b32b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3OGNiZDcwM2E0ODU0YjM0NzFiOWU5N2UxNmU0YTE5MGNiNmYzZGE4N2JjN2NlZDY4NmFkYTE1ZGI0MGUzZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4ODU5MjEwZWJjYjEyY2Y2OGM2MTYyMjJmYzU2MGMxZjY4ZTJmYTMxZjYzMDQ5M2RmODA5NTg4ODdkNTdhZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0Y2UyZjRkZWZhYzY1NTRjMzIzY2M3YjdmNzA2NTkyYzU0NmRjMGUxZjFkM2QwNzlkNjk3NjczN2Q4YjMyMmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04a956aa12d94f07964197554b1292da",
+      "statement": "Git detection requires both a zero exit and stdout exactly 'true', so a git invocation that succeeds outside a work tree is correctly read as not a repository.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/context.rs#L95-L104",
+          "version": "repo-lines-v1:sha256:e56d9b728942ba0908f211aa18c03be3535c33cddb2ae7a551ee1917b364421b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhZGM1OTkwZTFjMWEzYzczNDJiMGYyODc4N2EzMTRiMzJhNTEzNWViN2JhZTAxZDQxZDc2NWNjOTUwNWMxNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1MWZkMDNiZDJkYmRiMTY1MGVmNGI5NmRmZjBlMmQwMThkZDE2MDMzMWMwYTE1N2YyYzI1NmZmYzcwYTdmMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4ODU5MjEwZWJjYjEyY2Y2OGM2MTYyMjJmYzU2MGMxZjY4ZTJmYTMxZjYzMDQ5M2RmODA5NTg4ODdkNTdhZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmYzMxM2NiMzYyNGUwMzYzNTdmYTIyOThmYWZhNWE1NWExMGY0ZjUzZmIyNDZmNTFkOTJmMTFkNTI2OTVlNzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_61590b046fa248e3b523b4a08c8862d8",
+      "statement": "os and arch are translated to Node-style names so generated artifacts stay byte-compatible with the TypeScript oracle, which is a determinism requirement rather than cosmetics.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/context.rs#L115-L132",
+          "version": "repo-lines-v1:sha256:53454b3a0135499a7abdb06451ea5cf9a9e9b242763d255d52bdd007a1b102c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwNGYwNWRhMmU4NTA5YzgyMmRjNmRkM2UyZjllOThjYTUxYjJjNzU2YTRmNzExYmViZDY1ZmNhYzAzYjc0MWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxNWZmMTU5YmU3YWJkZGUwOThlMDU0NmZkODJiMGIxZTc5YzEyN2EwODhmZGUxZjI3ZTljZGQ2ZGVhZTA1OTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5MTRhYzQxMzYxY2E1NTg1OTM2NWUyNmUxNzdmMTk1YzI0MWQ5YjQwMTA0YmI1YjJkOTJkNTIyYWY4ZWE0MjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cd2c5a28f47b401a9385732d0b49e1a6",
+      "statement": "doctor_report and status_report are the single code path shared by the CLI and both desktop surfaces, which is why the command line and the apps cannot disagree about machine state.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/report.rs#L59-L99",
+          "version": "repo-lines-v1:sha256:6359d2490a96cd415ad6e772e840e1449b829decb4cd3cec92b5083f903f871c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2OTdjNmY1MWNlZjYyYTFlNWM4N2I5YTNmOTQ3MWJjYjQ1MzlkMTVjNGIzMDY0MmNjZjk1ZGY2YjQzYzczNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNzM5NDNkMmEyZDEwYjhjOTQwZTc1NWY3N2U5MzA4MzkxMTk2ZGM4MWIyZTE2MjFhNzEzNDQwMzM4NzQ0NzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliYmUzNWQwNWZkZmYxZTVkMDNhNTU1N2Y2YTUxZmFmMmIyMDQ0MTU3Y2Q5Mjg0NTU1MjJhMDFmMzJiNTdmMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MjE2MDRiMzVmYzQwYWYwMGNiYTRlZWEyZmQ1ZTJjM2FmMTg2M2IzOTExODVkN2JmNGJiMDllNzJkMGM4YjMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

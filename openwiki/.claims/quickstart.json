@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:da0d32fab0bbc715a92082f9eb016c8d5dfbf08733fbb6ae31140fbc875cadee",
+  "claims": [
+    {
+      "id": "claim_5bbf6383329e4e5c95299c2b3cd0d3dc",
+      "statement": "The repository builds a tool that bootstraps a secure Agentic Development Environment into any repository as plain files, with no control plane and nothing listening on any port.",
+      "evidence": [
+        {
+          "resource": "repo://README.md#L1-L12",
+          "version": "repo-lines-v1:sha256:2344464039c4cdc8c3f22682cc1973a78b9abd28534b1d0588c753b4eb00bf3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkZWY0MWM5OGU5Nzg0YjYyYmFkYTk5YjY4ZGYzM2Q1NDY3Zjg5OGYzZGI5Y2JmNWYzMzVmZjcyMGY5ZDg5ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMDkwMGE1ZGMyZTQ4MGE4ZTJjNWU0NjI5MWRmY2QwNGYxZWRjNDQ5Y2M1NGE3YTQxYTlkODdlM2I3OGM1NGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_442294987c5c41d28a635e927c0748ef",
+      "statement": "The workspace is four crates: an engine, a command-line binary, and two native desktop applications.",
+      "evidence": [
+        {
+          "resource": "repo://Cargo.toml#L1-L14",
+          "version": "repo-lines-v1:sha256:7988e57eab1f2b7f1206c36368f19401a0b894b98f543c4e4d28b817c509c485:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNGUxMDJjODYxZjk5NGQyYWFjZTkxMTRkMzkyZGJjMTYyMTkwZTAwYmU4ZmUzNTdkNDcyMTUwY2E0Mzk2MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwODA1NDQ2NjljMTY4MmM4ZTFjNTEzYzFmMGFhYWRjNjY2ODg4NTA3NWYyNzA5ZmZlODU3MWM5YzUxZjg1NTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9ae5f43659c4826bad20b70c5540e59",
+      "statement": "The shipping artifact is the Rust tree while the TypeScript tree is retained as the executable oracle a differential harness diffs against, so a Rust-only change altering an emitted file fails parity.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L1-L21",
+          "version": "repo-lines-v1:sha256:053cf693bc45089170e94f990db5158dd8cd0a14fd94eb3d58a1f3cdf8d52176:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTVmYzA0YTgwYzk1MmY0OWNlNDE4ODYyN2M1M2IwZmJlOGM0NDA0MWI5NTJkNTkyYWNkMWRlOTk4NjE0NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MmE4NWI4YTYwZjE2YjIyNjYyYTYzYWNiZWVmNWEzNjJkNGE3NTMzYTgwZjgxZTlkNmE3NDZhNTk5NjVjNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjYTE4YWZlMDA5YjQxYmY5NDQ1NjU0NTY4NzkyMGRhNDA5MzIzMmFhMTlmZGM3ODhiYTZiYWJjY2Y3NTYxYzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_557b94a3ecaa4fe783e5f4bbbc213d54",
+      "statement": "Fifteen modules live in one flat directory registered in a hand-maintained vector whose order is both the apply order and the instruction-composition order.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/registry.rs#L1-L27",
+          "version": "repo-lines-v1:sha256:a0aa213b70d305987b66b5827c9a7fbe01d8bb193520e67b133aa04c78d787a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYTYyMGFiZWYxZWE1YTA2ZWUzNmVkYTYwY2RjYWE1MDhiYTVjMTdjZTE2OGM2YTA2OTcxOTJiOWE5ZmM5ZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY1OTc2MTE1OWE1MmM3OWQ3OTA4ZDlkODQwMjg1ZWU3M2RmYjNiMDBkMTkxMjkzMmVjOGJmODBjMGViMmU4ZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_067e991a099346c78c9ada8a323997b4",
+      "statement": "Both desktop applications are driven in-process by the same engine crate the command line uses, which is why the command line and the applications cannot disagree about machine state.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/report.rs#L1-L3",
+          "version": "repo-lines-v1:sha256:595a70abaa574007d9a93742e847c9f69832f767e67accff9e82b024b1d8d6ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNThiYjQ5MjI3Njk1NjMxN2Y4MDlhMmIxMDhlZWU0NjA2NzExZTBmMmUwY2M5MmE3MTUwNWIzMGI3OTc0MDg2OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTUxMTY3MDVlMGI3ZmM2YTUwNDgzMmJiM2RkMWU4YzllNzFmYWQ4NTM4M2VhYTM5NWE3MTVkNTdjODY2ODQzYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b2a66bff5f7543989a4e4cf2c524f40d",
+      "statement": "Both coverage floors are ninety-five percent lines and functions, and the project's own instruction is that the floor is a hard gate never lowered to make a change pass.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/coverage-check.sh#L9-L17",
+          "version": "repo-lines-v1:sha256:2e1d5b8c4e6fe98e6db6a7461d5a75136c6becd509ce55ea65d3d51fd24ee267:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODhmYzYzMzY2N2QwMzAwNzMxYmRkODQ0NzJkYzQyNGUxZjljNjQxNzVlYTJiYWRiNjY2NDcyZDkxYWViNGVmYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWNjNDM0ZmQzYzdlODMwZmY5MWRjZjY4ODAzMzg3M2U0MzZhNDhiOWI3M2RjYWYyZDY4MWMwNmE3NWUxYTQ4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzFhZjEwMGI2NDY0M2JiMDdlMGNmZWQ3MTBmYjU5ZjI5Y2Q2NDUyZDgyN2Y5MTEwMWUzZjliM2U0OGQyZjdjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

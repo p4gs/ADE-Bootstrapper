@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1a2595e7758a3dc3e8e3fcc3ddd66dcd643c3dfe9185822254471dfa150ef831",
+  "claims": [
+    {
+      "id": "claim_ec120459e2684256ad2ae6c7b564a3b3",
+      "statement": "The application is native immediate-mode rendering with no webview and nothing listening on any port, and its dependency set contains no server or browser component.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/Cargo.toml#L1-L34",
+          "version": "repo-lines-v1:sha256:093a3a574950f94407aef48bf7e933e862cf7369d3239552b438419e940fe395:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhM2NkNWE4MWIzZjlhNjIxYWE0OTNkOTBjNDVmNDJhYjU3MWQ0ZTQyYjhhZTVhZmYzNTFjYjBhMDJkMDZkODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNWI0NDU3NDM3Yjk4OTRlNGUzNDhmY2Y4ZWU5MjdmZjhiMmMzMDJkOWFmNDk4NDFmYjM3Yzk0YWMxOTc1ZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9fdf7e9ff72440419204e540d9c5c7ae",
+      "statement": "The engine is linked in-process with no transport layer, and it is the same engine crate the command line uses, which is why the two front ends cannot disagree about machine state.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/data.rs#L1-L27",
+          "version": "repo-lines-v1:sha256:19d1bf2a5deb30688f12ebc165846f607848204c070b3aba4d8e761f0d45aa87:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwOTc5NzMwYTkyOTdiZDNmMjZlYmU3ZWE0NzA5ZWNmNTVkYmI0NTk0Njk0NjQ4Y2RjY2E2ODJiMDNjOWMzZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMzFmMzdmYTNiNTRlMGY2ZTdmZTVlOWVlMjQxOGExM2IzYzdmYzFmNmFiOGU4NTYxODVmNDEyMjFhZTQ2YWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjMjMwOGEwM2U5MzViZGVmOTBiZWNlMWFlODI5ZjAxYmUyNWQyOGE3ZWYzNGM2NDRjMDE3ZjkzMWQ1Mjc4NzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_60c39e35280b4bb6b043d709853da3ad",
+      "statement": "The frame function is pure: it draws and returns a list of commands while the shell alone touches the engine, which is what lets a test assert that clicking something asks for something with no engine at all.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/app.rs#L61-L91",
+          "version": "repo-lines-v1:sha256:09d374c9c8a8cfe0a9adfebf42d434dd21278cc1fdd9f807e13a3b08ece5b74f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3NWEyNjQxYTAxMzhjMDk2MDQ1YTQyNTQ4ZmQ3YWZhOTE3OWMzYTIwMmU1MDVjMDg4NDIzYmQzYWQ2Y2RmMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA0MjY0NzM3M2Y4MzYzNTkzMjM5NzQ4OGIwYTY2NDI0OWU5OWE4ZWRjMzllMmQwNWM1YWFlNzZiMzhkZTZlZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlmZjVlM2M5ZDQyNzQzODQ2MzJmZDJhOWY5YTVlODBhNzZlOTc1N2RmNWI2MzE4ODgzNWMyZjI4OWUwZDFlMzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_389b4a39bf3344068b5333d8e4e31aea",
+      "statement": "Every frame begins with one whole-state clone under the lock, derived rather than hand-copied because the hand-copied version silently dropped any field added later.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/data.rs#L76-L112",
+          "version": "repo-lines-v1:sha256:c5489c2f2b670bc1792a523fb5c56689469590f67bee184c9abe7c170d09363c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkOGY2NGZjZmQ2ZmYwYjRkMzYxYTg4NmQyNDczYTM5ODFiOWFlOTM5NWE0Y2NlNWM2ZTQ5ZjhmNzZjZWZjYzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2YzcwZTBlNDBlNzFiZjYxZjU0OTQ3ZjAwYjJiZTEzZjhkMTg4ODk4MTM1NjM0NmEzZjI2NWIxZjA1ZTBiOTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_06ff71f019424fd9ad442a35c6d82ded",
+      "statement": "The shared-state lock is poison-recovering precisely because it is read as the first statement of every frame, so one background panic would otherwise wedge the window blank for the rest of the process's life.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/data.rs#L114-L130",
+          "version": "repo-lines-v1:sha256:13a974fecc24621c64f294a0c96007ff37270e42ede9bf08e2e8163a62783dc5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwNzQ4YzRhODU4NzNhYjcxNjYwMzU2YzIwN2E5MjdkOWE1YTk5OGYzZjM3ODJhMjEwYWJiZjA3YmFiOGM1YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlZmNhZWEwYjBjZjZjYzEzN2ZjYmYyYjc3ZDg1YzIyNjJkYWE5OTk3OThiOTViYTVlODA3NWZjYzdkZGQ0MmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5NWZkZTNhOTJkMjdhNWQ3MDdhYzMxZTkwYjg3N2ZjN2RlNjEwMTc2ZGYxZDkxZDZlMTRlNTliMTNmZTMwOGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6f0755acf8e542cdbd9a100e584775f4",
+      "statement": "The sidebar iterates the core capability taxonomy rather than a hardcoded list, so adding a capability propagates without touching the app.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/nav.rs#L76-L152",
+          "version": "repo-lines-v1:sha256:62e74c180220cf50e301d01c2406708a82677c35add0dcc825f0c8d49cce27de:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0YmEyNWE0MWRjZjU5N2MyY2YxNmU5OGFmZGI1ZDljYjMyMGZiZDAwYzE0ZTUwZGI2N2Y3NmI0MjZhYTQ2ZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNGRhNzU1ZTkzZWEwNTM3NDllNWJlYjM3OTRlN2UwYjQzYjMzYTFiMDBhOTUyMTM4OThmZDY2ZjE4ODM2OTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5M2QzODhmYjMxZGQyNjNjODQyNjY3YTE5YjljZDk2ZDRmYzdhZWJhYTI4YzU0ZjExMjU0NWM1MjhiZDcyMjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0227076cbb864747bb20c22b4bf556a4",
+      "statement": "Scope is restored from persisted state before the first paint, because defaulting until detection finished made the launch frame show settings the user never chose.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/data.rs#L182-L207",
+          "version": "repo-lines-v1:sha256:33e2e83133a202af02a85e574f700173619ab84d0c1e356bf2be6d01cca8a6f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMjlkODhmN2M4M2VmNGY3NTI4ZDUzNjU5YTBjODg0NWMyMTJjMjEyNzg4MzA2OGY5MTg3OTgyOTZlZWRlYWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YWRhYmE2MzNmYWFjOGQ2MjM0MmRkZmVkNDQ1YjUyOTA1OTliZTYzYmU3NTU4M2NmMjZkZWE3NDJiNzA4MDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzOTcyZGNjMzcyNjc0MWU3M2UyMjYyYjQ2ZjRiZjdhZWRhMmEwNjlkY2JjNGI3OGNmNjkyZGNiMDA2MTczMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5NGVjZmE4ZGFkNmJmNjU4ODAyZWFhOTRiYmE3MzExN2ZkMTlkNzgzZTY2NGQyMGRjMTdmMjBjNWJhMDQyMDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c829b75486b4495bb8eeeb9b0fca255d",
+      "statement": "Destructive actions cannot be run directly by a row: a row can only arm a modal, and only the modal's confirmation emits the action.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/app.rs#L505-L520",
+          "version": "repo-lines-v1:sha256:b5ac930122ab1e1d3e6f8e4afa2abb47c493ea8451c36d64f14f6ab0d9c67361:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5ODVhYTIzZDBmZjg2OTY3MTRkODZhN2E2NmQ5OTdhMjhiY2MzZTAxZDg4NzE3M2NiODk5MGNmOTRjZjUzYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyZDYwMGMwMDE5ZDk3NzExYjEzNjVjN2Q5ODZiMzM2MzMyYjk4ZWEwY2YzMzY4OGUxMGFmOTgxZWZlMDI5NzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f1af3cc6806f4a8f80a27fc718b0ac9f",
+      "statement": "Bulk install intersects the live candidate set at confirm time so a stale selection cannot install the wrong thing.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/modals.rs#L37-L52",
+          "version": "repo-lines-v1:sha256:1e02df1a524d94fcf63f08e716829716488bc547941623e86545715643708769:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2ZjRkZDc2YmU1NWMyYzhjOWFmYWJhOGU4MGNhNDlmZTJkMmU4NjlhOGYzZjBhZGRhN2QyMDExMzE5MjNkYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmMTljZTBlMDkxMDUyZGYwYzk5MzYxNmJlMjllOWRlMmZkYjU0MDNkNGU0ZjYxN2VlMGE3NzVlOGFmNmUzZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5OTE4OGI5MGViYzFlYWYyZTQyYzgwNjQyZDcxMWIxNGMwNzlhN2Y3YTg1M2NmMTA0MmNmNGI3YzY0ZDRkZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5ZWIyZDliNzJmOTYzNDlkYzJlYWRiOGFkMDY3N2QwNWE5MThiZGQ2MmE0NzRjYzQwM2Y3NjgzOGU3N2UzODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_999bf9f383384816a5e9de1d075e01dd",
+      "statement": "Detection failure is not reportable at pass level: detection is total and probe failures become findings on their capability, so the renderer for that state exists but the running application cannot currently enter it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/data.rs#L459-L478",
+          "version": "repo-lines-v1:sha256:a583fc9249e4c0a6a0d6130cfb9249817e5175b350f9b5f71a447c9c9e6239e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjYjI1ZDM4OGViMjQxY2FkNDc0NGY2ODg2MTdiMmQ5MDkwNDU2YmU0NTllNTQ0OWVhYzg4NDIxMWU0MDg2ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxN2JhYmY0YTc1YjNhMDQ0YzlmNTJlOWJkMWU3ZjJhMGJhNGUxYTk0ZjhmYmY2NWQ4MjU4ZTEzN2M2NGU0MzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzM2ZjNmI4ZDQyZjU3YTI1NDhmODcwNWY0OGRkN2E2ODBjNTk0YzNlZGJjN2NjZjY1NDQ3ZTc0MDRiMGMwODQifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

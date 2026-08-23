@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:81ea45e7f4a93542ac092e25f325a2f66668f9de1a671688767e4a61b10c6172",
+  "claims": [
+    {
+      "id": "claim_557f071b63d44809a9f71ebfb95c36b8",
+      "statement": "ade.lock.json is content-addressed and timestamp-free by construction, so identical inputs produce identical bytes, which is what makes it committable and diffable.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L1-L18",
+          "version": "repo-lines-v1:sha256:7f4cc478d9171b214c69decca8b348dc50044e5735bf7f83d6fdaacf7b6fe488:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YTZmNTY3YTBmNDdlYWZkZDQ1MTQ3NjgyM2EyMmU4N2VjNDVjZjkzOTM3NGE3MmM5MDBiNTI0YTdmNzBjMzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYzc3YTgwNDQyMjgwN2UxNDBhM2FlZDc1MTg2ZjIwZDRjNjhiYmY5MjBmMjY1MTM2MzJjMjY3ZmY1ODYzOWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzYjgwYzk5NzI5ZDU5ZDljNDJkNjE0MWQzYmE3YmM2YjRjZTMzYzJiYzdhZmIzZTkwNWVhMmQ4OGFkMDM5ODkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a985820115e447f2833761d1758f9956",
+      "statement": "The lockfile carries a schema version, the ade version, a path-to-sha256 map, the audit checkpoint, and an environment record of os, arch and tool versions.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L20-L43",
+          "version": "repo-lines-v1:sha256:7b66e2286593466390944611295ff4cb1e5fdb00b312e9720c580f79a3154ec5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkNjU0NjA2OTZlOTVlNTNkZDg2ODgzYjdlNTljNzYyZjdlZDQ5MDY3ZDBmNzA1ZjhjZTQ0ZjQ0ZjBjMWI4YjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2Y2VkZTU0NWQxYzU0MGY4MjNlMTk1ZmJiM2Q0ZmQ2NzA4ZWYxOTUwZmIwNTc2YzgxOGI4YzM5NWZiMWU2NDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhZDdlNWIyNjFlNTQ3YjVjMWY1M2I2ZjE5ZjY1YjQ5M2RkMWQ1YzNjNjMzMzk3OTk4N2U0NDEyOTU3N2UwZjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bc50dde485fb49729cf84924f4adfd98",
+      "statement": "The audit log is deliberately excluded from hashing and pinned by checkpoint instead, because it grows after apply whenever a coding-agent hook fires.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L35-L40",
+          "version": "repo-lines-v1:sha256:294bc66b18c2d7c9866e942a78e9584fd841a9e5784ff57aa864e072657f8f45:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzA4ZTAzYTJjYzJlODFhMjY4YWE5NmZhYzQ2NzZlM2JjYWNlZDI5NmRiYzU5NjQyMjlmZGM4ZjY5MTVkZjgwZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzUzMDQwOWU3MDYyOWJhM2ZjYjI3ODNjM2E4MTdiOGU5ZGJkNWI3Y2ViNDhmZTBkM2VmZjE1MzhmNjIwOWQyMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzgzY2Y5MTBmNjRjMzQ0YzlhNzJlMmExOTg5ZGM5NGI4MzgzMjUwNjk1NTEyYmNiODgxYzcwZmQ1ZmM0ZjFiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTg0ZWY2M2NlNTdiYjdjNWZiYmVmY2M0N2ZiMjQ1NjE5ZjFiNDI0ZjU0NDUwODMzZDNiYWYyNzdmNmQ5MDY5ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7ba26a01f2e646beb755907e42032151",
+      "statement": "Lockfile scope is defined by scanning the ADE-owned tree rather than by the modules' reported written paths: everything under .ade/ recursively, minus the audit directory, sorted.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L87-L113",
+          "version": "repo-lines-v1:sha256:5d9b4f8950a20e8bf77c35dd11697c61e5d6021546bad7e3d1d139fe8f9d8d20:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjYjM3Y2YwNDIyNWEzYWE5ZGFkZWNkZGZhMmM0NGQxMDAzOTNjNTgzZWUzZWVlMDBiOWJkN2UwNjMxZTIyNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NzYwNWVlOGYyZDE3ZTE5MGUwNWJmYWM5OGFjOWFlZGFmZTQzNTEwNTJkYzZhYmZiZjg3ZmIxYTRlMjM1OWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a739ec2fb6964f9eb3ceaa689c3ee748",
+      "statement": "Scope is therefore path-derived rather than authorship-derived, so files ADE writes outside .ade/ receive no hash coverage at all.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L108-L114",
+          "version": "repo-lines-v1:sha256:54292c108934705730b04168b49e2d88106e7f2f5b5f9057de076fdaa24e3624:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUxOGUxYjY3NWE5MjkzODc2NzEwZjQ2YWU3YTk4Y2VjNWY0MzE4OGM5MDAzZmUxZTM5ODM0MzhmMzg3NjlmOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdjNWFhY2EzZTI3YTVkMGFmNjQ1MmMzNTgyZGM1OTUwYjI0MDc0NGYyM2UxNjI5NTUzOTFmNzRiODM3OTVmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWE5NjVmYmYxNTA4OTQ4NDZmMGE2NzdmNTZmOGY2NmM0MDZkYWE0M2Q4ZmYyYzdlOTc3ODdkODEzMmViNGI5YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_213f75249cb84c3ea8dfe0b00321c745",
+      "statement": "ModuleResult.wrote_paths is populated by every module but never read outside module code, so a new module that writes outside the ADE-owned tree silently gets zero lockfile protection.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/run.rs#L307-L316",
+          "version": "repo-lines-v1:sha256:caba9cabae8234e270449f0d4a1b16d71ebdcfe840ca6073dd97f8a1a4714290:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyY2MxYTg5OGQ1NjQ3NGQzOWY0ODU3NzNmY2Q4N2E1YTI1ZmM0MzhmN2UwNzliOGIyM2M3ZjdmZTRlNDYyZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0ZTQyMDhjZDZmZmI4YzRhMzU0N2IyZjU0YWRhMTk5NzhjM2YzNjVlNzhmOTUwMmVmNTE0NWNkZDJhYTg1NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3NGU0OTMzYTUzYWQyOTRlZWQ2ZmY2NjRmMDRkZTA5ZGU4MThlM2IxOGY1YzY2YmU5MmZlNTJhZjRmNGQwY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0NjU3NDM1MzZkODE3Y2NhMTNkYjEzM2M3ZTY2ZWM3NjUyZDJlNzczYWFjZTAwNDgyMjI5ZTkyZjZjMTdhODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ccc963b4a094459bb4c686a8152fa7a8",
+      "statement": "A scan failure such as an absent or unreadable tree yields an empty listing rather than an error, so a permission problem degrades to nothing-locked rather than a loud failure.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L94-L98",
+          "version": "repo-lines-v1:sha256:15f299fc15a1e01a9ebeb34054e85eded36a91a1cc85653d6a6294fb09aa5934:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGEyNTMyMjk4OWM4MWExZTIwZDQ0MmRmY2E3NTZmZGY4YzdhYWZjZmE1ZTg3N2M4ZDU5M2E2NGQzMzU3Njk4ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGQ4YjMyYjFjNGVlYmI3NzUxYjY2MzY4YmNlODAzYmM1NTNkMDNlODg1MWQ0YTJhMTQyNGM3NTUyMzNjNzE0YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b641a1909694384a1b462bdeb227e4e",
+      "statement": "Verification runs in two directions: every locked path must exist and hash-match, and every file found in the live tree must be known to the lockfile.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L136-L172",
+          "version": "repo-lines-v1:sha256:01add875d32a580fda6a204b361cc1b22f9d62f66035f7d75abe1aa878e8d038:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZjY5OGM1YTQ5OWJlMjIxNmM4NTdmNDhlNjg3NjIxMDAxMmYxNTJiNWI0ODg3ZmM1ZTYwM2M1ZGRjZGM2MzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlM2VhYTdhOTA1OTA4N2M5ZjBkZDRiNjAwNmFjMzRjMDk4ZmM4OGZhY2ZmZGQwMTYwZjZiMTRlMDIxZmFkYmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllNTk5ZWY1MTRkYzllNjVhODExMWIxNzA0YjgxY2NkOWY5Yjg1YjBjZmY5ODBkNjA2MzdkY2I2M2I5NGY4YTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a3563ee328024f0e923fc31f255b8fcd",
+      "statement": "The unknown-file rule exists to defeat planted artifacts, because a rule file dropped into the guardrails directory is binding on the coding agent yet was never written by ADE.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L161-L165",
+          "version": "repo-lines-v1:sha256:35a99364714be7563791728540d0b8ccd22a96252b589e3f4ff21b0c9ab79509:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWJhNWNlNTQyYTVmOTFiYmQ0ZmQzYzJhODViZDUyMmUzNDU5NzlmY2IxYTc1ZjM0M2UwMGU2ODAyMWFkNzc5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFkZjdjMjI0NDU1ZmQ3MWQyZWFhNjRkOWQzNTliNDI5MmE3ZDRlMzRkNDY2Yzk2ODU1MGVhM2QwMTRlNGQ2OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTk5YmRlZmVlYWNhNjM0MGUwMjkwZGM4NmU4ODljODlkNWUxODlhYTViYTQ0YjU4NWIzYjcwNzM0ZjRhNjJkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTFhMWQwMTU0ZWZkYTkyMmI4YTFhM2Q1YzFjMmY1N2RkZDQ0MjJlNTFlMjI4NWRhNDEzMWNmYTI4ZDRjNTE4NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_782e8d4c99684a59bcbcb32bbe195895",
+      "statement": "Environment drift in tool versions is informational and never fails verify; only content tampering flips the verdict.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L173-L192",
+          "version": "repo-lines-v1:sha256:925ee2adc3cf686c7086238f8b8167ef048c281e5f73971962824c64a96eb703:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlZjJlYTVhNDAzNzMwYjU1ZmFjNjE5N2U1ODVjZjYzYjUyY2M1ZGJjOWJkNTljNzZiY2JkNmE4MzkxZjE1ZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiZDU0ZDkyY2NlZmE2OWE4NTQyN2M5ZGRkMzU2MTYxMzNmYjgwNTIyYWRiMzRlN2RhODBmZjZkMGUwYjY2NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYjYyZDI0ZGYyMThlZjE5OGFkYjM2NjYyZWQ2YTI4Zjc2ZjAxMjIzYWVkNWFjY2YyZTkyYmQ1YzYzMmU1NjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e3adf783dfe8466fa88dcfd93a8af033",
+      "statement": "An absent lockfile and a corrupt one are treated identically as missing or invalid, with the remediation to run ade apply.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L122-L125",
+          "version": "repo-lines-v1:sha256:907a988d4920c3d0a473b9690785c3a4761905994942e63d1b16d89ad73c2b79:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjkzMGY0ZDcwOTIwM2IwYTczOWQ0MzRkMmZkMWY5ZDc5OWI0MTE4YzcwMjM4NWMyNzhmZDYxZTgzYTI5OGRlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzZjZGFiNzllMTk0Nzk1MjE2N2RmNGEwYWFmODkyYjlhMGExYTVhMDQ4Y2VjMzk1YjZiNmI5YTkxNDZkY2JmZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjJlNzVmYWM2NTcyMGFmNGIyMGYyYTA0ZDQ2YmY4MGYzMDM1ODk2MWUwNjM3NmVkNGViM2E3NjhiYTdhOWYyYiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:cbbbeb552d49abfa86bf431b0811e04108f8aafa230da96f6a2017b5ea9ebd8a",
+  "claims": [
+    {
+      "id": "claim_d0386712d03b428e856326544b734a85",
+      "statement": "Configuration validation is core-owned and happens exactly once in config.rs; modules never re-validate, and the error strings are deliberately identical to the TypeScript oracle's for cross-implementation parity.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/config.rs#L1-L5",
+          "version": "repo-lines-v1:sha256:b5fb1dc97bbbbad4f08dc9eb41a1e37fd10b10092721008ccd46d5ce77a32218:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGFiNWQ1ODRiMmI1YjU3OWNmYmI5NjhkYzNiMzJmMmM3MDhkYmVkMjIzOTQ1YjcyNzVmYTM5NWNhMWYzOGFhMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTExNGY0YWY0Y2E1MGNlMzg3OGI2YmE2M2MyMjIzM2I1MTA5OGM0Y2ExMTIyNWJiOGZlYzY0MjQ4Zjk4NDMwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTIwNWEwMzdhMzI1ZjkyYjZiZTBlNTgyMThhZDE1YTI0ZjgzZGJmMDViYzhhNWIwM2I2MDMwNGVhN2UwZmY2ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_29b7866e844e4f8aa3da633c4489c80e",
+      "statement": "The default configuration is secure-by-default: every known module id is inserted with enabled true and empty options.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/config.rs#L16-L32",
+          "version": "repo-lines-v1:sha256:d6e2874c6125f7feebe61c9721e4f9e035a6d2fc5faeb6f9b896836cee4e8b71:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmYzc5MzI0YmUxMTc4NGE4NmRkYjI3NGJkNTZkMDRiNTQwOTUwNTMyNWMwNzBkZGRmNzdhNjkwZjFlNTQyYjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2ZTgyMjliZTE4NjBiMmFjYWUxZjliMjk5MmRhOWVhM2FkYWNiMWMwZTFkMWU1OTFmZjMwMTc4OGQ1ZWVjMzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MWVkZDMyZjU5NmI1ODU0OWY0ZTBmMGIyMzBjYzVlZmZiODJiNTg3YTI1OTAzOGY2ODRlMzllNDNlMTM5YmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5da1ee5d8ef14b33bc11cd7e0d356285",
+      "statement": "A schemaVersion greater than ADE_SCHEMA_VERSION is refused with upgrade guidance rather than best-effort parsed.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/config.rs#L58-L70",
+          "version": "repo-lines-v1:sha256:6ec57f4f3c2ad54c87ac3bb9fe11ca4448b1d23fcc54f78bb329af4ef19252de:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZmRiYWY4ZDYwN2RjMTU5ZTU3ZDEwNjdkZWI1ODdjYmQ2NTE3MDdhNTBiOTBlMGRmMDUyNjAwNDRjNjk4NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4YzAxYjExZWE5YjEzZmM4MmRhYzgwYjkzYzUwMjM4OWZkY2EwNmEzNDJlZmM2YTdlMjRhZWU5YjM1MWQxMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyZmNiY2ZhMWQ2ZTQwZDc5OTAyYTg5MDcxNjkxNGMwMmU4NGFkODg3ZGUzNzI5NDk5YjZhYTg5NDgxYTcxODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYzN2Y3YTZkNDkyMDA5NjE4YTMyYmE0NzE4ZmVhYWQ3OGQxMDY0ZDdjZGFiZTBjYmUyNjk2ZTU1OTkyZWRiMTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_142b09585a9b4db3b873ec679ddb2c39",
+      "statement": "Module ids and harness ids form a closed vocabulary: an unknown id is a hard error enumerating the known set, so adding a module or coding-agent target requires a code change rather than configuration.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/config.rs#L71-L98",
+          "version": "repo-lines-v1:sha256:0d486274b859506b8ad7c808e4af6eed952d590d3b57fc13985d417b208eff32:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5YmJlYzc5M2RkNTg3YWJjYWVjNjlmOTRhNjU3ZDM4ZWE1NDhhOWE0YzQyOGNhZGZmMWE2NTViY2ZmNzFhMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmNTExYWEyZmEyYjhiYzQ5MWMyODFkODk5MmUxZGQxNWM4OTU1YjA0YTI5OGIxNWRkNGNjMTFhZWRkZDRiYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJiOTVhZDgwZDk2OWY0NzBmYTdlNzNiNzFkNjI0ZTFmNWJlYWZiY2VmODk2OGNlOWNiYTcyNWI3NWQ2Y2FiZTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e100babba9e4855a16003390b0556da",
+      "statement": "modules.<id>.options is validated only as object-or-absent, so a misspelled option key is silently accepted and ignored by whichever module reads it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/config.rs#L99-L116",
+          "version": "repo-lines-v1:sha256:a80f300f40ba24f9cdb6ffb675a28a47e20157a952d0fed4d22c0b624bd86b56:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwNWE1ZTExNTA0MzU2ZDE3ZWE4ZDZhYjEzYzQ0NDAyNzgzZGQzNzNkMjg2N2ZlY2Y2N2VhZjZjOGRmNGQwYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNGE0NWY4ZThlMzMzY2M2NzUyZTMxY2ZlNjczNjU5MmQ4NjEyODhhMjdmZTg2YzlkMTRlNmJlYTA1NjBjZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxOTgxNDY3NWY5MWEwYjA2ZTk0NGM1ZjNhMTg3MWI5NjVjMTA5ODc5MjI1MTgwYmFmYjM2Yzc4MjZiZjI2YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1MTU1ZDVhN2UwMTE0MjU0MWQxNDRjYjYwNGE0NGQyYTBlMjhjMDQxYmUyYjkyMmRmN2JhMjYzODIxNGYwOGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7c380d491a0349ab8b02b64dcbc53ef2",
+      "statement": "AdeConfig.modules is a BTreeMap, making serialized module ordering lexical and stable regardless of the order keys appear in the file; determinism here is a type-level property rather than a serializer setting.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L176-L185",
+          "version": "repo-lines-v1:sha256:b4738c65b36a34ced608c32bb276070d9331c200903e9ffc3398f6f54900e467:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUxZGYwMGY0MDljNWRmNmY2MjFhMzVmYjY3NWM1Yjc5MDc2NTUxYzYyNjJjNGY4ZDhkMTZlMTM4NGNhZWRiY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhNDRiOTRmYTI2Y2QyZjU5ZjU5NzFkMmZlNjE2Y2JiZmUzNTY2MjQzMDc1ZGYwZmQ0NzM1MjZmMTIzZDA3ZTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_87ef4d23fde84ac0b1f2649e3b4687aa",
+      "statement": "ArtifactWriter is the lockfile-membership mechanism: every write records its repo-relative path in a mutex-guarded set, so what ADE owns is derived from writes actually performed rather than declared in a manifest.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L185-L214",
+          "version": "repo-lines-v1:sha256:38cea6c9aed290a5dc04f3df35804722edebac37bb40affba200cc02678c08a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3NTZkNzBjMTUyMDA1NDRhMDI2OThmNjdhYThiZmMwNjU5OTU3MzBlYWM3YzZlYzgxNmVlNDc4YjJhNDYyOTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNmYzZTg4NTgzOWE2MTJlYTU4ZDgyY2EwNjA0MmExZmY0Y2U1OTE1YzY2YmM1NTFkZjY5MmZhOThhMzdkM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5MTRlOTQ4NTRiNjRhOThhMjZhOWUzZmFiOGQyNmVhNzBkM2Q1NTQyMDk5Y2NmMWM1MDc0ZTlkOTI0MDk2ZTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b2bc30eb2f7c4f7aacc80225175b50d3",
+      "statement": "Subprocess execution is typed as an argv array rather than a command string, which makes shell injection unrepresentable at the contract level.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L33-L38",
+          "version": "repo-lines-v1:sha256:be297e0e9e984ddf9b50e0c498bfe9e736a635b3a23fc3a79a236c67752eefde:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzRiMmFjYmRhZTQxNTU0ZGYxZDNkMjlkNmU4OGI4OWExNWI1OTM3ODc1MjMwMzVhM2MxOTU1YzQ2MmM5YzNhMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDY1ZDMyNzI5NDE2NjAxNjkxOTYxZDcwZjU4NjExMmM2MzcyMjA4MmI1ZjM5N2JkODdhNWExM2EyZjc3MjhmZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb2f3d3edf014586866320432944f4d6",
+      "statement": "Finding carries a five-level ladder in which Degraded is distinct from Error: only Error fails verify, while Degraded drives the degraded status row shown when a module applied but its underlying tool is absent.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L56-L118",
+          "version": "repo-lines-v1:sha256:cd142907881fb0c4b9d89e7b098fcd200ba980d827f3f029196f6aad81f4620a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxOWIyN2Y4MGNmMDJiOWI1MDlmZDEyNzEyYzg2NjVhYjU3MzAzMDY5MzJlYjM2YTAxODFmYTRkODY2NDNlMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlOGU3ZWExMjA2NjdhNjUyMjA4NWIwY2Y1OTkzYzczZDVmYjBmMTBhZjZkYjQwMzY1NTU4NWZjZWRiNjYzYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzYTVlZTQ5NmY3NWI3ZThmODdjMTk1OWI1NTUzYmMzMjBjZDI1MzI2NmU4MmY5YjJhMzY3OGU2OWI5OTJmNjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b49f1653cd12415db3431e7ad6b656af",
+      "statement": "ctx.module_options returns an empty object for an unconfigured module, so module code never has to handle a not-configured case.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/types.rs#L245-L251",
+          "version": "repo-lines-v1:sha256:e66517685d550df1b773f3f6b4cfa964f71e21ff0b94b85b0001e8c2090ee31a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTkyMTAxYTY5ODM2ZmY5ZjhmODMyY2M5MWJhNjI1OThhZWMyNDgxMzQ2N2Y5YTFmZjNkZWU0NTNkNTJlMTEyYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjQyYjRkOWQ4ZTBkNGFmMzQ1MDExZDg4M2IxZjcxZjVlZjYxOGJhY2VhYzRkNDg4NjgwMWI0MjY0OTc4Y2ZhYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODhjZTEwOGExMWMzZGQ4NGIzMjY3OTk3NDA2Y2QxMTIxOWZmODczNTgzNzdmMzU1YzJlMTFhOWJkNTE5NjliOCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

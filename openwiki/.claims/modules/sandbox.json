@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e5e816159dc58289c6712ae94aa35d3407f332b39eac637b3ef5f55439928b64",
+  "claims": [
+    {
+      "id": "claim_f356fda4ba11441894dd1cf92486395f",
+      "statement": "The enforcement field has exactly two values and is the only field in the policy that varies with the machine, so the artifact cannot pretend something is enforcing it when nothing is.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L84-L105",
+          "version": "repo-lines-v1:sha256:b813b946a67df0600544ffe3b6c7491553c17f2c9f34aee3a9f653a7f89bff78:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlZmYzOTRhYzI5ZGRkZjkyNGRhOGQxZTI5MDY1MjQxNWU1MDA3YTM1NGY4NzNkMTk2ZmY2N2EzNTEwOGVlMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MWE2NWMwMjBkYjcyNTM1NWQzZjkwZjIzMmZlZmM0ZDE0YzlkZDgzMjc2ZjExYWEyZTRlMDU3NDMwYjQwNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiOWI4NmVlOGUzNWUwOTkyZGQ5MjgwNWJhMmEwOGYxZjRiZjI5ODAxZTE2OWU2NWQxMzI5NzU5YWZmZTU1ZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5d1dad63b044e648a042e0b5bd453b0",
+      "statement": "Policy paths are placeholders rather than machine-absolute paths, which keeps the artifact portable and the lockfile stable across machines.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L83-L105",
+          "version": "repo-lines-v1:sha256:02c4ad4e3cd7725305b980bfaea8e50758e3428ee865d6bef325996314419b49:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5NzVmNWVjMGNiYzIxM2RjNTYwMDYxMzgwOTk0YzdhOWE5NWIwNjA4YTVjZGVmZjRiY2M1MDg1MmVjYjRlMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmOGIyYTAyMGQ5OTY3MTJhNDA5MDRiMDM3MTk1ODkxNWE1NTk5NzEyMjRiYzk0M2MwMzdkNTMzYzI4YWU4M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiOWI4NmVlOGUzNWUwOTkyZGQ5MjgwNWJhMmEwOGYxZjRiZjI5ODAxZTE2OWU2NWQxMzI5NzU5YWZmZTU1ZDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8439ba57b2ab490096a1fc3a08bea572",
+      "statement": "Three list options extend rather than replace the built-in lists, appending only entries not already present so defaults can never be displaced.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L45-L81",
+          "version": "repo-lines-v1:sha256:147d969d97f2b8b6bed4a3eb5ff774a22874ef959e18d459b4508b8acb4c98f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4Nzg5ZDQ1ZDk0YThiMGRkZGY1NTk3YTJkYWVlN2FlMDM5ZmQ3MTdkMTAxZmJiMGNjNjVjNDUyYmQ5ZjU1OTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NzljNWIzNWE0ZTc1MDBjMDY0NzllMjMzODc1Y2EyZTg3M2FiOTNkMDFlZjhlZmFhNmVkNjM1YmI0NmJmYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyOGNjYTE2NmQ2YTc3ZThhYTk1ZjEyNjQ5NTJlNzk0MjdiNDU4N2M1OWI2OGRhNDM3ZDMzNmI5NThhZDhhMTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af0fc2f94f6f4cc1a42fd2d79d2cedf7",
+      "statement": "On the claude-code path the deny-read surface is mapped into that agent's own permission system, which is this module's one piece of real enforcement as opposed to declarative policy.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L142-L152",
+          "version": "repo-lines-v1:sha256:fdee130c994891f000511b8f3bec789aacb6496b96c3e2f64b26a89facdba2ac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhMjNhNTg1ZGM1MzNmZjI3ZGNkODFhMjNmNTE1MmNmNWJiYzE0NmNmZjcxZDBkN2MwODZjZmYyYTMyZWYzNzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzM2YwYmEzYTc2YTJjNDFjM2NhZTNiNGVlNTM1MTY5ZDY3ZGY1ODZmNDVkNDkyZjk5OGZmNTkxNzEzYzVlMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4ZjhiNWZlN2U5M2I5MmU5ZGRhZWE3MzUwZDVlZGJmMjM0ZWRiYjIzY2Q2MGYxZjY2NjQ4NmVhOTIwZGYxODIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c01a7a95e0a940b189326526d4156b18",
+      "statement": "A refused settings merge degrades the module rather than failing it and excludes the settings path from the reported written paths.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L141-L169",
+          "version": "repo-lines-v1:sha256:69778098dc5bd04a353174a04e4410db897c2aaf9606bf384c1df3d088478b4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3MjMzYWU1N2FhNjFjMDJlMTgzYTAxYzBlNzI2MTM0MzdjMTQwZGI2MzJjN2FlNjcxM2NiYmRjNDUzZDQ3NzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0NzVlOTRhOTA0YWM0OWIzMTU0ZDQ2NzJhNjZlODYyOWI4NmRhYzc0ZTNlMjkzN2JlNjkyN2FlM2RhMTFjNTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwZGY2M2Y0MDZiN2Y2MWUyZWU0ZDMzM2NlN2ZiN2Y5ZGQ5YTNmNWMwMGRkMTMyZGFhZWZkYzUyYWZkZjBlNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzYWQ0OWExNmIzODg4MDVjYzI1MDdkMGEzNDUxNDcwZTM4OTdhMDk1NTdhMWI0ZjJhZTI4ZmI2NTAwNjU2NjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8a9b022ed2c4498d9a02ca272acc59e0",
+      "statement": "Verify does not structurally re-check the filesystem or credentials sections, so a policy with those gutted still passes this module's verify and is caught only by the lockfile hash.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L241-L310",
+          "version": "repo-lines-v1:sha256:d71d247f4e77059c45880770897ed8b57c9566574286151ae75f2be55c67a203:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMGYwNDgxODhhMTBhZWYwNzI4YjhlNzk1ZDZmMjY3ZGE5ODIzNWNhOGYzZDIyY2NjYzk3MDU4NjU4N2ZhODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MjE2MDRiMzVmYzQwYWYwMGNiYTRlZWEyZmQ1ZTJjM2FmMTg2M2IzOTExODVkN2JmNGJiMDllNzJkMGM4YjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2e650b4b09084201aa4dcb588eada3d3",
+      "statement": "Plan, apply and verify all key on the configured agent list rather than detected agents, so a repository with an instruction file present but the agent absent from configuration gets no permission wiring.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/sandbox.rs#L107-L112",
+          "version": "repo-lines-v1:sha256:7a1536b065e505471d8ead3c01032744a50e8c8f456dc8f5679fdc39a8bf999d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWViNzkyODlhYzE5ZTQ1NzhlZGFlNDQxNjUwYzZkNTJlZmExMDZlZDNhNWFjM2VhYmUwMGVkZTA3MDg3YzljOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjA2M2M0ZDFhZjhjZDg5YmIwYmRkNzY1N2ZmY2JmNjgwNmE2MTBkNzlkNmM4ZDRjMzA3YzI0MWRmMzkwMDUyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzIwODNiMWVkMTM3ZTUwYTM0YWYwZmNjYTBmOTgxNTcwZWNiMGM5MDI2NjZjNWFlMDljZTU5Y2YwYWY5MDViZCJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

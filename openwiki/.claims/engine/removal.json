@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:712a778d2da52b89a176cdea8669ed430d5967dbbca61481b595fca6205aae30",
+  "claims": [
+    {
+      "id": "claim_30ebd4e4391c4733a4049a445f91d49f",
+      "statement": "Removal is governed by one rule stated in the module header: never destroy what ADE cannot prove it wrote, so a hand-edited file, a block with no provenance line, and a file planted under the ADE-owned tree are each kept and reported rather than deleted.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L9-L15",
+          "version": "repo-lines-v1:sha256:cedba4a6d1281d0f403f845bed2404a721dc9c4b1d2acdc03b60af97410158ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTM0MDdlZGY0YmEzZjdhN2Y0ZGJmOGZjOGQxODZjMzEzYjIzNTAxZWQzYmZiNTdkYTkyM2RmNjAwNDBmMzk2YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzE3M2UzMzMyN2VlOWYxZDAwYmZlYmQ1M2I1MGM1NmY1MDM2NTNjMDk0M2M0MTgyODBjMGZiMThjYzExMzU4YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDRlZmZjN2IxMDM2OWJjYzBkOGY5ODYyMmE2M2I0OWRhMjAxMTI4NWZmYjAzMGI0MDNlYWZlMzhjMmY3NzY1OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjQ5N2QwNDZkYzhmNTExODIzNTUxZDk1NDczOTA0MjQ4Y2Y4NGQ3MjRiZmRmZGY0ZjgxMGU1Zjg1MzVjYmRjZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0cc45bcb42a4407bbe966ee559052fcc",
+      "statement": "Removal is lockfile-driven rather than path-driven: each locked path is deleted only when its current hash still equals the recorded one, and a mismatch becomes a kept file explained as edited since ADE wrote it.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L209-L246",
+          "version": "repo-lines-v1:sha256:6dec0d2dbfb3a25cd0f19efe81b37c386ab2ce449a33f2b9e86d247f705ff707:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2NjlkYmQwN2ZmN2MxMDA1MmUzZDg2ZTM2Njk5MGI5MWI2YTRiNWFiMDcyYzgwNGQwOGNmMjM4ZGI1NDUxNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNTFjNzU3OGQxNzM2NWZhYTYxYjI5NjJlMWJjMGM2MmY4NmM5NWNmOTM0NWZkMDUyOGJhYTNjMjJjODY0NjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyZTYyYjEwODZjZjkyNDJjYmZjODAwODdjZTZiY2IxNWNjM2U3MzFkZDIwNGVmZTM0ZjBhNzNiOGViNTQyNGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_decd11b1dce0472681d3a7f1438e1179",
+      "statement": "With no lockfile nothing under the ADE-owned tree is deleted at all, because without it ADE cannot prove which files are its own.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L239-L246",
+          "version": "repo-lines-v1:sha256:2c917d0d46538e1b7947710063f7a4e92f4beaeb20cbd0f0d86d57aee04dd287:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDc3ZGNlOWQyYmQ2OWY3MzUxMmNkOWU0NmM3MzAyZjQ2MjA0M2Q1ZTkzOTEwZWExNmI1NGZhNzkzZGMyMWMwNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmNlOGQxMzdmYTQ0YWM2NjQ4YjNhNGE2ZjU2ZjUwYmFiYTY3NzM0MTQ1ZDA0NzRhNGU1NTU2OTdmZDI2YmVjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDJlNjJiMTA4NmNmOTI0MmNiZmM4MDA4N2NlNmJjYjE1Y2MzZTczMWRkMjA0ZWZlMzRmMGE3M2I4ZWI1NDI0YiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_023366b402cd413da3f882353b3f6962",
+      "statement": "Plan and execute are the same pass: the plan computes a mutation per path with zero writes and the executing call replays exactly those mutations, so the real run is the dry run plus execution rather than a second differently-informed pass over a changed tree.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L166-L180",
+          "version": "repo-lines-v1:sha256:7f5b1a82e89ecd3d2092ad89c1e831cc34a6d57a7ff7bf590065f5cba0c36844:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4NzQ5YzNkYjYzNGFlNmJhZjc3ZDBkZTc2YmE4MjJhMGQxM2Q2MWM3NmMzMzI1MWY4OTViYjkzMGIwZGRlODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2YTgwOWQ2ZjliZWQyNjAyNzhlYjI2ZGVjOGRmZDVjOWUwMDVhMzAxNzI4MmU1YjNlMmZhYjZkOTBiMGZhYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2NTEyNjY2NGIzYTczZGU3YmVmMDliODJlN2QzYTVjZjE2NmEwMjRiMDUyODI0NGEwMmIyNzA0OTRhOTAxN2YifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33efbb3736de4d6faff9dc439a94a86c",
+      "statement": "The user-owned local instructions file is deleted only when byte-identical to the untouched stub; otherwise ADE created the file but the words are the user's.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L274-L293",
+          "version": "repo-lines-v1:sha256:b8af1c675f034effc28e4af9c4ebd6478d85344dfc4cd750c5de51078f525c9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMzQ4ZDUzNDViY2M3MDVhMjM2ZmQ1MGU1MTU0NmU4MTZlOWQ2NzNmZWNmYjFiOTk1MWJjNjgwMDFkNDBhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMWZmYTRhNDAzNTI4ZjM0MjI1NTY1NDUxYWQ0OTkwNzQ2ZDBhMDNhYjA5MGVkNzk1MGE2ZmFlMWIxYzQzNGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_75c9c98c751a4940862b6f099b0595b1",
+      "statement": "Co-owned JSON is withdrawn by subtraction rather than rewriting, and the subtraction patch is rebuilt from the very constants the modules merge, which is what makes the round-trip test a guard against a module starting to merge something removal does not know about.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L326-L365",
+          "version": "repo-lines-v1:sha256:a0145fda887f4cb31990a1509cbd83a80eb816d6ac9051ffd55cc676c41779e1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxNWEzZTM1NzU3YWQ3MTIwODVkOTJlOGU2ZDZkNDY0MzM3ZDEyMWE2YWM0NDY2NDZkOWIxNjcwNGQzNzQzZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwZTEwNTQwODhjODBmMDIwNjM2ODEwNjM1MTY3OTg5YzQ3YjBmODY1ZTg0MDZmZTQ3N2U0MDU2MzdhMWQ0MmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c5bc4a3b89e4454ca6cb4be5a914dc30",
+      "statement": "The gitignore withdrawal drops the labelled header and only the owned lines directly beneath it, stopping at the first line ADE does not own, so a user line inside the block survives.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L124-L164",
+          "version": "repo-lines-v1:sha256:20372078790d29f73f8472f913fcdb4187a93f3690c602a9db477fbc88807cd5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmOGQzNTQ0NzI0ZDc1NjhlNWI2MmM5ZDgwMWJmYWQ5YTJiMzYyN2QwMDg3NjVmNGFlZWJlMTczZjdkNDJjNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkOTQyYTEwZDAxY2UwM2JlNjRiMjQyMzFjYmQ0YzA1YTlmMDhiZWFmM2YzZDdmYjQ3ZTQwZDJlYThkN2QyMmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwNzg2ZGFkNTU3OWUxY2ViMWYyMzNmMDMyN2RiNjMwYjU5YThhY2NjYjdiZDIxZTYzOTE1OGYzMjFjOTEwOWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd94073ab0544754992d2fa0f4c7118d",
+      "statement": "The git pre-commit hook is restored rather than merely deleted: when ADE's marker is present and a chained-aside sibling exists the original is renamed back, because leaving the sibling orphaned would silently disable the user's own hook.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L410-L447",
+          "version": "repo-lines-v1:sha256:fe9f80f690056dc6e32ce61457ab7091fe88830054533646484b348acbc449a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjMTUxYjliNzUzZWVhMGMwZGVjYjdkZWJmZjVlOTAzMTk5N2Q2YTcxY2ZlZTcyNzFjZDliODEzYjU2ZWU2NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyZDgyOGEwMzdhYzFjODE1MzViMWQ1NTAwODMyMzIzYmZiYjg2NmEzYTNmODdlN2E2OGMxM2EyYmFlNTZmZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkM2M2ZjUzY2RhMDU3OTIxYjQyMzhhNGZjOTM4M2EyNWRhMzc1YTQ0YWIyOTlkZDI4NWM1Yzg4Y2ZjYzE5NzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_abedbe7adec64a22b40e51ee369bca7f",
+      "statement": "Directory cleanup is bottom-up over exactly three roots and is never recursive, so one kept file keeps its whole directory chain alive.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L487-L511",
+          "version": "repo-lines-v1:sha256:493f22597ff0cc14672ca9018f1a97bb757dbab95eafd9dd6fab43fb4ac7d696:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwMmExMGY5MjkxZjUzMTlmZjdiOTk4ODc3MWNlMWU5ZDhiZmFkYWQzYzViZGUzNWNjYmM5YjQwYjhhN2IxNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjMDRlYTJiYTc5MWRjZGUyMDk0MjFiNGM4OWNkOTE1Y2RmMmY0NTY1ZTI4NTZiOGQ1YjJiN2I2ZDg1OWViNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhOTRmMzg4NzVhNjhjMWY5OWI1ZWYyMDBjMDE3NGU0NjFiZDYzNjJlY2I4ZDM1ODg5MTNiY2VkNGZjOTg4NWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c1585d8514b14f5b974391cfd5c6ab37",
+      "statement": "All mutations are best-effort, so a failed delete does not abort the withdrawal and the report still claims the planned outcome.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/remove.rs#L519-L537",
+          "version": "repo-lines-v1:sha256:edb391b01e7199fb6ee8798717dd17072ad0bae3bc2d1960df4bc7262bb9dff8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhNDVlYWUwNWYzZWJiZGM4YzMwMjFjZmI1ZmQ3ZDkwYTg0M2Y3OWFiYjA4NGE3NWUyY2ZiYTY0ZTFiMGJiMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiZGNhYjdkZjliNjExNWFlY2NkYTY5MzQ5OTM3NmJiM2MxMTAxMzI0ZjI2NDhhMjZkMTU2NWUzY2U2MDAwOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5YTM1NDY5M2FhNTFmZWM5ZWQ5ZjRkOWJjZTJmNzFjNjUxN2Q2YTk2MjkxZWE0M2MzZDk5NjE0MjEzZDkwMmYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}
