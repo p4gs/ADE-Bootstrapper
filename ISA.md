@@ -5,7 +5,7 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 239/243
+progress: 240/243
 mode: autonomous
 started: 2026-07-12T08:49:30Z
 updated: 2026-07-26T15:25:00Z
@@ -533,10 +533,30 @@ permission shape. ADEB adopts the current path rather than copying sscsb's older
       top-rung, fresh-context) ran instead. Verdict: concerns → 10 findings, all
       dispositioned in Decisions (8 fixed, 1 corrected-not-fixed, 1 accepted-as-is with
       rationale). Nothing silently absorbed
-- [ ] ISC-337: pushed to `main` (solo-owned public repo, no PR-review norm — the default-ship
-      carve-out applies), CI watched to green on the actual triggering event for each new
-      workflow (not just "the YAML parses"), and Scorecard/SBOM/attestation evidence
-      confirmed live on GitHub after the push, not just believed to run because the file exists
+- [x] ISC-337: Not a direct push after all — the ruleset created in ISC-329 requires a PR
+      (by design, discovered mid-run: this branch had actually diverged from `main` this
+      whole session without that being checked early, so the real path was PR #2, reviewed
+      by CI, merged squash to `main` as `390cc25`). Every new workflow watched green on its
+      REAL triggering event, not just YAML validity: `rust`/`oracle`/`parity`/`trufflehog`/
+      `gitleaks`/`opengrep`/`trivy`/`osv-scanner`/CodeQL on the PR; `SBOM`/`Scorecard`/
+      `Vulnerability Scan`/`Secret Scan`/`SAST` re-ran and passed on the actual push-to-main
+      event post-merge (PR-only triggers cannot prove a push-triggered workflow works).
+      Live evidence, not belief: OpenSSF Scorecard published a real score for this exact
+      commit (`api.securityscorecards.dev/projects/github.com/p4gs/ADE-Bootstrapper` →
+      6.8/10; `Pinned-Dependencies` 10/10, `Token-Permissions` 10/10, `License` 10/10,
+      `SAST` 10/10, `Vulnerabilities` 10/10, `Dangerous-Workflow` 10/10, `CI-Tests` 10/10,
+      `Security-Policy` 10/10, `Dependency-Update-Tool` 10/10 — `Branch-Protection` only
+      4/10 because `required_approving_review_count: 0` for a genuinely solo maintainer,
+      not a defect; `Maintained` 0/10 is purely "repo <90 days old," self-resolving;
+      `Code-Review`/`Contributors`/`Fuzzing`/`CII-Best-Practices` 0 are real, honest gaps
+      this phase never claimed to close). SBOM: the `sbom.yml` run on `main` produced a
+      real 47KB CycloneDX artifact (`sbom-cyclonedx`/`sbom.cdx.json`), and its
+      `Attest SBOM (release only)` step correctly SKIPPED (push event, not a release —
+      the gate worked as designed, not silently no-opping). Dependabot fired 3 real
+      update-check runs (cargo/bun/github-actions) immediately post-merge, all success.
+      Release-binary SLSA attestation (ISC-328) remains genuinely `[DEFERRED-VERIFY]` —
+      no release has been cut; `actions/attest-build-provenance` cannot be proven live
+      until one is
 
 ## Test Strategy
 
