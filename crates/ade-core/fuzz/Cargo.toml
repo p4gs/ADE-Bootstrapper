@@ -1,0 +1,26 @@
+[package]
+name = "ade-core-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+# Standalone, deliberately outside the main workspace (cargo-fuzz convention) —
+# its sanitizer build flags and libfuzzer-sys dependency have no business
+# leaking into the product's own build graph or cargo-deny/dependabot scope.
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.ade-core]
+path = ".."
+
+[[bin]]
+name = "hook_append"
+path = "fuzz_targets/hook_append.rs"
+test = false
+doc = false
+bench = false

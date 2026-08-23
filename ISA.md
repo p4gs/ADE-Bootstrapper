@@ -5,7 +5,7 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 240/243
+progress: 244/248
 mode: autonomous
 started: 2026-07-12T08:49:30Z
 updated: 2026-07-26T15:25:00Z
@@ -557,6 +557,78 @@ permission shape. ADEB adopts the current path rather than copying sscsb's older
       Release-binary SLSA attestation (ISC-328) remains genuinely `[DEFERRED-VERIFY]` —
       no release has been cut; `actions/attest-build-provenance` cannot be proven live
       until one is
+
+### Follow-ups from the principal's Stop-hook pushback (2026-08-23)
+
+The principal's own automated review of the SSCS-remediation run above correctly refused
+to accept it as "ALL findings and gaps": three concrete, actionable items were still open
+at that point — 3 stale Dependabot PRs sitting unmerged/individually-broken, a real
+Scorecard 0 on `Fuzzing`, and no engagement with `CII-Best-Practices`/`Code-Review`/
+`Contributors`/`Maintained`/`Branch-Protection` beyond noting the numbers. Addressed below,
+each on its own evidence — not by chasing a score, by fixing or explaining what's real.
+
+- [x] ISC-338: PR #5 (`typescript` 5.9.3→7.0.2) merged — CI (full typecheck + test suite +
+      coverage) was already green; Socket's "Block" alert was a Low-severity publisher-change
+      notice for TS's platform-binary optional deps, verified directly against the npm
+      registry (`microsoft1es <npmjs@microsoft.com>` sits alongside the existing TypeScript
+      core-team maintainer list — a real Microsoft-internal migration, not a hijack) before
+      overriding it, per this session's own zero-suppression-without-evidence standard
+- [x] ISC-339: PRs #3/#4 (`eframe`/`egui` 0.35.0→0.36.1, opened as two SEPARATE Dependabot
+      PRs) were each individually broken — confirmed by actually running PR #3's own CI
+      (E0308: two incompatible egui versions in the graph, since eframe 0.36.1 pins egui
+      0.36.1 internally). Neither was safe to merge alone. Bumped both together instead
+      (PR #7, superseding both): full local suite green (fmt/clippy/`cargo test --workspace
+      --locked` 421 pass/deny/`cargo build -p ade --locked`/parity), noted honestly that
+      `ade-control-center` carries 0 unit tests on `main` today (the kittest snapshot suite
+      lives on the still-unmerged Phase J branch) so clippy's type-check against the new API
+      is the real ceiling of verification currently possible here — not overstated as full
+      coverage. Two more Socket "Block" alerts (env-var access in `naga-types`, embedded
+      spec URLs in `read-fonts`) verified as benign against the actual flagged content
+      (public wgpu.rs / Google fontations projects, real OpenType-spec doc links) before
+      overriding
+- [x] ISC-340: Scorecard's `Fuzzing` check (0/10) addressed with a REAL fuzz target, not a
+      score-chasing stub. `cargo fuzz init` on `ade-core`, one harness (`hook_append`) —
+      picked because it's the one place in this codebase that parses genuinely untrusted,
+      externally-supplied text: a harness PostToolUse hook's raw stdin. Verified live, not
+      assumed: `cargo +nightly fuzz run hook_append -- -max_total_time=30` → 663,764
+      executions in 31 seconds, zero crashes, holding the function's own documented contract
+      ("never blocks the harness, never panics on malformed input"). New `.github/workflows/
+      fuzz.yml`: builds on every push/PR touching `hook.rs`/`fuzz/` (catches API bit-rot in
+      seconds), fuzzes for real (60s) on a weekly schedule — Scorecard's Fuzzing check
+      specifically greps for the `libfuzzer_sys` import a real `cargo-fuzz` target carries
+      (verified against Scorecard's own `checks/raw/fuzzing.go` source, not assumed from
+      prose docs), so this is detected, not just present. `fuzz/` deliberately holds its own
+      empty `[workspace]` table — cargo-fuzz's own convention — so its sanitizer build flags
+      and `libfuzzer-sys` dependency never leak into the product's own build graph, `cargo
+      deny check`, or Dependabot's cargo-ecosystem scope
+- [ ] ISC-341: `CII-Best-Practices` (0) is OpenSSF's Best Practices badge
+      (bestpractices.dev) — an external, interactive self-assessment against ~dozens of
+      criteria requiring a maintainer account and honest answers about project practices
+      the badge questionnaire itself asks for (contribution process, vulnerability
+      handling posture beyond just SECURITY.md, etc.). Not headlessly automatable from a
+      CI credential, and not mine to self-certify on the owner's behalf — genuinely
+      deferred to the owner, not silently dropped. Left open, not closed-and-hidden.
+- [x] ISC-342: `Branch-Protection` (4/10), `Code-Review` (0), `Contributors` (0),
+      `Maintained` (0) are NOT SSCS-configuration gaps — closing them the way the higher
+      scores closed would mean gaming the metric, not improving security, and Scorecard is
+      measuring truth:
+      - `Code-Review`/`Contributors`: 0 because no second human has ever reviewed a PR or
+        contributed to this solo-owned repo. The only way to raise this number is a second
+        real person actually reviewing/contributing — not something this session can
+        fabricate honestly. `required_approving_review_count: 0` in the ISC-329 ruleset is
+        the correct, honest reflection of that reality, not a misconfiguration.
+      - `Branch-Protection`: 4/10 follows directly from the same fact — Scorecard's full
+        marks require a minimum-reviewer count that only makes sense with a second
+        maintainer. Every OTHER sub-criterion it checks (deletion/force-push blocked,
+        signed commits required, status checks required, no admin bypass) is already
+        satisfied by the ISC-329 ruleset.
+      - `Maintained`: 0 is purely "repository created within the last 90 days" — a
+        time-based fact with no action available today; it self-resolves as the repo ages,
+        which Scorecard's own check documentation states explicitly.
+      Recorded here as the honest disposition Algorithm claim 11 requires — reviewed,
+      not silently absorbed, verdict: correctly un-fixable without either a second
+      maintainer materializing or time passing, whichever the owner's actual trajectory
+      produces
 
 ## Test Strategy
 
