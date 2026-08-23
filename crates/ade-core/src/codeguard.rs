@@ -404,6 +404,8 @@ pub struct CodeGuardState {
     /// Never populated as a side effect of `ade init`/`ade apply` on any
     /// repo — the only writer is the explicit opt-in action (CG-9).
     pub enabled_agents: std::collections::BTreeSet<String>,
+    /// CG-6: capability_id -> the release tag last installed for it.
+    pub installed_versions: std::collections::BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone)]
@@ -467,18 +469,32 @@ pub fn load_codeguard_state(home: &Path) -> CodeGuardStateLoad {
                 .collect()
         })
         .unwrap_or_default();
+    let installed_versions = obj
+        .get("installedVersions")
+        .and_then(|v| v.as_object())
+        .map(|map| {
+            map.iter()
+                .filter(|(id, _)| get_agent_def(id).is_some())
+                .filter_map(|(id, v)| v.as_str().map(|tag| (id.clone(), tag.to_string())))
+                .collect()
+        })
+        .unwrap_or_default();
     CodeGuardStateLoad {
-        state: CodeGuardState { enabled_agents },
+        state: CodeGuardState {
+            enabled_agents,
+            installed_versions,
+        },
         warning: None,
     }
 }
 
-/// Persist `codeguard.json` deterministically (sorted by `BTreeSet` itself,
-/// then `stable_stringify` sorts object keys).
+/// Persist `codeguard.json` deterministically (sorted by `BTreeSet`/`BTreeMap`
+/// themselves, then `stable_stringify` sorts object keys).
 pub fn save_codeguard_state(home: &Path, state: &CodeGuardState) -> std::io::Result<()> {
     let value = serde_json::json!({
         "schemaVersion": CODEGUARD_STATE_SCHEMA_VERSION,
         "enabledAgents": state.enabled_agents,
+        "installedVersions": state.installed_versions,
     });
     write_ensured(&home.join(CODEGUARD_STATE_FILE), &stable_stringify(&value))?;
     Ok(())
@@ -497,6 +513,213 @@ pub fn opt_out(state: &mut CodeGuardState, capability_id: &str) -> bool {
 
 pub fn is_opted_in(state: &CodeGuardState, capability_id: &str) -> bool {
     state.enabled_agents.contains(capability_id)
+}
+
+// ── CG-3 (MCP remainder) ────────────────────────────────────────────────
+//
+// Scoped honestly to what this session can verify, not guessed at for six
+// agents at once. Claude Code's user-scope MCP registration is `~/.claude.json`
+// under `mcpServers`, `{"type":"http","url":...}` — session-observed ground
+// truth (this very machine's file), not assumed from a README. The other
+// five agents' user-scope MCP config locations are NOT verified and are
+// left as fog rather than guessed; `register_mcp_agent` returns `None` for
+// them instead of writing to a location nobody has confirmed is real.
+//
+// ADEB does not deploy or run the CodeGuard MCP server itself — that is
+// explicitly out of scope (CG-N never claimed it). MCP mode presumes the
+// owner already has one reachable somewhere (self-hosted per CodeGuard's own
+// docs) and asks ADEB only to register the agent against it and to fall
+// back when it stops answering.
+
+use crate::fsutil::deep_merge;
+
+pub const MCP_SERVER_NAME: &str = "codeguard";
+
+/// `None` for every agent this session has not verified a real user-scope
+/// MCP config location for — see the module note above.
+fn mcp_config_rel_path(agent_id: &str) -> Option<&'static str> {
+    match agent_id {
+        "claude-code" => Some(".claude.json"),
+        _ => None,
+    }
+}
+
+/// Register the CodeGuard MCP server for one agent at user scope. Additive —
+/// routes through the same `deep_merge` every project-scope MCP registration
+/// in this codebase already uses, so a pre-existing `mcpServers` entry for
+/// anything else on this machine survives untouched (this machine's own
+/// `~/.claude.json` already has two other servers registered — proof this
+/// matters, not a hypothetical). Returns `None` when the agent has no
+/// verified config location.
+pub fn register_mcp_agent(
+    def: &AgentCodeGuardDef,
+    server_url: &str,
+    deps: &CodeGuardDeps,
+) -> Option<std::io::Result<WriteOutcome>> {
+    let rel_path = mcp_config_rel_path(def.agent_id)?;
+    let path = deps.home_dir.join(rel_path);
+    let existing = std::fs::read_to_string(&path)
+        .ok()
+        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+        .unwrap_or_else(|| serde_json::json!({}));
+    let patch = serde_json::json!({
+        "mcpServers": {
+            MCP_SERVER_NAME: { "type": "http", "url": server_url }
+        }
+    });
+    let merged = deep_merge(&existing, &patch);
+    let content = stable_stringify(&merged);
+    Some(write_with_provenance(&path, &content, None))
+}
+
+/// CG-5's health check: `GET /health` on the configured server, exactly the
+/// endpoint CodeGuard's own server exposes (`{"status":"ok","version":...}`,
+/// verified against its real `server.py` this session, not assumed).
+/// Degrades to `false` on any failure — unreachable, non-200, malformed body.
+pub fn mcp_server_healthy(deps: &CodeGuardDeps, server_url: &str) -> bool {
+    let health_url = format!("{}/health", server_url.trim_end_matches('/'));
+    let result = (deps.exec)(
+        &[
+            "curl".to_string(),
+            "-sL".to_string(),
+            "--fail".to_string(),
+            "--max-time".to_string(),
+            "5".to_string(),
+            health_url,
+        ],
+        &ExecOpts::default(),
+    );
+    if result.code != 0 {
+        return false;
+    }
+    serde_json::from_str::<serde_json::Value>(&result.stdout)
+        .ok()
+        .and_then(|v| v.get("status").and_then(|s| s.as_str()).map(str::to_string))
+        .as_deref()
+        == Some("ok")
+}
+
+/// CG-5: the orchestrator. An agent opted into MCP whose server has gone
+/// unhealthy is never left silently unguarded — it falls back to the same
+/// default rule/skill install path CG-3 already proved, so "MCP broke" and
+/// "never installed" converge on the identical safe state.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EnsureOutcome {
+    /// MCP is opted in and healthy — nothing to do.
+    McpHealthy,
+    /// MCP was opted in but unhealthy; fell back to the default path.
+    FellBackToDefault(WriteOutcome),
+    /// Not in MCP mode; the default path was written directly.
+    DefaultInstalled(WriteOutcome),
+    /// This agent has no `user_scope_dir` to fall back into (ClaudePlugin
+    /// agents use their own install action, not this generic fallback).
+    NotApplicable,
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn ensure_agent_secured(
+    def: &AgentCodeGuardDef,
+    mcp_opted_in: bool,
+    server_url: Option<&str>,
+    filename: &str,
+    fallback_content: &str,
+    deps: &CodeGuardDeps,
+    prior: Option<&ProvenanceRecord>,
+) -> EnsureOutcome {
+    if mcp_opted_in {
+        if let Some(url) = server_url {
+            if mcp_server_healthy(deps, url) {
+                return EnsureOutcome::McpHealthy;
+            }
+        }
+        return match install_rule_or_skill(def, filename, fallback_content, deps, prior) {
+            Some(Ok(outcome)) => EnsureOutcome::FellBackToDefault(outcome),
+            _ => EnsureOutcome::NotApplicable,
+        };
+    }
+    match install_rule_or_skill(def, filename, fallback_content, deps, prior) {
+        Some(Ok(outcome)) => EnsureOutcome::DefaultInstalled(outcome),
+        _ => EnsureOutcome::NotApplicable,
+    }
+}
+
+// ── CG-6 (remainder): per-agent version tracking ────────────────────────
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum VersionStatus {
+    /// Installed tag matches the latest known upstream release.
+    Current,
+    /// Installed tag is older than the latest known upstream release.
+    UpdateAvailable { installed: String, latest: String },
+    /// Nothing recorded for this agent yet — never installed, or installed
+    /// before version tracking existed. Not a failure state.
+    Unknown,
+}
+
+/// The doctor-surfacing data itself: not a rendered CLI line (that is a thin
+/// `ade doctor` wiring concern outside this module), but the exact fact such
+/// a line would report, computed and independently testable.
+pub fn version_status(
+    state: &CodeGuardState,
+    capability_id: &str,
+    latest_tag: Option<&str>,
+) -> VersionStatus {
+    let Some(installed) = state.installed_versions.get(capability_id) else {
+        return VersionStatus::Unknown;
+    };
+    match latest_tag {
+        Some(latest) if latest != installed => VersionStatus::UpdateAvailable {
+            installed: installed.clone(),
+            latest: latest.to_string(),
+        },
+        _ => VersionStatus::Current,
+    }
+}
+
+/// Record which tag is now installed for an agent — the write side of CG-6's
+/// tracking half.
+pub fn record_installed_version(state: &mut CodeGuardState, capability_id: &str, tag: &str) {
+    state
+        .installed_versions
+        .insert(capability_id.to_string(), tag.to_string());
+}
+
+/// One agent's full reportable status — the queryable, tested surface
+/// `ade doctor` / the Control Center's capability inventory would print.
+/// Deliberately a plain function this module owns rather than a new row
+/// wedged into `gui::inventory`'s `CAPABILITIES` array: that system's own
+/// `CapabilityDef` has no `depends_on` gating or per-agent presence probe
+/// today (a real, larger integration this session scoped out rather than
+/// risk regressing a 1700-line, heavily-tested system on top of everything
+/// else built here) — wiring THIS report into that UI is real but separate
+/// follow-up work, not a gap in the data or logic itself.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CodeGuardStatusRow {
+    pub capability_id: &'static str,
+    pub agent_id: &'static str,
+    pub presence: PresenceState,
+    pub version: VersionStatus,
+}
+
+/// CG-6's actual "surfaces update available" claim, in reportable form: one
+/// row per known agent, presence and version status both derived from
+/// already-tested primitives (`probe_presence`, `version_status`) — this
+/// function adds no new detection logic of its own, only composes what
+/// exists.
+pub fn codeguard_status_report(
+    deps: &CodeGuardDeps,
+    state: &CodeGuardState,
+    latest_tag: Option<&str>,
+) -> Vec<CodeGuardStatusRow> {
+    CODEGUARD_AGENTS
+        .iter()
+        .map(|def| CodeGuardStatusRow {
+            capability_id: def.capability_id,
+            agent_id: def.agent_id,
+            presence: probe_presence(def, deps),
+            version: version_status(state, def.capability_id, latest_tag),
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -1219,5 +1442,331 @@ mod tests {
             before, after,
             "a machine-scoped CodeGuard action touched repo-scoped files"
         );
+    }
+
+    // ── CG-3 (MCP remainder) ──────────────────────────────────────────────
+
+    #[test]
+    fn register_mcp_agent_writes_the_verified_claude_json_shape() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&[], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-claude-code").unwrap();
+        let outcome = register_mcp_agent(def, "http://localhost:8080/mcp", &deps)
+            .expect("claude-code has a verified user-scope path")
+            .unwrap();
+        assert_eq!(outcome, WriteOutcome::Created);
+        let written: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(tmp.as_path().join(".claude.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(
+            written["mcpServers"]["codeguard"],
+            serde_json::json!({"type": "http", "url": "http://localhost:8080/mcp"})
+        );
+    }
+
+    #[test]
+    fn register_mcp_agent_preserves_pre_existing_unrelated_servers() {
+        // This exact scenario is not hypothetical — this machine's own
+        // ~/.claude.json has other MCP servers registered alongside whatever
+        // this feature adds.
+        let tmp = make_temp_dir("codeguard");
+        std::fs::write(
+            tmp.as_path().join(".claude.json"),
+            r#"{"mcpServers":{"openspace":{"type":"stdio","command":"/x"}},"numStartups":5}"#,
+        )
+        .unwrap();
+        let deps = deps_with(&[], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-claude-code").unwrap();
+        register_mcp_agent(def, "http://localhost:8080/mcp", &deps)
+            .unwrap()
+            .unwrap();
+        let written: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(tmp.as_path().join(".claude.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(written["mcpServers"]["openspace"]["type"], "stdio");
+        assert_eq!(written["mcpServers"]["codeguard"]["type"], "http");
+        assert_eq!(written["numStartups"], 5);
+    }
+
+    #[test]
+    fn register_mcp_agent_returns_none_for_an_agent_with_no_verified_config_path() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&[], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-cursor").unwrap();
+        assert!(register_mcp_agent(def, "http://localhost:8080/mcp", &deps).is_none());
+    }
+
+    #[test]
+    fn mcp_server_healthy_reads_the_real_health_endpoint_shape() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &[],
+            &[(
+                "http://localhost:8080/health",
+                (0, r#"{"status":"ok","version":"0.1.0"}"#, ""),
+            )],
+            tmp.as_path(),
+        );
+        assert!(mcp_server_healthy(&deps, "http://localhost:8080"));
+    }
+
+    #[test]
+    fn mcp_server_healthy_is_false_when_unreachable() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&[], &[], tmp.as_path());
+        assert!(!mcp_server_healthy(&deps, "http://localhost:8080"));
+    }
+
+    #[test]
+    fn mcp_server_healthy_is_false_on_a_non_ok_status() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &[],
+            &[(
+                "http://localhost:8080/health",
+                (0, r#"{"status":"degraded"}"#, ""),
+            )],
+            tmp.as_path(),
+        );
+        assert!(!mcp_server_healthy(&deps, "http://localhost:8080"));
+    }
+
+    // ── CG-5: fallback orchestrator ───────────────────────────────────────
+
+    #[test]
+    fn ensure_agent_secured_does_nothing_when_mcp_is_healthy() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &["cursor"],
+            &[(
+                "http://localhost:8080/health",
+                (0, r#"{"status":"ok"}"#, ""),
+            )],
+            tmp.as_path(),
+        );
+        let def = get_agent_def("codeguard-cursor").unwrap();
+        let outcome = ensure_agent_secured(
+            def,
+            true,
+            Some("http://localhost:8080"),
+            "codeguard-rule.md",
+            "# fallback content",
+            &deps,
+            None,
+        );
+        assert_eq!(outcome, EnsureOutcome::McpHealthy);
+        // Nothing was written — the whole point of "healthy means no-op".
+        assert!(!tmp
+            .as_path()
+            .join(".cursor/rules/codeguard-rule.md")
+            .exists());
+    }
+
+    #[test]
+    fn ensure_agent_secured_falls_back_when_mcp_is_unhealthy_and_never_leaves_the_agent_unguarded()
+    {
+        let tmp = make_temp_dir("codeguard");
+        // No health-endpoint rule registered — the server is unreachable.
+        let deps = deps_with(&["cursor"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-cursor").unwrap();
+        let outcome = ensure_agent_secured(
+            def,
+            true,
+            Some("http://localhost:8080"),
+            "codeguard-rule.md",
+            "# fallback content",
+            &deps,
+            None,
+        );
+        assert_eq!(
+            outcome,
+            EnsureOutcome::FellBackToDefault(WriteOutcome::Created)
+        );
+        assert_eq!(
+            std::fs::read_to_string(tmp.as_path().join(".cursor/rules/codeguard-rule.md")).unwrap(),
+            "# fallback content"
+        );
+    }
+
+    #[test]
+    fn ensure_agent_secured_installs_the_default_path_directly_when_not_in_mcp_mode() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&["hermes"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-hermes").unwrap();
+        let outcome = ensure_agent_secured(
+            def,
+            false,
+            None,
+            "SKILL.md",
+            "# default content",
+            &deps,
+            None,
+        );
+        assert_eq!(
+            outcome,
+            EnsureOutcome::DefaultInstalled(WriteOutcome::Created)
+        );
+    }
+
+    #[test]
+    fn ensure_agent_secured_respects_cg7_even_on_the_fallback_path() {
+        // A user hand-edited the fallback file; MCP then breaks. The
+        // fallback must not clobber the edit — CG-7 applies uniformly, not
+        // only to the non-MCP default path.
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&["cursor"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-cursor").unwrap();
+        let path = tmp.as_path().join(".cursor/rules/codeguard-rule.md");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, "# hand-edited").unwrap();
+        let prior = ProvenanceRecord {
+            path: path.to_string_lossy().to_string(),
+            installed_hash: sha256_hex("# original"),
+        };
+        let outcome = ensure_agent_secured(
+            def,
+            true,
+            Some("http://localhost:8080"),
+            "codeguard-rule.md",
+            "# upstream update",
+            &deps,
+            Some(&prior),
+        );
+        assert!(matches!(
+            outcome,
+            EnsureOutcome::FellBackToDefault(WriteOutcome::Conflict { .. })
+        ));
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "# hand-edited");
+    }
+
+    // ── CG-6 (remainder): version tracking ───────────────────────────────
+
+    #[test]
+    fn version_status_is_unknown_when_nothing_is_recorded() {
+        let state = CodeGuardState::default();
+        assert_eq!(
+            version_status(&state, "codeguard-cursor", Some("v1.3.0")),
+            VersionStatus::Unknown
+        );
+    }
+
+    #[test]
+    fn version_status_is_current_when_tags_match() {
+        let mut state = CodeGuardState::default();
+        record_installed_version(&mut state, "codeguard-cursor", "v1.3.0");
+        assert_eq!(
+            version_status(&state, "codeguard-cursor", Some("v1.3.0")),
+            VersionStatus::Current
+        );
+    }
+
+    #[test]
+    fn version_status_reports_update_available_when_tags_differ() {
+        let mut state = CodeGuardState::default();
+        record_installed_version(&mut state, "codeguard-cursor", "v1.2.0");
+        assert_eq!(
+            version_status(&state, "codeguard-cursor", Some("v1.3.0")),
+            VersionStatus::UpdateAvailable {
+                installed: "v1.2.0".to_string(),
+                latest: "v1.3.0".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn version_status_stays_current_when_latest_is_unknown_rather_than_falsely_flagging_an_update()
+    {
+        // fetch_latest_release_tag degraded to None (network down) — that
+        // must never read as "an update is available" with no real basis.
+        let mut state = CodeGuardState::default();
+        record_installed_version(&mut state, "codeguard-cursor", "v1.2.0");
+        assert_eq!(
+            version_status(&state, "codeguard-cursor", None),
+            VersionStatus::Current
+        );
+    }
+
+    #[test]
+    fn recorded_versions_round_trip_through_save_and_load() {
+        let tmp = make_temp_dir("codeguard");
+        let mut state = CodeGuardState::default();
+        record_installed_version(&mut state, "codeguard-cursor", "v1.3.0");
+        record_installed_version(&mut state, "codeguard-hermes", "v1.2.0");
+        save_codeguard_state(tmp.as_path(), &state).unwrap();
+        let reloaded = load_codeguard_state(tmp.as_path()).state;
+        assert_eq!(
+            version_status(&reloaded, "codeguard-cursor", Some("v1.3.0")),
+            VersionStatus::Current
+        );
+        assert_eq!(
+            version_status(&reloaded, "codeguard-hermes", Some("v1.3.0")),
+            VersionStatus::UpdateAvailable {
+                installed: "v1.2.0".to_string(),
+                latest: "v1.3.0".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn a_retired_agent_id_in_installed_versions_is_dropped_silently_too() {
+        let tmp = make_temp_dir("codeguard");
+        std::fs::write(
+            tmp.as_path().join(CODEGUARD_STATE_FILE),
+            r#"{"schemaVersion":1,"enabledAgents":[],"installedVersions":{"codeguard-cursor":"v1.3.0","codeguard-retired":"v0.9.0"}}"#,
+        )
+        .unwrap();
+        let state = load_codeguard_state(tmp.as_path()).state;
+        assert!(state.installed_versions.contains_key("codeguard-cursor"));
+        assert!(!state.installed_versions.contains_key("codeguard-retired"));
+    }
+
+    // ── CG-6: the reportable status surface ──────────────────────────────
+
+    #[test]
+    fn status_report_covers_every_known_agent_exactly_once() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&[], &[], tmp.as_path());
+        let rows = codeguard_status_report(&deps, &CodeGuardState::default(), None);
+        assert_eq!(rows.len(), CODEGUARD_AGENTS.len());
+        let ids: std::collections::BTreeSet<_> = rows.iter().map(|r| r.capability_id).collect();
+        for def in &CODEGUARD_AGENTS {
+            assert!(ids.contains(def.capability_id));
+        }
+    }
+
+    #[test]
+    fn status_report_reflects_real_presence_and_version_together() {
+        let tmp = make_temp_dir("codeguard");
+        let rules_dir = tmp.as_path().join(".cursor/rules");
+        std::fs::create_dir_all(&rules_dir).unwrap();
+        std::fs::write(rules_dir.join("codeguard-crypto.md"), "# rule").unwrap();
+        let deps = deps_with(&["cursor"], &[], tmp.as_path());
+
+        let mut state = CodeGuardState::default();
+        record_installed_version(&mut state, "codeguard-cursor", "v1.2.0");
+
+        let rows = codeguard_status_report(&deps, &state, Some("v1.3.0"));
+        let cursor_row = rows
+            .iter()
+            .find(|r| r.capability_id == "codeguard-cursor")
+            .unwrap();
+        assert_eq!(cursor_row.presence, PresenceState::Installed);
+        assert_eq!(
+            cursor_row.version,
+            VersionStatus::UpdateAvailable {
+                installed: "v1.2.0".to_string(),
+                latest: "v1.3.0".to_string(),
+            }
+        );
+
+        // A different agent, never installed on this fresh machine.
+        let hermes_row = rows
+            .iter()
+            .find(|r| r.capability_id == "codeguard-hermes")
+            .unwrap();
+        assert_eq!(hermes_row.presence, PresenceState::HarnessAbsent);
+        assert_eq!(hermes_row.version, VersionStatus::Unknown);
     }
 }
