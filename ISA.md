@@ -5,7 +5,7 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 254/258
+progress: 255/259
 mode: autonomous
 started: 2026-07-12T08:49:30Z
 updated: 2026-07-26T15:25:00Z
@@ -629,6 +629,20 @@ each on its own evidence — not by chasing a score, by fixing or explaining wha
       not silently absorbed, verdict: correctly un-fixable without either a second
       maintainer materializing or time passing, whichever the owner's actual trajectory
       produces
+- [x] ISC-343: README carries badges for every workflow this phase shipped — CI, CodeQL,
+      SAST (OpenGrep), Vulnerability Scan, Secret Scan, SBOM, Fuzz, OpenSSF Scorecard
+      (live score, matching sscsb's own already-audited badge pattern verbatim),
+      Dependabot enabled (shields.io generic badge, mirroring sscsb's "Renovate enabled"
+      convention for the equivalent tool this repo actually uses), License (MIT). Every
+      badge URL verified live before committing (`curl -o /dev/null -w '%{http_code}'`
+      against each: seven workflow badges 200, Scorecard badge 302 — a redirect to
+      shields.io rendering, the same response class sscsb's own working badge returns, not
+      a broken link). Deliberately NOT added: an SLSA-provenance/build-level badge —
+      `release-slsa.yml` exists and is reasoned through (ISC-328) but no release has been
+      cut and no `slsa-verifier` proof exists yet, so a badge claiming a build level would
+      be an unverified claim the moment it was added, the exact class of thing this whole
+      phase has been careful not to do. A one-line note in the README says so explicitly
+      rather than silently omitting it with no explanation
 
 ## Test Strategy
 

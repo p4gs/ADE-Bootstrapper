@@ -1,5 +1,23 @@
 # ADE Bootstrapper
 
+[![CI](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/ci.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/codeql.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/codeql.yml)
+[![SAST (OpenGrep)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/sast-opengrep.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/sast-opengrep.yml)
+[![Vulnerability Scan](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/vuln-scan.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/vuln-scan.yml)
+[![Secret Scan](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/secrets-scan.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/secrets-scan.yml)
+[![SBOM](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/sbom.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/sbom.yml)
+[![Fuzz](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/fuzz.yml/badge.svg)](https://github.com/p4gs/ADE-Bootstrapper/actions/workflows/fuzz.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/p4gs/ADE-Bootstrapper/badge)](https://securityscorecards.dev/viewer/?uri=github.com/p4gs/ADE-Bootstrapper)
+[![Dependabot enabled](https://img.shields.io/badge/dependabot-enabled-brightgreen.svg)](https://docs.github.com/en/code-security/dependabot)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+> Every badge above tracks a workflow that actually runs in *this* repo's GitHub
+> Actions on `main` — not a static claim. No SLSA-provenance badge yet: the
+> `release-slsa.yml` workflow exists and is reasoned through, but no release has
+> been cut, so there is nothing yet to point the badge at without it being an
+> unverified claim. For the live score breakdown, see the
+> [Scorecard viewer](https://securityscorecards.dev/viewer/?uri=github.com/p4gs/ADE-Bootstrapper).
+
 **Bootstrap a secure, high-quality, operationally trustworthy Agentic Development
 Environment (ADE)** for AI coding harnesses — Claude Code, Codex, Cursor, OpenCode,
 Antigravity, Hermes, and Pi.
