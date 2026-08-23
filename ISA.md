@@ -1129,7 +1129,7 @@ glyph rule checks `installed` before severity. It is the same class of
 inconsistency fixed in the verdict, but changing tray glyph semantics belongs
 with the SF Symbol status icon in Phase 2, not smuggled into Phase 1.
 
-## CodeGuard Integration (in progress — 3/10 closed)
+## CodeGuard Integration (in progress — 4/10 closed)
 
 **Goal.** Bootstrap the AI coding agents ADEB detects on a machine — not any one
 repo — with Project CodeGuard's security ruleset, so every agent generates
@@ -1167,13 +1167,15 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   state (`claude plugin list --json` for Claude Code, file presence under its
   own user-scope directory for the rest), never by `which` on a binary —
   CodeGuard has no CLI.
-- [ ] CG-3: Rule files / Agent Skills at each agent's own canonical user-scope
+- [~] CG-3: Rule files / Agent Skills at each agent's own canonical user-scope
   location are the DEFAULT install path (`~/.cursor/rules/`, `~/.agents/rules/`,
   `~/.opencode/skills/`, `~/.hermes/skills/`, plugin-marketplace registration
   for Claude Code and Codex). MCP is an explicit, separately-elected opt-in
   mode, never the default — matching CodeGuard's own stated guidance, reversed
-  from this feature's first framing.
-- [ ] CG-4: No CLAUDE.md/AGENTS.md edit for any agent in the default path —
+  from this feature's first framing. PARTIAL: `install_claude_plugin` and
+  `install_rule_or_skill` built and tested for all six agents; the MCP-as-opt-in
+  dispatch path is not built, so this stays open until that half exists too.
+- [x] CG-4: No CLAUDE.md/AGENTS.md edit for any agent in the default path —
   every canonical location above is already auto-discovered by its agent.
   Verified empirically per agent before shipping, not assumed: OpenWiki's own
   skill install this session proved Claude Code auto-loads `~/.claude/skills/*`
@@ -1244,13 +1246,26 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   `cargo clippy --all-targets -- -D warnings` clean. Coverage on the new file:
   100% function, 96.06% line — the 10 uncovered lines are defensive branches,
   not chased per the standing 95%-floor-not-100% doctrine.
+- CG-3 (partial), CG-4 · `install_claude_plugin` (marketplace-add-then-install,
+  fail-fast per step, real subprocess dispatch) and `install_rule_or_skill`
+  (writes through CG-7's provenance-safe path, creates the target directory
+  when absent, refuses on a ClaudePlugin def rather than panicking) — 7 tests.
+  CG-4's own falsifier: `cg4_no_install_action_ever_touches_a_meta_prompt_file`
+  runs every install action against a fresh home and walks the resulting tree
+  asserting no `CLAUDE.md`/`AGENTS.md` exists anywhere under it — proven, not
+  inferred from the code never mentioning those filenames.
+  `cargo test --workspace` 444/444 green (was 436). Clippy clean. Coverage:
+  100% function, 97.10% line.
 
 ### Remaining Work
 
-- [ ] CG-3, CG-4: actual install actions per agent (plugin-marketplace
-  shell-outs, rule/skill file content) — not built. `InstallShape` is defined;
-  no writer exists yet.
-- [ ] CG-5: MCP-failure fallback trigger — depends on CG-3 existing first.
+- [ ] CG-3 (remainder): MCP opt-in dispatch and real rule/skill CONTENT —
+  the writer exists and is tested against placeholder content; where that
+  content actually comes from (live-fetch vs. a vendored pinned snapshot) is
+  still open, recorded inline in the module as a deliberate non-decision, not
+  an oversight.
+- [ ] CG-5: MCP-failure fallback trigger — depends on the MCP half of CG-3
+  existing first.
 - [ ] CG-6: version-drift check against CodeGuard's upstream releases — not
   started.
 - [ ] CG-8: machine-scoped opt-in config surface — not started; `CodeGuardDeps`

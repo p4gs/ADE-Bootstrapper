@@ -183,6 +183,95 @@ pub fn probe_presence(def: &AgentCodeGuardDef, deps: &CodeGuardDeps) -> Presence
     }
 }
 
+// ── CG-3: install actions ───────────────────────────────────────────────
+//
+// Content source for RuleFiles/SkillFiles is deliberately NOT decided here.
+// Whether ADEB fetches CodeGuard's rules live from upstream at install time,
+// or vendors a pinned snapshot the way `guardrails.rs` vendors its own seven
+// rules, is a real tradeoff (always-current + a new network dependency, vs.
+// deterministic + a sync-maintenance burden) that has not been put to the
+// owner. `install_rule_or_skill` therefore takes `content` as a parameter
+// rather than fetching it — the caller decides the source; this function
+// only guarantees CG-7 safety on the write.
+
+const MARKETPLACE_SLUG: &str = "cosai-oasis/project-codeguard";
+const PLUGIN_SLUG: &str = "codeguard-security@project-codeguard";
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum InstallOutcome {
+    Installed,
+    /// A step's exit code was non-zero; `step` names which one, `detail`
+    /// carries stderr so the caller can report why, never a bare failure.
+    Failed {
+        step: &'static str,
+        detail: String,
+    },
+}
+
+/// CG-3 for Claude Code: `claude plugin marketplace add`, then
+/// `claude plugin install`, exactly as CodeGuard's own docs specify. The
+/// marketplace-add step is idempotent by design — a marketplace already
+/// known is a no-op on the real CLI, so a non-zero exit there is a genuine
+/// failure, not "already added" needing special-casing.
+pub fn install_claude_plugin(deps: &CodeGuardDeps) -> InstallOutcome {
+    let add = (deps.exec)(
+        &[
+            "claude".to_string(),
+            "plugin".to_string(),
+            "marketplace".to_string(),
+            "add".to_string(),
+            MARKETPLACE_SLUG.to_string(),
+        ],
+        &ExecOpts::default(),
+    );
+    if add.code != 0 {
+        return InstallOutcome::Failed {
+            step: "marketplace add",
+            detail: add.stderr,
+        };
+    }
+
+    let install = (deps.exec)(
+        &[
+            "claude".to_string(),
+            "plugin".to_string(),
+            "install".to_string(),
+            PLUGIN_SLUG.to_string(),
+        ],
+        &ExecOpts::default(),
+    );
+    if install.code != 0 {
+        return InstallOutcome::Failed {
+            step: "plugin install",
+            detail: install.stderr,
+        };
+    }
+
+    InstallOutcome::Installed
+}
+
+/// CG-3 for RuleFiles/SkillFiles agents: write `content` under `filename` in
+/// the agent's own canonical user-scope directory, through CG-7's
+/// provenance-safe writer so a prior user edit is never clobbered. Returns
+/// `None` when `def` has no `user_scope_dir` (a `ClaudePlugin` def passed
+/// here by mistake) rather than panicking — a caller bug should surface as a
+/// wrong-shape result, not a crash.
+pub fn install_rule_or_skill(
+    def: &AgentCodeGuardDef,
+    filename: &str,
+    content: &str,
+    deps: &CodeGuardDeps,
+    prior: Option<&ProvenanceRecord>,
+) -> Option<std::io::Result<WriteOutcome>> {
+    let rel_dir = def.user_scope_dir?;
+    let dir = deps.home_dir.join(rel_dir);
+    if let Err(e) = std::fs::create_dir_all(&dir) {
+        return Some(Err(e));
+    }
+    let path = dir.join(filename);
+    Some(write_with_provenance(&path, content, prior))
+}
+
 // ── CG-7: provenance — never overwrite a user-modified file ────────────────
 
 use crate::fsutil::{sha256_hex, write_ensured};
@@ -398,6 +487,208 @@ mod tests {
         let deps = deps_with(&["antigravity"], &[], tmp.as_path());
         let def = get_agent_def("codeguard-antigravity").unwrap();
         assert_eq!(probe_presence(def, &deps), PresenceState::NotInstalled);
+    }
+
+    // ── CG-3: install actions ────────────────────────────────────────────
+
+    #[test]
+    fn claude_plugin_install_runs_marketplace_add_then_plugin_install_in_order() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &["claude"],
+            &[
+                (
+                    &format!("claude plugin marketplace add {MARKETPLACE_SLUG}"),
+                    (0, "marketplace added", ""),
+                ),
+                (
+                    &format!("claude plugin install {PLUGIN_SLUG}"),
+                    (0, "plugin installed", ""),
+                ),
+            ],
+            tmp.as_path(),
+        );
+        assert_eq!(install_claude_plugin(&deps), InstallOutcome::Installed);
+    }
+
+    #[test]
+    fn claude_plugin_install_fails_fast_on_marketplace_add_and_never_attempts_install() {
+        let tmp = make_temp_dir("codeguard");
+        // Only the marketplace-add rule exists; if install_claude_plugin ever
+        // called plugin install anyway it would hit the fake_exec 127
+        // fallback, not a controlled failure — the assertion on `step` proves
+        // it stopped at the right place.
+        let deps = deps_with(
+            &["claude"],
+            &[(
+                &format!("claude plugin marketplace add {MARKETPLACE_SLUG}"),
+                (1, "", "network unreachable"),
+            )],
+            tmp.as_path(),
+        );
+        match install_claude_plugin(&deps) {
+            InstallOutcome::Failed { step, detail } => {
+                assert_eq!(step, "marketplace add");
+                assert_eq!(detail, "network unreachable");
+            }
+            other => panic!("expected Failed, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn claude_plugin_install_reports_the_install_step_when_marketplace_add_succeeds_but_install_fails(
+    ) {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &["claude"],
+            &[
+                (
+                    &format!("claude plugin marketplace add {MARKETPLACE_SLUG}"),
+                    (0, "", ""),
+                ),
+                (
+                    &format!("claude plugin install {PLUGIN_SLUG}"),
+                    (1, "", "plugin not found"),
+                ),
+            ],
+            tmp.as_path(),
+        );
+        match install_claude_plugin(&deps) {
+            InstallOutcome::Failed { step, detail } => {
+                assert_eq!(step, "plugin install");
+                assert_eq!(detail, "plugin not found");
+            }
+            other => panic!("expected Failed, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn install_rule_or_skill_writes_into_the_agents_own_canonical_directory() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&["cursor"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-cursor").unwrap();
+        let outcome = install_rule_or_skill(
+            def,
+            "codeguard-input-validation.md",
+            "# rule body",
+            &deps,
+            None,
+        )
+        .expect("RuleFiles def must return Some")
+        .unwrap();
+        assert_eq!(outcome, WriteOutcome::Created);
+        let written = std::fs::read_to_string(
+            tmp.as_path()
+                .join(".cursor/rules/codeguard-input-validation.md"),
+        )
+        .unwrap();
+        assert_eq!(written, "# rule body");
+    }
+
+    #[test]
+    fn install_rule_or_skill_creates_the_directory_when_absent() {
+        let tmp = make_temp_dir("codeguard");
+        // .hermes/skills does not exist yet anywhere under this fresh home.
+        let deps = deps_with(&["hermes"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-hermes").unwrap();
+        let outcome = install_rule_or_skill(def, "SKILL.md", "# skill", &deps, None)
+            .expect("SkillFiles def must return Some")
+            .unwrap();
+        assert_eq!(outcome, WriteOutcome::Created);
+    }
+
+    #[test]
+    fn install_rule_or_skill_refuses_on_a_claude_plugin_def_instead_of_panicking() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&["claude"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-claude-code").unwrap();
+        assert!(install_rule_or_skill(def, "irrelevant.md", "x", &deps, None).is_none());
+    }
+
+    #[test]
+    fn install_rule_or_skill_respects_cg7_and_never_clobbers_a_user_edit() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(&["cursor"], &[], tmp.as_path());
+        let def = get_agent_def("codeguard-cursor").unwrap();
+        let path = tmp.as_path().join(".cursor/rules/codeguard-crypto.md");
+        std::fs::create_dir_all(path.parent().unwrap()).unwrap();
+        std::fs::write(&path, "# hand-edited by the user").unwrap();
+        let prior = ProvenanceRecord {
+            path: path.to_string_lossy().to_string(),
+            installed_hash: sha256_hex("# original installed content"),
+        };
+        let outcome = install_rule_or_skill(
+            def,
+            "codeguard-crypto.md",
+            "# upstream update",
+            &deps,
+            Some(&prior),
+        )
+        .unwrap()
+        .unwrap();
+        assert!(matches!(outcome, WriteOutcome::Conflict { .. }));
+        assert_eq!(
+            std::fs::read_to_string(&path).unwrap(),
+            "# hand-edited by the user"
+        );
+    }
+
+    #[test]
+    fn cg4_no_install_action_ever_touches_a_meta_prompt_file() {
+        // CG-4's actual falsifier: run every install action this module can
+        // perform against a fresh home, then assert no CLAUDE.md/AGENTS.md
+        // exists anywhere under it. Not inferred from "the code doesn't
+        // mention it" — proven by walking the resulting tree.
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &[
+                "claude",
+                "cursor",
+                "opencode",
+                "antigravity",
+                "hermes",
+                "codex",
+            ],
+            &[
+                (
+                    &format!("claude plugin marketplace add {MARKETPLACE_SLUG}"),
+                    (0, "", ""),
+                ),
+                (&format!("claude plugin install {PLUGIN_SLUG}"), (0, "", "")),
+            ],
+            tmp.as_path(),
+        );
+
+        install_claude_plugin(&deps);
+        for def in &CODEGUARD_AGENTS {
+            if def.user_scope_dir.is_some() {
+                install_rule_or_skill(def, "codeguard-rule.md", "# content", &deps, None)
+                    .map(|r| r.unwrap());
+            }
+        }
+
+        fn walk(dir: &Path, hits: &mut Vec<PathBuf>) {
+            let Ok(entries) = std::fs::read_dir(dir) else {
+                return;
+            };
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    walk(&path, hits);
+                } else {
+                    let name = entry.file_name().to_string_lossy().to_lowercase();
+                    if name == "claude.md" || name == "agents.md" {
+                        hits.push(path);
+                    }
+                }
+            }
+        }
+        let mut hits = Vec::new();
+        walk(tmp.as_path(), &mut hits);
+        assert!(
+            hits.is_empty(),
+            "install actions touched a meta-prompt file: {hits:?}"
+        );
     }
 
     // ── CG-7: provenance — never overwrite a user-modified file ─────────
