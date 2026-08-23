@@ -19,14 +19,18 @@ useDefault = true
 # Homebrew) accepts both forms, so testing only against the newer syntax
 # locally passed while CI's older bundled binary silently didn't apply it —
 # caught by watching the actual CI run, not assumed from a local-only test.
+# tests/modules/observability.test.ts (ISC-87) plants a synthetic
+# github-pat-shaped fixture string (literal alphabet+digits, zero real
+# entropy) specifically to test that the observability module's own
+# credential-redaction logic catches it. Path-scoped (not a literal-string
+# regex) DELIBERATELY: an earlier version of this file matched the fixture
+# by embedding its exact text in a regex — which then got flagged as a
+# "real" secret by Trivy's OWN independent secret scanner reading THIS
+# config file, since the string is real-PAT-shaped regardless of which
+# file it sits in. Excluding the whole test file trades a little
+# secret-detection coverage in one file that exists to test redaction
+# against never again writing a scannable-looking token into a config
+# gitleaks/trivy/etc. will themselves read.
 [allowlist]
 description = "ade.lock.json content-hash entries + a deliberate synthetic test fixture, neither a credential"
-paths = ['''^ade\.lock\.json$''']
-# tests/modules/observability.test.ts (ISC-87) plants a synthetic
-# github-pat-shaped string, `ghp_abcdefghijklmnopqrstuvwxyz0123456789`
-# (literal alphabet+digits, zero real entropy), specifically to test that
-# the observability module's own credential-redaction logic catches it.
-# Excluding it does not weaken secret detection anywhere real — it exists
-# ONLY to be redacted by the code under test, in the file that tests
-# exactly that behavior.
-regexes = ['''ghp_abcdefghijklmnopqrstuvwxyz0123456789''']
+paths = ['''^ade\.lock\.json$''', '''^tests/modules/observability\.test\.ts$''']
