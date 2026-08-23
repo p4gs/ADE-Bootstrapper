@@ -1128,3 +1128,139 @@ installed) for OpenWiki even though that row is an error, because the tray's
 glyph rule checks `installed` before severity. It is the same class of
 inconsistency fixed in the verdict, but changing tray glyph semantics belongs
 with the SF Symbol status icon in Phase 2, not smuggled into Phase 1.
+
+## CodeGuard Integration (planned, not yet built)
+
+**Goal.** Bootstrap the AI coding agents ADEB detects on a machine — not any one
+repo — with Project CodeGuard's security ruleset, so every agent generates
+secure code by default across every project it works on, for as long as the
+agent stays installed.
+
+**Why this is not a 16th module.** Every existing module writes into one
+target repo's `.ade/` tree: lockfile-scoped, verify-scoped, removed with that
+repo. This is the opposite shape — configure the *agent*, once, and the effect
+persists across every repo that agent ever touches, independent of whether
+ADEB ever bootstrapped that repo at all. It belongs beside the machine-scoped
+capability-inventory system (`~/.ade/gui.json`, the same home `nono` and
+`trufflehog` already live in), not among the 15 repo-bootstrap modules.
+
+**Grounded in CodeGuard's own docs, read live this session** (`docs/install-paths.md`,
+`src/codeguard-mcp/{README.md,server.py,config.py,tool_factory.py}`), not assumed:
+rule files/skills are CodeGuard's own stated default for an individual user
+("MCP is usually the wrong starting point for a single repo... the right
+answer when your main problem is centralized policy delivery, not when you
+simply need to install CodeGuard"); the MCP server ships with zero built-in
+auth (binds `0.0.0.0:8080` by default, README says to put a reverse proxy with
+TLS+SSO in front); its tools are genuinely read-only and argument-free — no
+code or file content is ever sent to it, only static rule text returned; its
+own meta-skill instructs an agent to *halt* security-sensitive work if it
+can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
+
+### Claims
+
+- [ ] CG-1: One capability entry per agent (`codeguard-claude-code`,
+  `codeguard-codex`, `codeguard-cursor`, `codeguard-opencode`,
+  `codeguard-antigravity`, `codeguard-hermes`), each relevant only when its
+  corresponding harness capability is itself present — capabilities gain a
+  `depends_on` edge, which does not exist in the model today.
+- [ ] CG-2: Presence for each entry is checked by reading that agent's own
+  state (`.claude/settings.json` `enabledPlugins` for Claude Code, file
+  presence under `~/.cursor/rules/` for Cursor, etc.), never by `which` on a
+  binary — CodeGuard has no CLI.
+- [ ] CG-3: Rule files / Agent Skills at each agent's own canonical user-scope
+  location are the DEFAULT install path (`~/.cursor/rules/`, `~/.agents/rules/`,
+  `~/.opencode/skills/`, `~/.hermes/skills/`, plugin-marketplace registration
+  for Claude Code and Codex). MCP is an explicit, separately-elected opt-in
+  mode, never the default — matching CodeGuard's own stated guidance, reversed
+  from this feature's first framing.
+- [ ] CG-4: No CLAUDE.md/AGENTS.md edit for any agent in the default path —
+  every canonical location above is already auto-discovered by its agent.
+  Verified empirically per agent before shipping, not assumed: OpenWiki's own
+  skill install this session proved Claude Code auto-loads `~/.claude/skills/*`
+  with zero CLAUDE.md pointer, which is the precedent, not a guess.
+- [ ] CG-5: When an agent is running in MCP mode and the server becomes
+  unreachable or gets uninstalled, ADEB detects this (via the existing
+  capability-inventory health probe) and installs the same agent's default
+  rule-file/skill fallback automatically, so the agent is never silently
+  unguarded. Whether this fallback needs a meta-prompt pointer is decided
+  per-agent by the same empirical test as CG-4, never assumed identical to CG-3.
+- [ ] CG-6: Installed ruleset version is tracked per agent (mirroring
+  `reproducibility.rs`'s existing tool-version-in-manifest pattern) and
+  compared against CodeGuard's upstream latest release; `ade doctor` /
+  capability inventory surfaces "update available" the same way OpenWiki's
+  version drift already does.
+- [ ] CG-7: **Never overwrite a user-modified rule/skill file.** Every file
+  ADEB installs is content-hashed at install time (the exact proven pattern
+  `managed.rs`'s `upsert_managed_block` already uses for CLAUDE.md/AGENTS.md —
+  a provenance hash, refuse on mismatch, never silently reconcile). An update
+  or version-refresh run re-hashes each on-disk file first; a mismatch means
+  the user edited it, and that file is skipped and reported as a conflict, not
+  overwritten. This is the sharpest claim in this feature and reuses existing,
+  tested machinery rather than inventing a new mechanism.
+- [ ] CG-8: Opt-in state lives in a new machine-scoped record (not any repo's
+  `ade.json` — this isn't repo-scoped), off by default, one explicit action
+  per agent, never a side effect of `ade init`/`ade apply` on any single repo.
+- [ ] CG-9: Anti — bootstrapping Repo A never silently changes any other
+  repo's observable behavior as a side effect; the only way an agent's
+  CodeGuard state changes is the explicit action in CG-8.
+- [ ] CG-10: Anti — no repo's lockfile, `.ade/` tree, or verify contract is
+  touched by any of this; it is provably invisible to `ade verify` on every
+  existing repo.
+
+### Not yet specified
+
+- fog: Pi has no CodeGuard install path documented anywhere upstream — resolves
+  when either CodeGuard ships one or the owner accepts Pi as permanently
+  uncovered.
+- fog: Claude Code's only documented CodeGuard path is the plugin marketplace;
+  whether a non-plugin fallback (e.g. a dropped-in Skill) is needed for CG-5
+  resolves only by breaking the plugin on a real machine and observing what
+  the agent actually does, not by reasoning about it in advance.
+- fog: exact precedence when a repo separately vendors CodeGuard at project
+  scope (a possible future extension of the existing `guardrails` module) while
+  this machine-scope install is also active — CodeGuard's own docs say layers
+  stack; whether ADEB needs to declare or merely observe that stacking is
+  undecided.
+
+### Test Strategy
+
+| isc | type | check | threshold | tool | severity |
+|---|---|---|---|---|---|
+| CG-1 | config | depends_on gating | entry hidden/inert when harness absent | bun/cargo test, fixture harness list | |
+| CG-2 | behavioral | per-agent presence probe | matches live agent state, no false positive/negative | test against real `.claude/settings.json`, real `~/.cursor/rules/` fixtures | critical |
+| CG-3 | behavioral | default install path per agent | file/skill/plugin lands in documented canonical location | live install + `ls`/`claude plugin list` | |
+| CG-4 | behavioral | no meta-prompt file touched | `CLAUDE.md`/`AGENTS.md` byte-identical before/after install | diff before/after | critical |
+| CG-5 | behavioral | fallback triggers on MCP failure | rule/skill file present after simulated server-down | kill/uninstall MCP server, re-run health probe | critical |
+| CG-6 | behavioral | version drift surfaced | `ade doctor` reports stale version when upstream release is newer | live probe against GitHub releases API | |
+| CG-7 | behavioral | user edit is never clobbered | hand-edit a file, run update, file unchanged + conflict reported | plant edit, run update, diff | critical |
+| CG-8 | config | opt-in is off by default | fresh machine shows no agent wired without explicit action | fresh fixture home dir | |
+| CG-9 | anti | cross-repo silence | bootstrap Repo A, verify Repo B's agent-visible state unchanged | two-fixture-repo probe | critical |
+| CG-10 | anti | repo-scope isolation | `ade verify` on any existing repo is unaffected | `ade verify` before/after CG-8 action | critical |
+
+### Decisions
+
+- 2026-08-23 — **MCP demoted from the original "primary" framing to an explicit
+  opt-in, rule-files/skills promoted to default.** Reversed after reading
+  CodeGuard's own `docs/install-paths.md` live: the upstream project's stated
+  guidance for exactly this "make my agent secure everywhere" use case is
+  user-scope files/skills, with MCP called out as usually the wrong starting
+  point for anything short of an org running shared platform infrastructure.
+  Building what the user first proposed would have gone directly against the
+  documented guidance of the project being integrated.
+- 2026-08-23 — **User-modification preservation reuses `managed.rs`'s
+  content-hash-refuse pattern rather than inventing a new one.** That
+  mechanism is already proven, tested, and is the exact shape this need
+  requires: prove provenance, refuse on mismatch, never silently reconcile.
+- 2026-08-23 — **This lives in the machine-scoped capability-inventory system,
+  not as a 16th repo-bootstrap module.** The effect is agent-wide and
+  repo-independent by the owner's own stated intent, which is a different
+  blast radius than every existing module and needs a different consent gate
+  (explicit per-agent action) rather than something `ade apply` on any one
+  repo could trigger as a side effect.
+- 2026-08-23 — **Every "does this need a meta-prompt edit" question is encoded
+  as an empirical claim (CG-4, CG-5), not answered by assumption.** The
+  OpenWiki skill install earlier this session is the only real evidence
+  available (Claude Code auto-loaded a dropped-in skill with zero CLAUDE.md
+  edit) and it only covers one agent's one code path; it does not generalize
+  to Cursor's rule-file discovery or to Claude Code's own non-plugin fallback
+  without a real test.
