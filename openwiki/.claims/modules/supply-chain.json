@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3139115c7bd6f708db5e5aa89f3e83e0e657320c18d1db78fdf6b25d42ed4ae6",
+  "claims": [
+    {
+      "id": "claim_d5648964430f4dd4a29cf563f0ffddb9",
+      "statement": "The registry allowlist is a hardcoded four-host constant with no option to extend it, unlike the sandbox module's network allowlist.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L26-L31",
+          "version": "repo-lines-v1:sha256:7dd812a44fba71a59792d9ac0234172eafda1105f5d41f58cfc87cea1e030dec:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTU0YTQ1ZWRhZDEyNTFjZDc3NmU1Y2Q3N2M2N2Y3Y2FmZGQwNWQ2ZTcyOTMwZDM0ZmQ3MDU3NmEwYmJhYmQ0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjAyZDJjMGQ2ZGM1ZTc0ZDkyZmExNGI5MWRiZWEyNjQwOTBiZWIzNWZkYjkxODhkOWIzNDExODFkY2U5ZjRjZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTRmZTViYzU2N2E4NDEyNThkYjU5Njg2ODk3NGYxMjM1MDc5M2QzZjIzYTI2NmM1MTc0ZGJiMzk3NjQzOGQ1NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmUzNTBkMGIzYWM3NjI4YTI5MGYwYTQ4NGJlNGQ5MWM4ZWY2NTVlYmZmYWIzOWRhYzJiNzJkMjNiOTA5M2NkOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3cc8737dabae4e88b356a716fceeeca2",
+      "statement": "Five AI-native dependency classes are governed with identical rules requiring review before install, pinned versions and explicit user approval as the only allowed source.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L33-L56",
+          "version": "repo-lines-v1:sha256:5c3bfc23872bb89273c6bf50fa3a58e22f84d038b0337d737376cbe6f957342e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MGZjNWM3NGUzNTkyZTEzYjY3ZWUyOGZiZmNmOWQ5OGVjMjc2Y2M2NTVlY2MzYTc4ODg0YzBmYWVmMTkwYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3NThmYzRlMDNjMGNmMDY4Mzc3ZjllZWIyMmQ1NzZkOWM2ZTRhZmEzN2Q4MTQ2Y2NlOTZlMmE3MjZkOGM0YjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2MzFhODYwZGNjODc5Mzk0ODZiNWU5ZGNiYzVjNTQyYjE4ODFhZDZlZmQwZGM4OTdmNjY1MGVlMmY5YTc0NjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8cbff001724e41c78ffbf407a7f5ea60",
+      "statement": "Missing lockfiles are warnings and never fatal: they appear in apply's findings and never affect module status or verify.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L143-L159",
+          "version": "repo-lines-v1:sha256:ba0170f17e991fcfc5ac45c4fc0cfa0d655e5306d22ed914e1997b7f622c87bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYTE2ZWI0OGJhMzkyYTRhMjI3YzVhOTY4M2I0OTNmNGVhYmU3MDEwNmUzYjgwMzQ0M2Q4OTFiNzVhN2M1MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzZmRhZTFiMTRjNTUyYWQxNWFkZjJiYTUxMzA0NTM5ZDk1ZmM2ZWEwZjJjZTBmMjU4YzVkNWMyM2ZiOWQ4ZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d170e7cf5b01454a9cf59a2dcd28af41",
+      "statement": "The Python pinning check is substring-based, so a requirements file counts as pinned if the equality operator appears anywhere in it including inside a comment.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L92-L162",
+          "version": "repo-lines-v1:sha256:601b1125b608e61bbec421ce12b145e304298fbaa151e5f1277accb95597d67d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwNGNiMzcwMmNhZGIwZWI4ZTY3NGQxODgwYmQ5MzJhOWZiMWZhZGE2MzZiMTAxYmRjNjI4OTVlNGEyNWEyZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyNWUwNDE5MDkxMWVkMjI3MmZjMTgwNmYzNTA2M2Q1ZDgwNjE3NzAyOGViN2IwNjkzOWMzOGJmM2Q3YzJmYWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6d7557b2f0bc43b786575d43239caf31",
+      "statement": "An absent vulnerability scanner yields degraded rather than failed and the policy is still written, because enforcement absence never blocks policy publication.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L186-L202",
+          "version": "repo-lines-v1:sha256:42f396ffac664238940e812e688112c82c03526c4947706bc63a423bac4f1af1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0NzVlOTRhOTA0YWM0OWIzMTU0ZDQ2NzJhNjZlODYyOWI4NmRhYzc0ZTNlMjkzN2JlNjkyN2FlM2RhMTFjNTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlNmE0ODc0YjBlYThiM2IzMzA4ZWIwY2RlYTJjNmIwMDIzMWRmNDg4MTllOGQ4OWE3OTA5NzQ4OWU1ZmI1NzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwMDFhZWM4ODFjODdjNWQxZDk5NDBlZTI4ZWY5N2I3N2IxMjA1OTkwNWE2OWI2YzM1OTE0ZTI4YTJiNzFhZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_09a50effd26a46f784d1558186289836",
+      "statement": "Verify performs a two-section structural check and fails closed on either, but deliberately does not re-check lockfiles or scanner presence.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L270-L357",
+          "version": "repo-lines-v1:sha256:7936805309276ec6dcb0b81611bf2be1e765e4603f04a710028ed3e978e7c080:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMGYwNDgxODhhMTBhZWYwNzI4YjhlNzk1ZDZmMjY3ZGE5ODIzNWNhOGYzZDIyY2NjYzk3MDU4NjU4N2ZhODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MjE2MDRiMzVmYzQwYWYwMGNiYTRlZWEyZmQ1ZTJjM2FmMTg2M2IzOTExODVkN2JmNGJiMDllNzJkMGM4YjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6614cb3178e24525ade4c13af3defc27",
+      "statement": "Every obligation in the instruction block is a directive to the coding agent: ADE never runs the scanner, queries a registry for package age, or blocks an install.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/supply_chain.rs#L219-L232",
+          "version": "repo-lines-v1:sha256:df952e5e8eb31990a66bf3b4549fc369d6f3a9fc25f36d4efec0e4359420cd14:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3M2I4ZDlkZDU3YTM4YjJmY2M3NzU3ODA5OWE2MjQ0NzJmY2NhNGU5YWZiYzc0OTk1MGNhNmM4MWE2ZTUxMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkNjY4ZTVjMjM0Y2QzNzFiNzllN2ZjNmE5MTI1MWQ1MzgwMTdlYjIwYTQyODYxNWVkZGRmNzI5ZDRmZDU3ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjYjBkMjk4OGYxMTExMTg3MmMxNWU4YmFhYTdjM2RkYWI4NzNiODU3ZWZkZTQ5ODZmMjIwY2Y1OTAyNDkyZjEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

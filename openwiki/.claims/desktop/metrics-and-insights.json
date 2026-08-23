@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:456fcd8848715760ee8527368f7c10bc2c17f6f0778c3e5bf902db5b6d7243fc",
+  "claims": [
+    {
+      "id": "claim_4023a3f253a44c1e8f9979dc774870fd",
+      "statement": "The house rule is enforced by return type: every statistic returns an optional when its real source is absent, so there is no placeholder-zero path anywhere in the module.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L1-L21",
+          "version": "repo-lines-v1:sha256:4a05cff0701e733a9b92bc7fe008f3eb478790bdff10d0959b96f55f9713a0af:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNmIxZmVlMzI4MzgzYzE3MjkwMDliZTk3ZjgwNWQ3Yjg1MTJlZDFlNTcxYzcyZWU4YTRhNjFkMjJkM2EyODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkNmJiNzkzNWY1ZDcxNDc3ZmYzNmFmYzJjMzE0OGVkMTk0NDM0YTBjNDQzODFjNWY1YmE1ODI4MjUyZDQ1NTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjNjNlOWQwOTg5M2Q4NjhkOTFlZTY3ZWZjMTI2NjVmYjNlNWRkMjQ3N2RmMGY2ZDFmZDc3YjBkNWRjYjk4MjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ebc186ce0755402aa41a0eb91ff16cae",
+      "statement": "Five capability groups map to modules and every mapping is grounded in that module's own tool-presence check rather than assumed.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L74-L104",
+          "version": "repo-lines-v1:sha256:7ddca9e0861446a62ae0ac8743ef29ccf21deac1add3c650e6bff949d7e32bc0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNmNiMGI0NzE2MGJmMzFjNjdiMTM4YjI0NzE4MDk5MjVlN2ZhOTVjM2Q4MTU2Yjc4MmUwMTM4ZjNkYTdjNWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkNmI1NWM2ODQyOGJkOWU4ZDZiNGU0Y2YwYmJmYmI4Mjc4MWEzMjU4NjEwYWU5ZTAxMjI3NzA0NjM1MGQwN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4OTgzMDQzMjY1MDgzNmNiMjMwOGMzMGU4NmMxOTI1Yjc2N2I1NmM3NjJiYmQxNjBhM2FiZmRhOTA5N2U2MDgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d804ec9b38ff4581b5b05ec6e9fce784",
+      "statement": "The state predicate accepts only applied and degraded, which are exactly the values the shared status report emits.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L106-L112",
+          "version": "repo-lines-v1:sha256:c241abf3c0aa7d9863f06944ae7ade54a93a7fae94f328f3691f7c7d572e62cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI0ZjYxYjhjYjk2M2YwNDAzMDM1Yjk1NDI4YWEzYzY2ZmYxMGY1MDNkYzA4OThmMTJjZTQ4NGJiMmUzYTlmMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzM4MTk5MTYxYzc1Y2YwMWM5NmFkODA3N2JmZjk4OWNmZGQwYzg3ZTA3YWNjNjAwMGYwOGQwNGRkNjY1NGVmZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWNiZGUwOGExMmVlM2VhNzI0ZTkzYmEyMmRjOWE5NTNiODJiMGRiNTY2ODZiYjI0YjVhZjhmNmFiNTJjNzY4NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2be59e3d56d243ee83db0e212a0434f5",
+      "statement": "The desktop coverage matrix and the command-line status output cannot disagree, because both call the identical two functions on the identical status value.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L259-L277",
+          "version": "repo-lines-v1:sha256:6aa12b909e1a4e2a140006da32d5c45fcc8e25fa5812b6f3ecb861f178c15c68:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NzUzMDVkNzFlZjQyZjhkNjhkNjc3ZmQwZWY5MmU1MTQwNDM2YzE3Yjg2ZTJhOGQyZTg4ZjQ3N2M1ZGI5MmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4MTliM2JkZDNhNDhiYmVmYjUzMGU5MWE1MDc2MzE1MTllMjA4ZDFmOGJmOWE4ODk5NGE1OWExNTE0NDQwODQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1928a65242f54cb08ca0a516fad8275d",
+      "statement": "The database-age probe reports the oldest ecosystem archive rather than an average, because a fresh archive beside an old one means that ecosystem's advisories are stale.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L188-L226",
+          "version": "repo-lines-v1:sha256:0394f72896ff97ede145d08c980afd5da79190802a7018d19e1baf987ec38247:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3MTZhZjcwOWZlZDM0OWNiNzdjYjRkYTYyZjk2ZjI3NTEyMmE4MzEzMTRlNGM1NmNkZjdlOGI4ZmZhNDFjZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyYTJmMDczMzBiYTc5YmNiMTA1NTQyNGE3MGFjYzFlNjYxM2RmNDU3ZDhiMTJlNTkwMTllNmUzNjdlNTFkNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExNjUyYzlkYjBhNmZiNzYwZGM2MWFlM2U5NDAwODJjNDYwYTg2NTk0MzRkMGZiNDI3NmUwNGJiMWYwNWE1YjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_021a48b42b554fbfb5e3e05089579399",
+      "statement": "The hook-latency probe refuses to report a timeout as a measurement, checking for the timeout sentinel and returning nothing because the elapsed time in that case is the timeout rather than the hook's cost.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L294-L312",
+          "version": "repo-lines-v1:sha256:27732583edb1135d795328821ebfbc5708975076a6091688cb3195c0cab8a978:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0YzkyZTI4Y2M2M2MzOGYzZGFkMmFhNzY1YzUyYjliZDE1MTcyZTljMWUyMmIyOGRkYTI2NTMyNWU2NmUyNDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2NTRiYjhhOTYzZTNkNmU5MGNmNDA2MmZiY2YzYzc4ZmZhY2M1NzU0MDg2YzJhZmNmMjFkMmMzMjYzMTE5ZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyOWUxNjY2ZTllNWE4MzM3YmJhZDliNzg5ZWYzOGZjOTUwNGNiMmI4MWRhZTIyODVkZGVlNGYxOTc4NzBlZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMDU4OTI0MDZjM2NiN2NmNzM5NDI0NzFkYWU5YjFjOTZkMTZkYTU2ZjljZTY1Mjk4ZWVkNDBlOWVkN2I4MGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_576d6583169f446aa433fac47fd0746c",
+      "statement": "The coding-agent surface probe omits agents with no vendor-documented install path from the denominator rather than counting them as uncovered, because guessing one would be fabrication.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L322-L376",
+          "version": "repo-lines-v1:sha256:8284ed536e0dccf556eccf551577016d0bf4cb13533012b675eb8f0b56b1034a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3MTZhZjcwOWZlZDM0OWNiNzdjYjRkYTYyZjk2ZjI3NTEyMmE4MzEzMTRlNGM1NmNkZjdlOGI4ZmZhNDFjZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc2YjE1NTk3NDdiY2ZhYjI4NTlmMWI3MWJmNTBlY2MxZGQ2NjE4N2UyZTNiZGIwZjhlNjY3NWRjMGUyMzM0OWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4NTVmZDk3MjFjYzljOWEzZGE1NjMzOWM3NzkwZjI5OTdlYTA4NWQ4MDJhZTExZGY0NmVlODJhMzZiYWU5ZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjNjYxYTA1MWYwMzZkNmFkMGI4YjdlY2JlODk3ZWM5ZjZkMDhiYzk0YTkxYmJjNDVlYTk1N2YxNWZiNzgyNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_10226dc8113f4cba973a47093a8f2e9a",
+      "statement": "Tier-3 secret statistics read a deliberately counts-only log, because retaining the scanner's raw output would turn a catching tool into a secrets-retention bug, and malformed lines are skipped rather than failing.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/stats.rs#L412-L481",
+          "version": "repo-lines-v1:sha256:8e2793cdd359591a61f2fd3555d89db163a71f0b27bc54659039319ff035dece:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NzQ4Yzg3ZThmMTYyNmQ5NzM1ZmUwZWZkNjE1NmY1ZjBjODZjMjg1MTk2ZjE0ODRiNjk0NDhlODQ4MTUwNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjYmRlMDhhMTJlZTNlYTcyNGU5M2JhMjJkYzlhOTUzYjgyYjBkYjU2Njg2YmIyNGI1YWY4ZjZhYjUyYzc2ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1ODllZDBhZDBmZTc0MDNkYmY1Y2NkNzdkZmQxZDBlZDJkMWM1ZWYxOWU0NmIwMGMxNmNhZjJmYzUzZmRkZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_53c876089de443b88bfe8492937f8765",
+      "statement": "Insights consume the same facts the metrics strip renders in the same pass, so an insight can never claim a fact the strip does not already show.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/insights.rs#L36-L52",
+          "version": "repo-lines-v1:sha256:9343b208fce5f7cc04b9376f921dda4f50531ef27cfc88854324471e6ef130af:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0NzI5YTJmMjlhNDEyYTBhMDA2MTJkNWMwZTRmMTA0ZGYyNGQ4N2Q5MmE4NWFlYjdmM2FmMTE0YmI3NGM1OTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxZmRjZTViNDA2Y2VlN2JkMjk5MDViODkwNTI2OThmYTA4ZDdkMzVmZDEwNzA1NDU0YTZkNDRjZjBjZWViOWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ1YTU1ZWU2ZTQ5MWU2NzExOTRhNmVjMzU3ZWUwNGM3NDNjYWZmZDRhNzI5ZGU3NDYxNDFlMDY4NTMzZDQyMzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9d1d1564c574cadb50a6519b4561053",
+      "statement": "At most one action per insight is enforced by the type rather than by a runtime check, and identifiers are rule-plus-group tags so a dismissal survives changing values.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/insights.rs#L66-L90",
+          "version": "repo-lines-v1:sha256:74068f299308cc9d9c4980b7476b35e409e12228f52bd6249afc1dce2f64ead3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZDkwMTQzOWIxZGFmMGJiMzBlNjBiMzAxMTlkOWIyM2VlODUyZTk5MWNjZTI2NGUwYjViZGY1N2NkZDI5OTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5OWI0NzZiODViNGI4MTQyZWE1NWUxOTFiNTJiYmEzODk1MTkwODhhZDBjNzI4ODdhNWMwNTJjYzU4MTVhNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQzODMxYzc4YzlkZjk3OGQ1ZWE3NGNkODk3YmM1NGVkMDRlYjE1NDUxMWFhZDAzMjhhYWVjNTAxMmRmNjFhYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5ODljODM1ZDg4ZGM4YmRlMGZhYTAxODI4NjM4MjJmOThmZTYzN2JmYTFjYTRjMTUwMjBiNTMwYmJlMWJlNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f7b8d81cc93e43fcb309b0cb50da5ce1",
+      "statement": "Rules stay silent on the already-stated: a fully covered group produces no coverage insight and the token-gain affirmation is gated on a nonzero command count.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/insights.rs#L145-L237",
+          "version": "repo-lines-v1:sha256:b780f14d778bd6337feb3f37b9b23a0fa2f13ccb22d315eed9104224a9e17b9d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYmUzOTczNjliZmIzMTBlZWE3N2JjYWY5MTA2YjQ4YzRlOTIzYTE2YTRhZWFhYzM1Yjc1MWNkOTczOTUyOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlNWNhNzc0ZDZhM2M2YTYxMzQ2Y2Q2Mzk0MWMzOTFkYmYxZjllY2VmODMwYjQ1YzNkNDlhZmEzNTFkNTVjMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwNjNjNGQxYWY4Y2Q4OWJiMGJkZDc2NTdmZmNiZjY4MDZhNjEwZDc5ZDZjOGQ0YzMwN2MyNDFkZjM5MDA1MjIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:75cd0c11dd7cab2505d9f34242d2267ed72d8c8f43d853c911c079719b93f93f",
+  "claims": [
+    {
+      "id": "claim_9500befc440349b88b2e87a511a3af9c",
+      "statement": "The capability table and group taxonomy are fixed-size arrays rather than growable vectors, so adding a capability is a compile-time edit that forces the arity to be updated.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L109-L135",
+          "version": "repo-lines-v1:sha256:44e06d9ada8ffed779d7652bfeed71008e0bab54cc9263d812ec8f232c0a75ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhYmYwZDI5MTE0M2ZlYTEzY2NmMzk5MjNjNTZhMmU1MDVhNmNmOTQwOTcxY2E5NzllMGI5ZDA1MTNkNDIwYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4YzVhYzc3YmI0NjlhY2M5OGFhODk2YjM5OWUwYzllMzEwNjc0N2YzNTQxNmRmYmNlODAzYWJkYjA2NmEzMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MTNmY2UyOGRhYmI2MGIwOGE3YTc4NWNmNGUzNTcyMDYyMDUxN2E0N2U1MTE5ZWU4NGZlMzMwYzc2YTljZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_52247e81e1014c778165cc1841d4eaed",
+      "statement": "No request or UI input ever reaches a subprocess argument list, because identifiers resolve against the static table and actions against a closed four-variant enum.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L53-L80",
+          "version": "repo-lines-v1:sha256:357d4cc00558dd7fdcc9bddf51594071964596f7f6d06501e914502c90156315:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3MTZhZjcwOWZlZDM0OWNiNzdjYjRkYTYyZjk2ZjI3NTEyMmE4MzEzMTRlNGM1NmNkZjdlOGI4ZmZhNDFjZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjMDcyMWY3ZDIzMTU3OTQyNDNhODI1YTI3ODJjNTZlNDM4MjY3YmIwNDViNmE5NmRiZWI4ZTRkNGNmMmI3ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwNzQ2MDQyZmYyYTIxNDY5ZGNmNGI3NmExOWJiZTA2MGU5ZTQ4MjE1Y2UxYWQyMzAyZWQ1NGI3Y2RjZTI3ZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyMDdmYjI2YjUyMzYwNmRkOTJlNzI2YTE3NWVhMDNkNWZhYzBiMzlkZDg5NzZlMzhkMzJiZDY1N2Y3ZmMzYjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_78d2177380484f82bd35c62f4981d1de",
+      "statement": "An empty version-argument list means the tool has no version command at all rather than an oversight, and it is load-bearing in three places including the health check treating it as healthy.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L93-L97",
+          "version": "repo-lines-v1:sha256:c2c15e3be3f33ee45706918198de7c5c9d59c6b81755d778807d67148f51ef5d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjQ2NTk3MmU5ZWQwNDIwODI2YWE2YWJlOTI3OTUwNWEzMDZhYzYwNzlmOGY3YmNlZjgxNTcyYWI5ZjljMTNmNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDk5NGIxNWMxZWFmMGFlMTkzYmJkMjU1YjIxMDhlNjE0Nzc2ODc5ZDgxNDdlNTJmNmE1YmVlMjYyY2JjOTNkOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODY5ZTczOTEwODFhNGQyMGI5MGE3MTQ5MGEzMTgyNDhjYWNlZTQxNWY2NjJlZGNiMzY4ZmJmNTlmZGM3YTZlNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGJkNDhlZWRjMDc3MzkzMWNhMWY3ZWRlNjkxYWRiMDUzMmU2MmFhMTJiNzhmODFkZDU0OWIyZDE3ZWU5M2NhMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_75201677ae8e4650bc5f21a618a6751d",
+      "statement": "A plugin that is installed but switched off is escalated to an error and excluded from coverage, because installed-and-reporting-a-version while protecting nothing is treated as worse than absent.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L390-L409",
+          "version": "repo-lines-v1:sha256:d8afe5e32d1713af03d0e4bb2572e9fd47f13594570570f9588349adafb47e08:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzMmU4OGE3NmFhNDFiMTVhNWU5ZGQ3Y2UyNTFmMTc0YzZmMzM5ZmNlMTMwMjM5NDUwZTljMmIyMDYzNzczOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1YWQ1M2ZlMTIyMTYyNDc4ZThkMzljZWY1ZTE5NDBlMjIxMDE5MDEwN2Q4MzgzYzk1YWY0NjE3NTdmOWZhOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwOWY1NTE5YTA3YmU2NTI5NDdkYTAyMTQ2ZjU2MGIzZDBmM2JmODI5NGVlZDY0M2M4YzljMjc5M2Y5MmYyNmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_908e15072c4848379a0438c6813cfa86",
+      "statement": "Detection is two-phase by necessity: probes fan out, then coverage is computed across the whole taxonomy, then each capability is judged against it, because no single capability can know whether its group is already covered.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L832-L878",
+          "version": "repo-lines-v1:sha256:38daa44e011466032e3fac6d83ab8372dc9b48c21fb7a9d484c76827bc22126c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNmRiNjFiOGNiNGQyZDAxZjdiZjFhODc4YTlkMzY0ZGU5YTY3MTA1NzAxNGZhOTJiMTVlZmU3M2MxNzViZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjYWMxOGI1MDAwMzEzYmExNTg1MmY5NGMwNjliMDJmMTAyYWVlM2FhNWJhYTI3NDc0MTI0ODhiMjJlNTUyMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMDRiNTNmZGFkODMxMmU5ODZhYjc5ZWMyMTlmNDk2MjFjMzcxZGM0MjE4NzExNzc2OWJkNjM3NTEwOTU5M2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2YjZlN2RmYjRmOThhN2JiMDg3NTI4ODgwYTljZGEwNTQ2N2IzODJjNDIyZGJiYzQ0ZTIyYmE4NTM1OGQwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b8c5aeb6269d41439b6e2ff60846024a",
+      "statement": "Severity is coverage-aware: a missing provider whose group already has a working one is informational while a missing provider in an uncovered group is a warning.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L718-L740",
+          "version": "repo-lines-v1:sha256:746de512179c602b2ac611b86284336914833bf3d3a0d38f884ddce034b82fdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NmI3MmU5YTUxNDU1OTBkNmJmMTQ4MTc3ODU4ODVlNmNkNTVhODRlOTY5NjMyZTJlYjc3ODhiYmNkNzQ1Y2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3MjI4NWJhYTM5ZjNhNjJhYjNlODVlNmM1ZDVlYzE3OTUxN2ZmNDllZjZkMWUzZWE1MzM0MWQ1YWQ5NTVmYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMThiZWZkOGFmMjZjZjczMTcxMDVlZWFiZGQwNGY0NWEyZjI5NmI0OWE0NjI1ZjE3OTdmYzM4YTBiYjM5NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzYmNmNjUzMjcwZGVkYjM0NjUyMzc3ZmM5YzVkOWY3YjUxMWRiZTZkNWRhMGU4MzFhMDFkYzRiMjc4OWIwNjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3aef4eac6b634b578cd265595e91a4a9",
+      "statement": "One definition of provider-works serves both entry points, from raw facts during detection and from finished statuses during verdict, and a test asserts the two produce identical output.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L232-L275",
+          "version": "repo-lines-v1:sha256:1610d685a6fc20f700e5ef12e2324b09e6675e3e45857adda071c12e0d81ee2a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzZDU4ODhlMDgzMWNmY2FmZjVmN2Y3ZjUwYjA0NDg1YjE2OWY2ZGE5MWQ5NTAzOGEwMjJjNGYyYTM4NzU0N2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5MzU0YzlhMjg4Y2M5YjU2NzdlYzM3OWMyMjMxYWRlOWRkYTVmZDkyNjFkZmQ5YzU1MjEyYzJmY2EzMTU1ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MTBmYjJkMjMyYTZjZmM2YWQzMGY1NjZhYTE3NDI4Y2JjOGM3NDBhODA1OWU4OWJhZDI2MWQ2NjI1OWYyZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cfee25a325644c74b994e920e8613014",
+      "statement": "The verdict builder is pure and total: an empty input yields an unknown verdict rather than a sound one, so first paint cannot masquerade as a clean bill of health.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/verdict.rs#L324-L336",
+          "version": "repo-lines-v1:sha256:b1d478478169831a230852862f71bf5c782af7b030561ba740e625ed096f13af:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2MmQyMmZlYzcxOWU3MzUzYjllYzY1YWM2OTJhMGYwNjYzZmEyNWM5NjIzNmUyNmI1NDlkNWU1OWUzMzIxNDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmOTE5NGQ5OGI3MmJlZDM4MGY1ODNkMWYzNTEzYWFmZWFjMWIzOTA2NzE2NTBlZTE4ZDU0MGU0YzViMDliZWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhNjJiOTYwM2Q4ZTQ5OGZlNDY5OWQyOGIzNGM5NzI5YzZhNDRhZWU5ZjAwMGI4YzA2NTc5YjU3ZGRjNzQ0YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxYjk2NWEyOGNlOTFiZTA4YWM3NGQ4Yzk2Mjk5ZTgyMjFhNzAyN2E5YWUxZTQ0NDhiYWIzMmY4NjllZWYyMzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eba02b68e2c94e9288b765ca058978b4",
+      "statement": "Broken requires both installed and erroring, so a tool that never arrived cannot be broken and its install failures ride on the gap row rather than being counted twice.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/verdict.rs#L483-L494",
+          "version": "repo-lines-v1:sha256:3552df854cb2eebec666ac2d3411d81475ecb5bc8144c3e34392bbeaca5525c1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkMDBhOGViY2JhMTI3NzBkMTIzMDU0ZmNjODRiMDA2YTBlZjEzYzA4NzljZmQ1NzgwZmQ3ZmUxZjhiZTI3ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkYmI0ZGY1M2RlMjViOTFmZWRlYjViNTEyYmE3NDdmMGIzNGQ5M2MyYTI2YmM3MzAzYWYxNmVlNzU5MDdiN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyYzNkYjZjMWQyYWRlNDc3MGUyYTY0Y2RhZGY4OTc0NzU4MzA1YmE1ODA3ZTJlODAxMGQ0ODU0ZDMwZGE2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZTBiY2ViNDZkODM2MzZlM2ZiNDM5NjY4MTExYzQwOGIzMjM4NDhiNzBiYzE4OTJkZTNhYWUwNWNkOTg0YTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c2a4f5450f3e487e837518701b35e682",
+      "statement": "The probe timeout abandons the subprocess rather than killing it, so a hung installer keeps running after the probe gives up.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L471-L492",
+          "version": "repo-lines-v1:sha256:06743e10faaf50da0cb0fcde85d972e133c0ae1e86088bcbbc71b8d7aded2913:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZDYxNTQ2YzlhZjc0MzNjNzQ4ZDkyMGU3YWM2NTI3MGUyZjYxYjhkNWE5Y2UwMWRmODcwODIyOGEzMGI0YzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyY2NhZjJjNWUzMjdkNTFhMzYyZWE1NTZkODRmMmNmNTdhY2E4NWJiZmU5MGYzYWZlMDVkYTJjYjM5YWY3MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkMDQ4NDQ2N2Y0MWRlMjNhMTFiZjhhYTE0MmU2YjhjODRkOTJkN2M0MzUwMjc3MmEwZmI5OWMyOWViNjE0ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_adf5081035d147ffad748508dc33354a",
+      "statement": "Update availability is a substring comparison rather than a semantic version comparison, and latest versions are never auto-populated, so update rows are absent by default.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L606-L628",
+          "version": "repo-lines-v1:sha256:a7dc49014c3db1db6ff72b4ececb17202863280a2b43d991ce2829264d466df8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhOGFlMjE4Zjk3NTdkYTBlY2EwYmNiZmRjMjdkODhiOTdlNGI3ZTAyNDI1MDNlYjIyOTkxM2VhNGIwZGM3ZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImViZjA3MWI1NzEwZTYxZDBlNmQyZmQyZTg4MDgwOTNkOTZmNmU2NzI1YmIwN2QzMzg1ODQ5OWVjNzA0YTAzNjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxYWYzNjJlYjExMzVmMzIyYzRiNGNhMjcwYmUzZWE1MGRjNjIwZWZjNWE1ZDVmNTAxNTU1MzQ4YzI0MGM3M2UifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:293b7aa0f0829f0b3a87d5cab3ca5bd3435d60ca669c37acbb74c128829f3e0c",
+  "claims": [
+    {
+      "id": "claim_6bdf23c232cf479a854462f834530bc1",
+      "statement": "Two implementations of the same product live in one repository with an explicit oracle and shipping split, stated as a contributor invariant rather than folklore.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lib.rs#L1-L11",
+          "version": "repo-lines-v1:sha256:d19269d127af83250f612f4b8b12217010c785398dd1d1a88fb4e764b14645e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3Mjk5MmUxMWE4NmE3MGRmZmM4ZjZhYTIyYTcyNDAxMTUwNDQwZGNmOWU5OWQ3MjYxZmY0OGEyZGJhNGRkZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxY2EwZWEzOTNiYjUzZTIyNDIyMDhkMmNkMWI0OTE5MGJlNzc5N2VjNTk1ZjBmN2MwYWVmMTVjNGI5M2M0NTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwZTk1YjA1MmViNDQ5YWJhMjFkMjNhNzUyOTI5NDNmZjk5NWE4ZjMwNjI3OTY5Zjg4ZDY5NTgxNmZjN2I0YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b08fffdfd3234305abca96c489ce3479",
+      "statement": "The parity harness is differential over emitted files rather than over code or standard output: it bootstraps two identical fixtures and compares the resulting trees file by file.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L26-L35",
+          "version": "repo-lines-v1:sha256:a746c37912d0e5e45b93e3bfdde1412ff274ea215dc93b89d54dad2b78dc6267:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmMjMwOGJkNjY5Y2IxZDM3MTExYjYyYzgyMDkzOTU1M2FkYjU2NmZjYTIwNGNmYWRjNmEyOTFhMWM4MzYxMzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZDc2ZjI3MGQ3ZjkzNDRlOTg1ZjVmMTdhZjU4OTExN2I1MWExMTdiOGIyNmIxZWUxNGYzMzcyYjBmYmRiZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjYzNkNGUzMzgzMWE2ZDExMGRjMzU0YzY2Nzc2ODAwNGJmYTcyOTYwOGFjN2QyYWEyMGNjNDJiNmMyZDcyNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyOWMyNDQ4MGUxMWIyMDY0OGVmMzQyZjdkMDUyYTNlZTk4NmMxYWQ0MzYxNzdhNjI1NmFiZWZiMGUxMjViZjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b733a6120544ec3b193b7beeaa9ed79",
+      "statement": "The allowlist of sanctioned differences is a regex anchored at both ends, so a path not matching it exactly is a break.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L37-L45",
+          "version": "repo-lines-v1:sha256:03785d78b494fc5fd79374375a6601001f373ee4f35f07fe5f6d3220a14f5b04:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkYTkwM2I3NmVhZjc0ODg0ZmFmOGM1MjBiODBjNDI1MzA2ZTZhODY5YmZlOTg4YjliZmMzOWVkNzcxNWZkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2I4YjBlOTExODg3N2FkMmRhZjAzOTc0YjE0OWUwYjVlY2ZmOWVhNDAxNzMwNjY3ZTZjNWE3ZDU0NGUzZTQ4YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDYzMDkyYThhMDkzNWZmZGFmZTdmMTkxMjI1NmYzOTg5NWY0MTAyMTE1NDhmZWFkNjY2MGM0OTBhZDdlMTk3YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2M5ZTg2MDhiNjJiYmJiY2U3NmUwOWJiODcxNjIyMGFkMDQ0ZWJlNDFkODc1OGUyMDU5MDhhMjhiNjFlMTM3MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3d2790ec36674c688d9b2afa88b5cfd7",
+      "statement": "Every sanctioned divergence traces to one root cause: the port refuses to require a JavaScript runtime in the bootstrapped repository, writing shell shims that delegate to the binary instead.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/claude.rs#L115-L122",
+          "version": "repo-lines-v1:sha256:e3688bc87608edb7915cd333d06e69a7044413852a219de0e30d27bb7deb137d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MxY2NjMTMwYTA0NzMyMWJiMjFhYWExZWI4MzY1MWMwYjA1MDBiYzE0MDkwZDA0MzhiMjg4MDhjY2RkMjU0ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjg0Yjk2MzA3MjYyYmQ0NGU3M2EyOGI5MTExNzExZTYxMWY4MTIyMDE0ZDZhYThlNzM0NmI0OGEyZjdhNWZkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2ZhY2ExZThhYmI5NjM4NDU1MWFlMjgxYTcxZjI3MWZiODQwMGI2Mjc1NTMyMzM5NWI0NWIyOWIwNGUxNjRkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDYxOGUwOWQ2N2IyMWVhZDdiYjg5OTVkOGYwMjkzNjUwYjA5YWIzMmI1MjI0M2NkYWE2MGI0YWZiMGViZjM2YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d50dc6b2d72c4245affc0dca345cd3fe",
+      "statement": "The harness also asserts cross-version interoperability, pointing the compiled binary at the oracle-bootstrapped fixture and requiring verify, apply, verify and audit verification to succeed with only instruction drift tolerated.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L78-L98",
+          "version": "repo-lines-v1:sha256:3d0e17a5a3cb1aec92f50d977048c7b27740509ce7402185b0a6656a4734d6b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTdiZWU3MTEwZDJlYWI0YmY5ZGY4Nzc4NjhiNjgzMGIzNDJjNjUwZTE3M2VmNDc1M2RhODQwNTNhZmU2NTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxOTg3MGNiZjcwNDU1MWMyNTM2M2I4NGVjZjc2M2QyY2QxNWE3MzM2ZDZjNjNmNTkwZTFkNTZjOTgxNDk4YzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQyZDFjYmQzYTNmNzQ4ZWM2MDEyZWYxN2JkNmJjZTVhODNlMDYzMjc3Mjc4MzMzMDYxNjRkZGU3NWJhN2ZlYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2YWMxOTliMTFiODA4NDk3OWUxMjNmZGIxYjg5NjBkMzVmYWM4YjIzYmNhMjM5ODk0ZDE1ODRkNzZlN2JiN2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e0f1514f6ce34e4a98e096e236a7ed6a",
+      "statement": "The one-sided-file check cannot fail the run, because it pipes into a loop whose body runs in a subshell so its failure flag never reaches the parent scope, unlike the first loop which uses process substitution and does propagate.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L58-L65",
+          "version": "repo-lines-v1:sha256:18eb8fd55dac24cdcfc5c52c7a9521a226d2ee3affa2152723f8c4038a926787:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDExMzk5NTAxOWVkOTc1NGM3MmY2MzkxNDBiMmQ4MTE3Zjk3Mzc5NWQxZDU3NmRkZWIyM2RkYzc5MDgzYmUzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDdjMDdkNWI2OTY1YWI1Y2U5MzEyMjlkZWM0MDRmYTEyYzBkOWMwNDE3Zjc2Y2ZmYTNmYjE5NzQwNWU5NzkyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAyNWQxNDM1MTYzYzljZGQ0OGQ2MmQzOWVmYmQwMTZhNzU4NDdhZWZiZmI3OTBkMTYwYjRkMDhhOWVmMGIxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjU4NzRkYmFhOWZlODIyN2JjYTQwM2UxMzc4MjFiYzhkMDg5ZTk0NGU3MDcyZGVmMjQ5MjIzMjNkZjZjMDVmMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3fc4b6dbc61d4b5586ead28eccc20301",
+      "statement": "The instruction-file content assertion is dead under the script's own pipefail setting, because the diff returns non-zero whenever the files differ and that propagates through the pipeline, so the negation always selects the no-op branch.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L67-L76",
+          "version": "repo-lines-v1:sha256:39b2bceb410342260280cc167e07587747e845555d5af50eb26dc5d8852cd89b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZjlhZTkwNGJkNmZjNzVlMjA2NzUxMTUwZmE1NjZiMGUzYjIxZDZmYjk3MjY5ZGI3MDk4NzM3YmRjNTQ2NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhYmIyYmI0NTNlNjFhNjA2NWIyM2IxN2JiZmM5OTZjOGUxMjZiMDY1YmFhMWViMjk2ZDIzMGU2NDRlMDA0OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMDg5MzRjZjY5MzRiOGVlYjg5ODA4NDI2YmExNGQ1NGZjMjNjOTE4NTZkNGU4OTQzN2Q0ODIyM2M3NmVmNTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f80d8772b17849efa8955ae47b1d67af",
+      "statement": "The harness exercises only bootstrap, so commands present on both sides are never compared and a large Rust-only surface including removal and the desktop tree falls outside parity entirely.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L39-L110",
+          "version": "repo-lines-v1:sha256:4ecc1467ec677524a56fea847a5374eb50dd420c850767a114f5785af6e6c557:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyNzNlZGI5Yjc5OTA4ZDZkYTRiZTQ0Y2Q1MjJmNGM0M2E0MGMzZTk3NGNjNDk5NDQ2YzI4ODY4MzFlZDI5MzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NTkyODBmNjE1NmMxZjY1MWI1MjJiMWIxODYxNjNiNjZkYjQ1YWRiZmE5YmM2NzFiZWQwNzM1MjllZWMxZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDlmZDk1Yjk3NmJhNmU1MDcyOTk3MWM3NTRjMGEwZjM1MDIyMGYwODg2MTYxNTNiMDdhNGUzODNhNmNhMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWIxNzA1Yjg4ZmUxZGRkMDczYjI2ZDhlOTk1ZjgxMWFlZDM1OWQ0Mjk1Y2Y0M2UzNDlmM2MzMDFhMTk1ZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9da97a6fa52b4baf9c87ba0ab03f1abb",
+      "statement": "The harness re-absolutizes the binary path because it changes directory into fixtures before invoking it, which is exactly what continuous integration passes.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L10-L21",
+          "version": "repo-lines-v1:sha256:e3cf9f45b8aea77ea6fbaa344e4f109f8d1047368ae2a58af06d039926a7b9b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZTVjYWU3NzkzNTllYjMwNmI0OTkyZjkwYzRjYWM2ZTg2OWY1Njc2Yjk4NTFkZWVkMGViMmVhODAyODE3ZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MmE4NWI4YTYwZjE2YjIyNjYyYTYzYWNiZWVmNWEzNjJkNGE3NTMzYTgwZjgxZTlkNmE3NDZhNTk5NjVjNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiMjU1OTZlNjNiMzg5NmU4ZGFhNjhjMjBjOGM3MmQ0Nzg2NjBiMTQzZjRlMGRjNmE0YjVjMjBjYjdlN2UyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjYTE4YWZlMDA5YjQxYmY5NDQ1NjU0NTY4NzkyMGRhNDA5MzIzMmFhMTlmZGM3ODhiYTZiYWJjY2Y3NTYxYzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2141bff26de4dfcbab70d022f31c125",
+      "statement": "Two implementations of the same product live in one repository with an explicit oracle and shipping split, stated as a contributor invariant rather than folklore.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/lib.rs#L1-L11",
+          "version": "repo-lines-v1:sha256:d19269d127af83250f612f4b8b12217010c785398dd1d1a88fb4e764b14645e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3Mjk5MmUxMWE4NmE3MGRmZmM4ZjZhYTIyYTcyNDAxMTUwNDQwZGNmOWU5OWQ3MjYxZmY0OGEyZGJhNGRkZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxY2EwZWEzOTNiYjUzZTIyNDIyMDhkMmNkMWI0OTE5MGJlNzc5N2VjNTk1ZjBmN2MwYWVmMTVjNGI5M2M0NTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwZTk1YjA1MmViNDQ5YWJhMjFkMjNhNzUyOTI5NDNmZjk5NWE4ZjMwNjI3OTY5Zjg4ZDY5NTgxNmZjN2I0YWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e4cde58b86d74b8e844fcaad8f129e44",
+      "statement": "The parity harness is differential over emitted files rather than over code or standard output: it bootstraps two identical fixtures and compares the resulting trees file by file.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L26-L35",
+          "version": "repo-lines-v1:sha256:a746c37912d0e5e45b93e3bfdde1412ff274ea215dc93b89d54dad2b78dc6267:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmMjMwOGJkNjY5Y2IxZDM3MTExYjYyYzgyMDkzOTU1M2FkYjU2NmZjYTIwNGNmYWRjNmEyOTFhMWM4MzYxMzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZDc2ZjI3MGQ3ZjkzNDRlOTg1ZjVmMTdhZjU4OTExN2I1MWExMTdiOGIyNmIxZWUxNGYzMzcyYjBmYmRiZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjYzNkNGUzMzgzMWE2ZDExMGRjMzU0YzY2Nzc2ODAwNGJmYTcyOTYwOGFjN2QyYWEyMGNjNDJiNmMyZDcyNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyOWMyNDQ4MGUxMWIyMDY0OGVmMzQyZjdkMDUyYTNlZTk4NmMxYWQ0MzYxNzdhNjI1NmFiZWZiMGUxMjViZjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9634a56d1c2e4fd5ba7d4598738bdccc",
+      "statement": "The allowlist of sanctioned differences is a regex anchored at both ends, so a path not matching it exactly is a break.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L37-L45",
+          "version": "repo-lines-v1:sha256:03785d78b494fc5fd79374375a6601001f373ee4f35f07fe5f6d3220a14f5b04:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkYTkwM2I3NmVhZjc0ODg0ZmFmOGM1MjBiODBjNDI1MzA2ZTZhODY5YmZlOTg4YjliZmMzOWVkNzcxNWZkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2I4YjBlOTExODg3N2FkMmRhZjAzOTc0YjE0OWUwYjVlY2ZmOWVhNDAxNzMwNjY3ZTZjNWE3ZDU0NGUzZTQ4YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDYzMDkyYThhMDkzNWZmZGFmZTdmMTkxMjI1NmYzOTg5NWY0MTAyMTE1NDhmZWFkNjY2MGM0OTBhZDdlMTk3YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2M5ZTg2MDhiNjJiYmJiY2U3NmUwOWJiODcxNjIyMGFkMDQ0ZWJlNDFkODc1OGUyMDU5MDhhMjhiNjFlMTM3MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_07413b5dd8764bd3916cc4fce09d8860",
+      "statement": "Every sanctioned divergence traces to one root cause: the port refuses to require a JavaScript runtime in the bootstrapped repository, writing shell shims that delegate to the binary instead.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/harness/claude.rs#L115-L122",
+          "version": "repo-lines-v1:sha256:e3688bc87608edb7915cd333d06e69a7044413852a219de0e30d27bb7deb137d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MxY2NjMTMwYTA0NzMyMWJiMjFhYWExZWI4MzY1MWMwYjA1MDBiYzE0MDkwZDA0MzhiMjg4MDhjY2RkMjU0ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjg0Yjk2MzA3MjYyYmQ0NGU3M2EyOGI5MTExNzExZTYxMWY4MTIyMDE0ZDZhYThlNzM0NmI0OGEyZjdhNWZkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2ZhY2ExZThhYmI5NjM4NDU1MWFlMjgxYTcxZjI3MWZiODQwMGI2Mjc1NTMyMzM5NWI0NWIyOWIwNGUxNjRkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDYxOGUwOWQ2N2IyMWVhZDdiYjg5OTVkOGYwMjkzNjUwYjA5YWIzMmI1MjI0M2NkYWE2MGI0YWZiMGViZjM2YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7056ab5476764f27bf0e8c71b8676fb4",
+      "statement": "The harness also asserts cross-version interoperability, pointing the compiled binary at the oracle-bootstrapped fixture and requiring verify, apply, verify and audit verification to succeed with only instruction drift tolerated.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L78-L98",
+          "version": "repo-lines-v1:sha256:3d0e17a5a3cb1aec92f50d977048c7b27740509ce7402185b0a6656a4734d6b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwOTdiZWU3MTEwZDJlYWI0YmY5ZGY4Nzc4NjhiNjgzMGIzNDJjNjUwZTE3M2VmNDc1M2RhODQwNTNhZmU2NTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIxOTg3MGNiZjcwNDU1MWMyNTM2M2I4NGVjZjc2M2QyY2QxNWE3MzM2ZDZjNjNmNTkwZTFkNTZjOTgxNDk4YzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQyZDFjYmQzYTNmNzQ4ZWM2MDEyZWYxN2JkNmJjZTVhODNlMDYzMjc3Mjc4MzMzMDYxNjRkZGU3NWJhN2ZlYTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2YWMxOTliMTFiODA4NDk3OWUxMjNmZGIxYjg5NjBkMzVmYWM4YjIzYmNhMjM5ODk0ZDE1ODRkNzZlN2JiN2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_830764f61d35482ea115188f63350fe6",
+      "statement": "The one-sided-file check cannot fail the run, because it pipes into a loop whose body runs in a subshell so its failure flag never reaches the parent scope, unlike the first loop which uses process substitution and does propagate.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L58-L65",
+          "version": "repo-lines-v1:sha256:18eb8fd55dac24cdcfc5c52c7a9521a226d2ee3affa2152723f8c4038a926787:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDExMzk5NTAxOWVkOTc1NGM3MmY2MzkxNDBiMmQ4MTE3Zjk3Mzc5NWQxZDU3NmRkZWIyM2RkYzc5MDgzYmUzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDdjMDdkNWI2OTY1YWI1Y2U5MzEyMjlkZWM0MDRmYTEyYzBkOWMwNDE3Zjc2Y2ZmYTNmYjE5NzQwNWU5NzkyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzAyNWQxNDM1MTYzYzljZGQ0OGQ2MmQzOWVmYmQwMTZhNzU4NDdhZWZiZmI3OTBkMTYwYjRkMDhhOWVmMGIxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjU4NzRkYmFhOWZlODIyN2JjYTQwM2UxMzc4MjFiYzhkMDg5ZTk0NGU3MDcyZGVmMjQ5MjIzMjNkZjZjMDVmMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2bb01995a21743f6a79fc72ea5a09e27",
+      "statement": "The instruction-file content assertion is dead under the script's own pipefail setting, because the diff returns non-zero whenever the files differ and that propagates through the pipeline, so the negation always selects the no-op branch.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L67-L76",
+          "version": "repo-lines-v1:sha256:39b2bceb410342260280cc167e07587747e845555d5af50eb26dc5d8852cd89b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZjlhZTkwNGJkNmZjNzVlMjA2NzUxMTUwZmE1NjZiMGUzYjIxZDZmYjk3MjY5ZGI3MDk4NzM3YmRjNTQ2NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhYmIyYmI0NTNlNjFhNjA2NWIyM2IxN2JiZmM5OTZjOGUxMjZiMDY1YmFhMWViMjk2ZDIzMGU2NDRlMDA0OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMDg5MzRjZjY5MzRiOGVlYjg5ODA4NDI2YmExNGQ1NGZjMjNjOTE4NTZkNGU4OTQzN2Q0ODIyM2M3NmVmNTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_152957ae009b429b974d23a3fbcdd9ef",
+      "statement": "The harness exercises only bootstrap, so commands present on both sides are never compared and a large Rust-only surface including removal and the desktop tree falls outside parity entirely.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade/src/main.rs#L39-L110",
+          "version": "repo-lines-v1:sha256:4ecc1467ec677524a56fea847a5374eb50dd420c850767a114f5785af6e6c557:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyNzNlZGI5Yjc5OTA4ZDZkYTRiZTQ0Y2Q1MjJmNGM0M2E0MGMzZTk3NGNjNDk5NDQ2YzI4ODY4MzFlZDI5MzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NTkyODBmNjE1NmMxZjY1MWI1MjJiMWIxODYxNjNiNjZkYjQ1YWRiZmE5YmM2NzFiZWQwNzM1MjllZWMxZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDlmZDk1Yjk3NmJhNmU1MDcyOTk3MWM3NTRjMGEwZjM1MDIyMGYwODg2MTYxNTNiMDdhNGUzODNhNmNhMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjMWIxNzA1Yjg4ZmUxZGRkMDczYjI2ZDhlOTk1ZjgxMWFlZDM1OWQ0Mjk1Y2Y0M2UzNDlmM2MzMDFhMTk1ZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5226181c82dd40cca623fb19d7a757a0",
+      "statement": "The harness re-absolutizes the binary path because it changes directory into fixtures before invoking it, which is exactly what continuous integration passes.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/parity-check.sh#L10-L21",
+          "version": "repo-lines-v1:sha256:e3cf9f45b8aea77ea6fbaa344e4f109f8d1047368ae2a58af06d039926a7b9b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZTVjYWU3NzkzNTllYjMwNmI0OTkyZjkwYzRjYWM2ZTg2OWY1Njc2Yjk4NTFkZWVkMGViMmVhODAyODE3ZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MmE4NWI4YTYwZjE2YjIyNjYyYTYzYWNiZWVmNWEzNjJkNGE3NTMzYTgwZjgxZTlkNmE3NDZhNTk5NjVjNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiMjU1OTZlNjNiMzg5NmU4ZGFhNjhjMjBjOGM3MmQ0Nzg2NjBiMTQzZjRlMGRjNmE0YjVjMjBjYjdlN2UyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjYTE4YWZlMDA5YjQxYmY5NDQ1NjU0NTY4NzkyMGRhNDA5MzIzMmFhMTlmZGM3ODhiYTZiYWJjY2Y3NTYxYzEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

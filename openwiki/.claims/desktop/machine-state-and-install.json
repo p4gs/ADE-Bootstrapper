@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d7f5ef95781e8a66e55d1f9dfa9eeead91f6f8fdbbdac76d77117dd2e275922c",
+  "claims": [
+    {
+      "id": "claim_37098ab7b0444074a10e9102021fe47e",
+      "statement": "Machine-level state lives outside any project's ADE-owned tree, and the invariant is load-bearing because the lockfile treats any unknown file in that tree as an error.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/state.rs#L1-L14",
+          "version": "repo-lines-v1:sha256:d7512daf723260c811e6cc86acec6e00aaad1a4d12a09b6900ec3a48041b81da:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0ZDQ0NWE3NTViODkwMmE0OGM2YjM2NTU3ZTYyMDFlNjIxNDJlMWNlYTNkNzJmYTQ1ZmJiMzdiMzdhNzZlNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZTk0OTllNTA5Njk0YzU1MWJmMTJmMGU1NjkxMGQxMDk5NDRhYTAzYzdiNGRjMmYwMzg0NmIxMzA3MGJjZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwZjMzODdhNWQ2NDA0YTNiN2NmYjNmMmU5Y2ViYmVmYzQzMjc4ODhjNzg5ODc5MWExNDdmNDlmMDU0YjUwYTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_47c83644cc4d4f01bf673b9929280c91",
+      "statement": "Machine-level disable is a display preference while the project configuration remains the enforcing lever, and the finding a disabled capability produces says exactly that.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L706-L709",
+          "version": "repo-lines-v1:sha256:cf87432c34216cf79bd22ed97b0c86b240ae948b7892727a0245b92c6fb81f8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWY2YWFiZTk0YTlkZGY0YWFlOWI0MjdlNmVjODc0NjhjZmEyZTU5MjhjNmI4NTRjZTcwYWUwNTI0ZjQ4N2M2ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWUwMzUwNjgyYWM0ZWVjNjk3ZDFkZDc2Njg2Y2Q2MTViNWU5NzUwNWExYWJjNWFmOWMwNTg2YjI5YjBlYmQ3ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjg4OGRlYmMzODJiNzEyMzY5MmM0ZGI4ODg0NzY4OWEwMzI0Zjk3NmE5OTkyYThiYTMwN2QxODZkNGRlNTA3MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDdhMjU3N2VhODdlY2I5YjUyOTgzNDAzOTQwZjdhNzNlZDgwYzhlZDhjY2RjNDRjODg0ZTYwNTdkNTNkOTE2YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ce30f93bb69142eca328df43ad41cc03",
+      "statement": "State loading degrades to defaults with a warning for every corruption class and never panics, and the invalid path deliberately leaves the file untouched until the next change.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/state.rs#L105-L142",
+          "version": "repo-lines-v1:sha256:93a7c502a39a11b9c37e2c8f5ec43be2db2710389fd21ad0c5572f033a529dea:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzNjQ2NzBhNTY5NzgxNDY3MGVjMTA3N2Q0ZDI3MThlNzczMzk3YzRjNDgzZDE2ZjdiZTY1OTBjMmRkZTRjYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNGFjNjg4MTkxNGY3OWRhOGFhZmM3NjAxZGJmYTNlYTdlYjFiNzU5NDkzMjZhYjg1ZTZhNWJhNmI0YmM2NTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5MzliZjQwNTU1NTUyMzE3OTY0NDUzOWRjOTRjZmNmNGZiNThiMTdiYTFkZTNjZTYwNWIzYzhkMGVmYzdkOTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_35e7233290354da6b6b5c2073041b6be",
+      "statement": "Dismissed insight identifiers are deliberately not validated against the live table, because a retired rule should simply never match again rather than needing a migration.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/state.rs#L150-L162",
+          "version": "repo-lines-v1:sha256:90d7264c637331635d2e854e076723eb0513f05939a4d160838baa19538446b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYWEwNGUzZGQ4MDEwODUyOWUwYTVlOGUyNjI4N2Y2ZWUzOTc2MjY5YWNhMDcyYzU1NjIxMDJmZjBjODFmZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZTNiZGFmYjNiOWM1ODk0ZjYzODFmMjlmZGQ0MDQzMjNlZmQwMDJjMzZjYTQ0Y2ZjMzQ2YzhkZGEyMWZmNzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhZjNhM2FhNjQ1MjI1YjlhYjZiNDU2NWFhNjA2MDczZDE0OWIxYzAyYzEwZWUyZmE3OWI4ZmM3OGQ5NWZiYmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0NmUxNmQyY2IxZjg0ZmZjZjMyMjRlNTY1YjNmYjNjZTAxMDE3NjYzMjZhZmQ3MzAxMGJiMTdkZjJmZmQ2ZGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8acff0518395426e81bf21e6e04cc9b9",
+      "statement": "The job file is a channel that lets the menu-bar helper reflect activity with no IPC: there is no daemon and no socket.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/jobs.rs#L1-L5",
+          "version": "repo-lines-v1:sha256:cf530570d387517677287de412c4a9c9f408e4908e17afd29bfb36dc1492cc1d:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2YyMTJkOWE5ZTFkYWQ3N2ZiNDcxYWVmNDcyOTFjZTFjODI3OTBjZjQyMTU0YmI1MWE4M2ViZmI3OTQ5MDIwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA0YzNkMDhlOGY1Y2Q4YTNkZjFlM2I3NGFhNjQ0OWQ5ZmI0NWQ3YTUwNGViMzZhNzljOTQ0YmZlNjdmMzc2NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_12878c81e4a64e1ba362c2f567c21994",
+      "statement": "The persisted file is newest-first while the in-memory list is oldest-first and both readers depend on that in opposite ways, so reversing either silently inverts most-recent.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/jobs.rs#L325-L352",
+          "version": "repo-lines-v1:sha256:af08821f0ce4b771e4cbc0431000454ca06c172dbf4fd5891538b3ca00c527b6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YmEyMWQxNmM5YTE4OGRhYmZiNjlmMzdiNDAwMGMzNzI2NjNhOGQyYWU1ZDBjNGViNzM0MjJkOGI0YjM1YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwNWQ4NWU5OTc0NzEwNzMzMmY3MDQzZTk2NDcxOGU3ZmQxZmI4M2JhOGJmNDlmMTg5Y2E4YzdlMzZkYTA1ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MmE3MDMwNjM5ZDg4N2JiMDRiNDc4NGQ1NWJjYjY4YWJiZGZjMmE5MDBkZmNiMWI2ZjBkYTc0OTIwOGM1YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0ccccc5e58d747bb9a431635d117f27f",
+      "statement": "The runner resumes persisted history on construction, because starting empty both re-used an identifier and overwrote the entire recorded history on the first action after a restart.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/jobs.rs#L63-L86",
+          "version": "repo-lines-v1:sha256:9c145773ce2e630381e8000e21dbd6c91019d80a6fa5ddfd3dcbb6b4b6690a56:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NDkzM2JlYmY3OGIxOGFkNjc4Mjk0MzM1NjdjYzk4MWNlYjdiM2FlOGIyZTRlNjA5NjRlOWYwNDQ4MjJmNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5NGQxZmZjMGE5OWNmMDE2ZWI1ODkyZjBjMDMwNjYwMDk0MzUyZGRmNWUzMTcwMzllYzBhOTQwNmQyM2FiYzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzMzk1NzYwYmRkNzRmOTkwNjY2NzJhM2I3YTEzMGIyNzU3NGZjNzAxNTBjYjI0OGY5ZDg1OWU5NjI3MDMwMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a638cda003d43738281374fa756259b",
+      "statement": "Any job still marked running at startup is retired as an error and the active set is re-created empty, because re-locking that capability would wedge it forever.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/jobs.rs#L260-L290",
+          "version": "repo-lines-v1:sha256:f6650c4fb06bf86f5b803032ee0e8fb9d847311f6f98a81da4e994055a94b4d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNTNkYjRlNTczM2NhYTkwYzU0NTVkNDA5NzljMDAwZDFlNDAwMTM3YjUxZGFhZmJlMTc0ZTM4NWQxNzk3YjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0OTAxODJjMjdjYWZkMmJjZjZlZmYxYjMwNzc5MDU1NzBlYWIyZTRkYWI3ODhlNzYzNDUxNDk0YjczODY0Y2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3b575d53ec11435b8be926c045cf74f9",
+      "statement": "Completion persists before releasing the capability lock, because the settle signal fires the moment the active set empties.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/jobs.rs#L209-L247",
+          "version": "repo-lines-v1:sha256:2502ef3ee619003ff38d1d13e5f0a0764e8574f3e54adb983c6ff3cf09ef0cbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhZDBmOGY0MDYzZTM2MjQwMjIzZmY1ZjJmMTQ2NDIyZjBkNTUwZTFkMjA2MTdjZmYwZGI0YWFhM2Y0YTE2YWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmM2UzN2Y2NzljZDY2NzAyYjcxZjNmOThkN2IyYjYyZTAwMGEzM2FkYjQ4OTE1NDdjNjZhOTJkNDEyNGIxNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3MDJlNjcyMGFkY2M3YTkyYjdiMjQ0ODg5ZWNmZGNjZjA5YjkzYjEyYTViMjE4ZTQ3YTAzNTY4YTZlZmE3NTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e65b4fc6e35b4f79814e3a07c9a7f67a",
+      "statement": "Install and uninstall refuse to touch any destination that does not both live under the applications directory and end in the bundle suffix, because the removal path is a recursive delete.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/install.rs#L265-L276",
+          "version": "repo-lines-v1:sha256:9307dbbd86fd1abb56be8e088f5a9f2c0bcac5d13ea7f3928304419e7a79c68f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNzVjNzBkOTQ2MzYyNWUxMDc5ZmQ4ZmM4ZWU2MmFkMmU5MmM0MmJlYWFiZmQ4NWI3OGQ4ZTBhNDk3OWI5NGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyOTY0OTQxYTYzMDQ1ZjA3MzE3NmQyZDY2MWZhYmU1ZjY1Yjg0YmQyY2EwNDliZDkwYjA4NmNiOGU4NmNhZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwMDE1MjQ2YTQ2OGM4N2Y3ZDkwZDdlZTUwMDNlYTllMTBmNTI2OWQzNWZiMmU1ZmNjNWZjNTUzMmU4Yzg5YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzZTA2ODM2YWQwMzY1MWFlYzZhMGFkNTgxYjk0ZDE1NWJjNzY2ZWVkNTFkY2UwOWUxOTdlYjZlYTQ0YjY3OTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2339fa9742d44bc18f8ae945e89ef836",
+      "statement": "The unload command returns before the job is gone, so the installer polls for its disappearance and retries the bootstrap, after observing that bootstrapping into a tearing-down domain made reinstall a coin flip.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/install.rs#L66-L110",
+          "version": "repo-lines-v1:sha256:6a1702924aa2266f8ae92920d18f0b497948f3b1e1d6fbcd86b21ba9f4275da7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlYzJhNGZlMGZiZjZlMTYzZDM4YmVkMDA3NDViNzFiYjdlM2RjMTdiNTEwNzFmZDI1ZjVhYmQ4MTliZWQ5OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNzVjNzBkOTQ2MzYyNWUxMDc5ZmQ4ZmM4ZWU2MmFkMmU5MmM0MmJlYWFiZmQ4NWI3OGQ4ZTBhNDk3OWI5NGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5NDNjZWQyYTAwMGFkZjQ0MDU5MzZiYTFlNDQ0NGI1YmQ5OTFkM2JmZGM3MmNmMWU3NDUyMjk1MDcxMmI4N2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1ZmQ2MzRmMDhmZDgzY2MzYTQ5NTNlOTg2MzkyNDNiYzhkMzNmOTc5YWI4YWY3ZWMyY2FmZDdmMjJlZTZkNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a39e983eea79475597a943b04d28e4bd",
+      "statement": "The agent definition bakes in an explicit search path because the launch daemon's default is minimal, and sets the state directory so the tray reads the same location the installer used.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/install.rs#L126-L197",
+          "version": "repo-lines-v1:sha256:10edfb8eeeb26e5c97b134ad7e2a1d1acd8ca7445ea4f96b246ada3d9370e1b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzYWQ2ZTI4OTc1YmJmM2E3ZjRlOGNjNjAxZTgzNzg0N2FlNmUyYjE5ZTU3OGI0YWY5MzAxMjNlZGJjNjM1ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMTFjM2QyOWYwNTQ1YjdlMTU2ZGZjNmFlNmY2MDZlNGM5ODAxMzE4M2M5YzM4ZjlmNTIxMTZlYjg0YjJmZjcifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

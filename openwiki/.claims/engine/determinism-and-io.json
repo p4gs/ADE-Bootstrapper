@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:a60246519323df46cded687e3f11b2d3ca4bf21f251193df717867fa0c5d25bb",
+  "claims": [
+    {
+      "id": "claim_0b96902af6e74fcdaab7c22b833fe7fe",
+      "statement": "stable_stringify hand-rolls key sorting and layout rather than relying on serde_json map ordering, because enabling the preserve_order feature anywhere in the workspace would silently break determinism everywhere.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L1-L9",
+          "version": "repo-lines-v1:sha256:caee18c26242576e1713703c461ca8e7bdd20bcf31f0397869c218975c98c9a8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2M4NDc0ZDNiZTA1NTdmNTBiMWUwMjNmOWZlZjdmZDA1MjNjZDA0ZGY0ZjQyMGNjMDZjOTVhMjIyNzhhMmFjMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmE2N2JlY2ZkZTVjMTQzZDhjODYzNmNkNjVmNzdkYjJhZDk2MmNjZjJkZGNkNDc3ZjU1MzU5Y2M2MmUwNGQ0ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d25ed938202c42e98fb6284b6c207539",
+      "statement": "The serialization contract is byte-level: keys recursively sorted, two-space indent, a colon-space separator, empty containers as brackets, and a trailing newline, matching the oracle's JSON.stringify output.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L13-L23",
+          "version": "repo-lines-v1:sha256:d24ab6b70cb4f65a9a108c0fd194e0f47ab73553dbb92d3125c6973be85c9fcc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhYTAwNzkyNjJlNjFhNTc4ZjVlMDhmZGQ1NmI2ZTc1NWRjMzczZTFkYzJkMzUzZDliOTk2YWY3Nzk1NGI5YjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhNjdiZWNmZGU1YzE0M2Q4Yzg2MzZjZDY1Zjc3ZGIyYWQ5NjJjY2YyZGRjZDQ3N2Y1NTM1OWNjNjJlMDRkNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjMGJjZGExMDVkMDY5M2Y1NTE5YTc3ZGJmNjFkZDBjYmM4ZWRjMDY3ODdjZDI0ZTUyMTJmY2NiNTJlOWRkNDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae313c03a6124f4bb2f7fe9814352f11",
+      "statement": "The parity guarantee is scoped to the value domain ADE actually uses, namely ASCII keys, integers and short floats, rather than the whole of JSON.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L29-L35",
+          "version": "repo-lines-v1:sha256:acd1ca2a3f8d17d7ad281fa0d453a74fb5ab7ac6cb0d01431f19c455d94931f7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTllOTc2Y2UxZDA2NmNhODZhMThhNzFhMWQ4Njc4ZWY0YWNhMTM4NGM1MzhlMTMxYTY1OWE3OGZkNDhjYzMzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDIzNjI4OWM4MDExMGNhOTUyMjUzN2Y5N2JlY2ZhNzg1N2M5MDI3ZjRmNjJjMTQ2Mjc2ZGY4OWIxMjY4YjI1MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d0a6488835d42d59de817318a2315bc",
+      "statement": "A second compact sorted form exists as a separate function rather than a flag, used only where a value needs a stable signature instead of a stable file: audit entry hashing and merge deduplication.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L83-L113",
+          "version": "repo-lines-v1:sha256:8ab19c04a1c0cb2a96fb259984bd42c1be878a85a10f0238a9ecc1ab0d8d7a3b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4MzQ0MDBlMDgwZGEzOGE1NjM0YmYxOTEyMTA1OTVhZGZjNmRiYjMxNzM4NzExYzljMGY4Yzk2Zjk1YjNiMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxNWIzYzgwNDk0NDEzMWU2YTUxZGFjNTNkY2Q2NDg5NWUyZjViZjE1YzY2ZTViNjU2YWNhMzFmYTFhMjJkMDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b862d3bca45a40b2815a190ae2ec5739",
+      "statement": "write_ensured is a no-op returning false when content is unchanged, and that boolean is how changed-ness propagates up the pipeline without a second read.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L136-L145",
+          "version": "repo-lines-v1:sha256:b23ffc3bf018cca58db2bfa03b8b00bcff0f66571a833c974b6b93cb2cb39008:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkOGQzNjdmYzQwN2M3Y2Q2ZDk0MTJjNGIyZDI1NzlmYTY2NzAxODg0M2M1YjJkZjlkMjIxZDBkMWEyOTc3OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzOTE5MGU4NDUxMDU5YzI0NDUwNTljZWZjZDVmMTAzYTIzZTZkNWQ5MGE2MjYyNGJhMGQwMTA0MjA0MGYxMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNjc4NDc2YjE2YTlkYTdhNjE4NWM3OGEzMjM1YTFkMzk2NzBjYzMyY2I1MmIzMjFiN2I0NDE1OTE1NGZlYWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_efaf95280e8c4407bd16f6ed80aa8594",
+      "statement": "Writes are write-then-rename rather than a plain write because a plain write truncates first, so a crash or a concurrent reader would see an empty or partial file where valid JSON is expected.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L146-L156",
+          "version": "repo-lines-v1:sha256:4d81cf48119beb23ac44f2f817be40ef2d2bdbba44e730bb2eabb94f009a4e1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3ZDU0ODg5ZWQ3Y2Y4MWE3ZTMwMTg4MDI4ZmQzZGMzZDFhZWJhZTNjNjc3MmFhYWEwNWM5ZTEzODliMjg1ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmZjYwMjBhNTk2ZDRmOGRjN2Q4NGRlNDU0MjEzYWNiMTE1YjVmMDJjMDAwZjQ2ZmY2Yjk5YjU3ODQ0NTY3ZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxYTdiZGViZjY3ZWNmZGE1NmU0NTg5MGFkYTUwZjlmYTA0YzNiN2MzMTAwZjQ2YWRkMzQ1NDVmOGQzNWVjNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyMGU0NDU4ZWE4ZTRmNDQxMWI3ZjIwZDEzOTM4OTUzODU3OGFjZjQ0MjUwODU2ZTlhOTA3NTNhNTc4YTlhOTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7560d1d6cf24492f82de2ab99f149497",
+      "statement": "The temporary file combines process id with a process-global atomic counter and is created in the same directory as its target, because rename is only atomic within one filesystem.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L157-L170",
+          "version": "repo-lines-v1:sha256:bb5ebc0dabf5ad5aa39f9ec7329cc0b51ce4814343ad8d3a88878b58389f2eb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ODM4ZmQ3MzkxMzhiMWQxNjI4NGI0OTg3MTg2NThlY2U3NTA0OWYxMGIxNmI1Njk2ZGU3MDE1MmQ0ZTUxMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MWQzZmVlMWYzMDE3NDc0NGE2ODUyNDQ3YTRlMTFjZDBiYzY3NDIwM2JmZGZmMTZhZjdjMGU4MTNjZjY2NzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMzYwNmI5YTRlMDJkN2E1MTFlMzM2Nzk1YTY5YWVhNGU2YjZjODM2ZWFkNzA4MDM0ZDI1MThlMzQ0MGI2MzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmODIxODc5MWQ4MjU5ZTAyZTJiOWU5ZjI2NzczMmRmZmZiMDk0NzcyNmZiMmM1YzMxYWNmMjE0N2EyMmY0ZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a47a64ee5029432e8c0b4ce77529050c",
+      "statement": "A temporary file surviving a hard kill is a deliberately accepted failure mode because verify's unknown-file rule flags any unexpected entry under the ADE-owned tree.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L152-L156",
+          "version": "repo-lines-v1:sha256:e0b5e5e52b351a3fadf0479cee36e5f63344857cbd237475abe1c515effb38af:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFjODcyMGU0YzZhY2U3MzAwODI1NjA0YTVlMTA2ZmQyMDgyNGM3MTMxYTYxMDNjNDlkMjEwYWM1YTg3YzIyMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmZmNjAyMGE1OTZkNGY4ZGM3ZDg0ZGU0NTQyMTNhY2IxMTViNWYwMmMwMDBmNDZmZjZiOTliNTc4NDQ1NjdlNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmUxY2M5OTliNTRlNzUyMGZjODExMDU0YjJhODUzZWFlNjBlZmQ0ZDhkYzdlNjNmNDA2YjJkZDRmZDQ3OWUzMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDIwZTQ0NThlYThlNGY0NDExYjdmMjBkMTM5Mzg5NTM4NTc4YWNmNDQyNTA4NTZlOWE5MDc1M2E1NzhhOWE5MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fdf4e949824a4d72a2dd6256d23cd267",
+      "statement": "The atomicity guarantee is not universal: audit append rewrites the whole log with a bare write, so the append-only audit log does not receive the write-then-rename protection generated artifacts get.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/audit.rs#L211-L221",
+          "version": "repo-lines-v1:sha256:3fa57918112b67006e58200d7fcf9bde5c2276fdf48cf62c26acfaa81c90bb98:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyYmFmZGUyYTdkNWU1ZjAwN2Y2OWEwOTUxODJjMmE5ZjcwMmJlNGQwZGRlNTUxYjJjYmFmN2ViNTNmZWQ5MTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNmFiMTY3YmYxNzJhMzY1NWY4Nzg0ZDQ1MjU2MjQzNTMxOTMwYjNiZDFhOGE4NWUyNDM2ZGIzNTQ2OWJlZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjY2Q2NTk4MmQ1YWVlMTRhMDE3MjQyZDI5NDAyNGRlOTE5NTA0MGRiZTk5ZTcxZDcwNzhlNGU0YWQ0ZDI4NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxMDM1ZjA4MjIwZjlhZWU1MzVjMjg5ODliMDE4ZTQ0NWJkNWQ5OWQ2OTQ1OWEyYWJjZmMxMzQwNTQzNDE3NGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_01142eb0ab5e4dba9f54d50fc160c190",
+      "statement": "ensure_lines never reorders or removes user content: it appends only missing lines under a labelled comment and inserts a separating newline when the existing file lacks a trailing one.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L178-L210",
+          "version": "repo-lines-v1:sha256:acfefdef4b80760c757e0ced45958787cf6397a659113382ea4b08ed94e3a40b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ZjUzMjdiYmU2ZTQ1M2JlNjEzMzUxMDI0YjFjNDgyYmU0MWM4YjlmZmEzMTgwMDNjMGM5NWJjNzY1MmY5NzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQwNjZhODdkY2EyNzMzNjhhMGY3MzJiNjcwMDQ3ZDdhNTIyMjA0ZWVlZWVhNWVjMTAwNmE3ZThjYWUxNDc1OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmNWFhMjBlMzRiZjZjOTRhNDliZjMyODM0YTAzMDFkNzFhODIzODQ5ZjllMWU2ODFjZWMxMmE0Y2RlNGNiN2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d4d5bd4183304763bd458bd2c90f8c1d",
+      "statement": "deep_merge unions arrays with signature-based deduplication, which is what makes re-applying the same patch to a co-owned JSON file idempotent.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L206-L237",
+          "version": "repo-lines-v1:sha256:089da3b68894f5159d97a8aa625f69c8d0be663555c4705631c04cb2fc8b1119:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzNTFmMzFmMGEwMDc3NWIxNjk1YzMwZTAwODY4OTA3OThjNTI2ZWY5YjZkMzU3NTEyZTEwNzU5M2I4Y2YwMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNGNlZmUxOGM2MDRlY2ZjNjNlYzE5NjkxNTU2ZGVkZTNiYTFkY2NiNzhhYmNhYmQyMDI4MjM0YjI3MjE0MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzNTliNjg4YzQ0ZTI2MzlmNjk2ZTE3ZWI0ZjVmMGU3NmMyZjdhMTdmMWJhNzcxZTc0ZGUxZjU1NDM1YzBmNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5OTk5ZDE1OWI2ODQ5MmM4M2JlMDdjZTUxYTlmMTJlMWExNmQ4MWNjODE5MmFlNzVkMzJkZGM2NDU5MWE5MWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4091e73efa774066857737fc2458cdd8",
+      "statement": "subtract_json is the inverse of deep_merge and is what makes withdrawal possible at all: because ADE's additions to a co-owned file are unmarked, the only honest withdrawal is subtracting exactly the values it would have written.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L253-L268",
+          "version": "repo-lines-v1:sha256:c834e37bc2cefb12da8584faf58c83caead9b21728b96f52a3976bdbcd34c6e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNGQzNjRkYWE4YTA0NmZkM2Q5MGVjMDJhNDcwODcwMGI0ZDlmMDUxYjAwOTUyMGIyNTFlNjIxMmFjNTllMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2ZWQ5ZjNmOTQ5Mzg2MmJmMmZlMzY3OTU5MmZkYWJlNmQyMzc1NjQ0ZWViN2M1YTY1MmMzNTE4YWJlZDQ3ZTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOGI1NjEwZjFhZjk0MjhlM2ZiMzEzNTZlNGMxMThhZTcwNGI1ZWQ0NmE0M2M4OTBkMzJkYWU4YWY2MDZjN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljOGIyZmE2YzY1ZjY3ZDQ4MjQ4ZjFhYjQ5ZTJiOTQ3YjAxMjkwODgxYmFhMDZhOWJjOWVlZDJiODk5MDg2ODQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8047b67703d3414fa785e614487ae386",
+      "statement": "Subtraction is deliberately conservative in three ways, leaving a value the user changed alone, sparing user array elements identical to something elsewhere, and pruning containers only when recursion empties them, accepting over-preservation over over-deletion.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L263-L308",
+          "version": "repo-lines-v1:sha256:5811a343b0946b74411813700f4a6720780f4c80e13cd19d814397a09827bc3a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2YWZlMDIwZDRkYzc1MjRiMTI3YWYxZDAyNDNkYzM1YmM1MjEyYTZiMzA4YjVmOTFlYTk2NmE2N2RlNDc0MDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4Yjc5YWZhYzE0YzRhMTJhYmM1ZmI4ZjI1ZWVjZDVlNzU5ODAzZDYyMGQyYjQ5NWI0ZjY5OGE0MTUyMTg0MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d6c484fb1d1e4506a9fad1e3397412d4",
+      "statement": "sha256_hex is specified to match Bun's CryptoHasher output because content hashes must agree across the Rust and TypeScript implementations, making it a cross-implementation contract rather than an internal helper.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/fsutil.rs#L120-L132",
+          "version": "repo-lines-v1:sha256:edc516bb85133c9a277ee77c66f8e06dcaf059359a06845d7c6e207558bc1191:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NTUyMGFjZDE3YWZiZmI5ZThmYzQ3Njc1MjllNjQ0ZjcyMmM2ZDY1NjNkMDc4NTIwN2E0YzJmZDE5ZDRiNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzOTE5MGU4NDUxMDU5YzI0NDUwNTljZWZjZDVmMTAzYTIzZTZkNWQ5MGE2MjYyNGJhMGQwMTA0MjA0MGYxMzUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

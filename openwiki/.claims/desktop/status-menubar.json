@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:e47a7bb5209bee5ee573ac3be773499d6aa62784e7d52ecff73a8ba1e7e4cbb9",
+  "claims": [
+    {
+      "id": "claim_ede181b4551b4c4ab328222cd0d48ec7",
+      "statement": "The per-probe timeout is strictly shorter than the poll interval and the main-thread tick does no work unless a generation counter moved.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L49-L53",
+          "version": "repo-lines-v1:sha256:ad71bd9f3212cdf177b5dba51e66c40d372cb1c3a4843bd48a6b23977f60276a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWU0NTgwY2IxY2M0NDdjYmE2NDkwY2NkMjdkYmJlODBlMGFjZDJkYTE1OGVjYWRhN2MyMGYzMzU0ODExMGI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg3OGRkMDlkNjMyZjVmMmE5ZTdhNjAzNTIyZTczNjRiN2Y3ZDcxMjY0ZTdjNjFiMmQ0N2Q1NmVjODFkMTUxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTA3YjJhMzE4YTcxMTg1OWQ1ZDcwY2EwNjM3ZmZmOWVjMTlkM2EyYzcwZjVjZmQxNDIxMDlhMGY5YTdiOWYyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODU1Nzc1ODhhM2U5NGFlODE1NWYxYjM1MmRhZGQ5NTRiZjllMjJlOGZlM2Y1MTYxYjg3NGU0NzQ4YjZjZDUzMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_307f4c66b496465b91d007fd3381749b",
+      "statement": "No platform API is ever touched off the main thread and no detection ever runs on it, and the thread is proven by the type system rather than asserted by a comment.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L129-L143",
+          "version": "repo-lines-v1:sha256:dc0fc21b04d889eb4476578642daa7a6c0415c921a8fa42420ae0da67c07892b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3ZWI5Mjk0MDhjYzJiN2UxNzE5Y2JhZTBkYzFiMDlmZDA3OTkzZTdkNmVjMThhNDQ1OTFiNDI3YzBkMDUyNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiN2VmYjMyMTZmYWY1ODI3ZmQ1NzI5ZTI1ZmM5MDUyODk2YWQyNDI3Yzc3NWRiZTg3MTBlZmVhMDQ0YmIwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMmI0OGQyZTY0NmY1MmIxMDVmN2FiMWQ4MDhmMzlmYmE5ZDU2MzZiMmMwMTYxMGI2ZTJmNzllMDE4MTBhMjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5ddf638850f8482ea8598597a96e5741",
+      "statement": "A panic-catching wrapper converts any panic inside detection into an error value rather than propagating, which is what lets the poll loop survive to the next cycle.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L64-L104",
+          "version": "repo-lines-v1:sha256:8adf042c9276096887151302d8a8c390ed0292ce9533c6910f040f8287e7b9a0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OTFmMTRiMWU0MzkzZmQwMTBiYmFlOWMyMmY5OGY2Yzk4ZGZhNGMwNzgxNmYzM2NiY2IzN2ZjN2VjZmY1ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNzlmYjY2NjlhYjUyMmE4N2MwMjg5MDRkNmFmZjNlMzJlY2ZkMjFkNTYwOWNjMTJmYWMyMjg3NTIyMTkxMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4ODY0NGE5YjA2YzE5YjRkNDhlZmE4NDBlYjA5ZTAzMzY3NmQyN2Y5MDFlY2FkNDA3OGU1NzgyZDBlOThiNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0MmVlNjdkOTU0NGM1ZWYxYzM2MWJkMzQ1NTRhYzljYWEwMGIzNjBkNmRhYzk1ZGNkZTQ2YmUyZTJiODE3MjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf1728fe3d85440b89ba344a58665c64",
+      "statement": "The bound is per probe rather than per capability, because detection spawns one scoped thread per capability and the timeout wraps only the subprocess seam.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L832-L874",
+          "version": "repo-lines-v1:sha256:46aa0e7faa58c26950b367eac518915b93373ef243006699ee7bba8f8f72f0e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNmRiNjFiOGNiNGQyZDAxZjdiZjFhODc4YTlkMzY0ZGU5YTY3MTA1NzAxNGZhOTJiMTVlZmU3M2MxNzViZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMDRiNTNmZGFkODMxMmU5ODZhYjc5ZWMyMTlmNDk2MjFjMzcxZGM0MjE4NzExNzc2OWJkNjM3NTEwOTU5M2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_280431f79acc4436ac86b4b9fbcfa51a",
+      "statement": "The status derivation lives in the shared core and is the same rollup the desktop application uses, adopted after the tray and the application reported different error counts.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L1-L11",
+          "version": "repo-lines-v1:sha256:d19414be84a618c446fee0e859d0bfa3674b6d291b9955d9d63c0e6f6f50cf54:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZjE0Mzk1Nzc4MTEwMzU4OGFiYTU2MGYwZWQwNWViNmRiYTk5MWZlYzEwMzEyZjgyNTQwYmNhNWFhYTc5ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NWJhNDdiOTM2YzM5ZTliNTJiNWM0MTM2MTJjYzc5MWQ0N2IxZjFkZTA0ZWQxOGQ2YmI2MGQ2YTY1ZDFmODkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyZTFhMjE2ZDA3YzZiYWU5ZmIwNGRjNjU3MTc5MDJjYjg3OTg1YjI0YjhjYTcyNzMyYWRjMDBiNmNjMTc0NTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a5f69cf9ac74fe9b105372019d32a71",
+      "statement": "The pre-detection state deliberately maps to healthy rather than to a warning, because not having looked yet is not a failure.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L90-L97",
+          "version": "repo-lines-v1:sha256:f34207ba1355f4bd15441cd42ffc1347ae504a7198da97a026d97ff4faf1296b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWUzYzJlOTJkMzJmY2E2MmY5Y2EwNjU0ZmZjZDhiNzVjODkxYTllNjc5YzAyNTlmZGIxMDIxNTUwZGQzYTVjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjFhMTMzYWQyM2E3OTMxOTU2MjU4MGIyMjcxZGM1ZDkwNDE5MDViMjI2ZjgyYzJiZjc5OWE2NDc4MWM5M2Y2MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzkzMTQxZTMyNThhYzljZjRhMjgzZWUwZTU1MDRmNDUzYWQyOGYxNmFmZTQwMzBiZDFjZDE5ZjczZGM2YWNlZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a7ddc7f6732f4069a45d420a35018b73",
+      "statement": "The icon is drawn template geometry rather than a text glyph so nothing can land on the platform's emoji rendering path, and the per-item marks are plain ASCII for the same reason.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L160-L201",
+          "version": "repo-lines-v1:sha256:cf72dba7505036e6fcc03f12ad0ece92ca527c80bca3c4b9696d8a2dd122bfae:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwOWUwNTc3MGEzMjI2MGU3YzZmMmNiOWJkMjg2YTgwZDEyNGNjZTljN2ZlODFhYzUyZDk4Y2FkOWZiYjFkNDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMmJmNDgwMjU1M2ZmYmU2ZTNjZDlhOTgxYTdkY2Y0MjM2ODE1NzZlNTNlNzY1MDBjMTgxN2U4MmZlZDMzMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NjIyYWY2YWVlNTc1ODkyMzcwNjZkYmM3MTFkMjYzNWJjMjM4MTQzNmYwOTgyYmMyNGVkOTdkYWU1MDYxNjEifQ"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L110-L151",
+          "version": "repo-lines-v1:sha256:f55ff62e24ee3589a0000dd0652fac3b6b6d5fde09ea06a664c988164d6233fd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0N2I1OWZjYmMyODcyZDJmYzBlOTgxMDA3MDMyM2UwZDk3NTQyMTZhNDNlOWFiYTVhYTJhMzJjYmI3YTRlMDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNTU4ZjAxMzgxMTQyYzdkMzAyZjM1MWNkMDYxZDBjNDgzZTNjYjQwMTU4ZGQ4YjMxNGM5YTJjNzMzOWViODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1MDg4M2QzNDA0YzZkZGQ3N2QxZDExYmMxNWE2NjgxNTIxM2ZhNDk5NWJmNjU5ZGRmZjAxNDVhMmI4NzE3ZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkMjkwYTJiODA5YWE3Y2VjODhiYTk2Zjg0ZjZiMmE5Zjc5MjU0ZmEyZDFkYmQ3MmJhMTE4MWM0OWVlM2JkMzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dd9cffe16c114cd6b983305581e5e371",
+      "statement": "Adding a capability never requires touching this binary because the core formats glyphs, labels and counts, and the tray only renders the resulting items.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L101-L169",
+          "version": "repo-lines-v1:sha256:6b5c67a441ddb9c9fa2e04cf9e6c2de0f7c5a1dc597b0b1b0cb656f43b583be5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhOGI2YmNiNDUzMjA3ODU0YjZmMWE5ZTBkYzg0ZGEwY2MzMDhkYTRhMzJlYjI1YjliNGFiOWMzMjIzYjkyZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5MzE0MWUzMjU4YWM5Y2Y0YTI4M2VlMGU1NTA0ZjQ1M2FkMjhmMTZhZmU0MDMwYmQxY2QxOWY3M2RjNmFjZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c1e63bcb2c5244e9b09acd0bee3871ce",
+      "statement": "The dropdown's content is computed with zero platform API, which is what makes the degraded-menu contract provable with an ordinary test rather than only a live accessibility walk.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L226-L308",
+          "version": "repo-lines-v1:sha256:10d88ac628648b36a6c9149a3e1a7d620d575015c36aa6f03e79d26408b4a3d7:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2YmEyYjU5OTY3MzJlNzEzOTBkM2UwY2M1YjliZmRmZTU4YWUzZDZkMzgzY2VhYTMyNzRiMzc1OTY1NWRlYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTA2MWMzM2FjODQ5OGQ5YzYzNTYxOWJhNjQxYzk0YTVhMjE0NWZiMWQ3ZGEyNWJjMDdlMzMzYzRlNjBiMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4MTI0YzUwYWUxNTkyNTVjNjczYzhjZmVlNTljMzEyMmNjMTg1NmQ5OTZhMWFkMjkyMGE0MzNjY2Y3MmQ0YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1MjY5MGVhN2YxMjE5YWE0ZjcyYjRiNmY1OGYxN2IwMmUxMmZkNjc1NDA5ZDY4MjQ0NzE5YWNlODU5MzhiY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f7f13343b2b04690b433d4e194753433",
+      "statement": "The three action rows are appended unconditionally outside the payload match, so a degraded snapshot changes what is shown above them but never whether they work.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L268-L308",
+          "version": "repo-lines-v1:sha256:d3398ae4d14a5abf896a59026678548c5dc6674acbac63f530d24e7618d2e76d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NGVjZGY1NGIyMmJiNTMyM2E1ODZkZjNmMzZlYzIwYzA4NDcwOGI0MjcxM2ViZjZkZjU2ZmQ3MjM0MGNjZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTA2MWMzM2FjODQ5OGQ5YzYzNTYxOWJhNjQxYzk0YTVhMjE0NWZiMWQ3ZGEyNWJjMDdlMzMzYzRlNjBiMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOTU0OWRlYjZmNzcxODRmOGI4ZjM2ODEyNWI1NTVjODllZmE4MmI3ZGNjNzY5MjY1N2Y5YzI0OGM5ZmE5ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1MjY5MGVhN2YxMjE5YWE0ZjcyYjRiNmY1OGYxN2IwMmUxMmZkNjc1NDA5ZDY4MjQ0NzE5YWNlODU5MzhiY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d1d2bdb653904a5d8e141fd851409db1",
+      "statement": "The per-probe timeout is strictly shorter than the poll interval and the main-thread tick does no work unless a generation counter moved.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L49-L53",
+          "version": "repo-lines-v1:sha256:ad71bd9f3212cdf177b5dba51e66c40d372cb1c3a4843bd48a6b23977f60276a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWU0NTgwY2IxY2M0NDdjYmE2NDkwY2NkMjdkYmJlODBlMGFjZDJkYTE1OGVjYWRhN2MyMGYzMzU0ODExMGI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTg3OGRkMDlkNjMyZjVmMmE5ZTdhNjAzNTIyZTczNjRiN2Y3ZDcxMjY0ZTdjNjFiMmQ0N2Q1NmVjODFkMTUxNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTA3YjJhMzE4YTcxMTg1OWQ1ZDcwY2EwNjM3ZmZmOWVjMTlkM2EyYzcwZjVjZmQxNDIxMDlhMGY5YTdiOWYyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODU1Nzc1ODhhM2U5NGFlODE1NWYxYjM1MmRhZGQ5NTRiZjllMjJlOGZlM2Y1MTYxYjg3NGU0NzQ4YjZjZDUzMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_890028d77ccd422fa19b6f4c6c0cedf6",
+      "statement": "No platform API is ever touched off the main thread and no detection ever runs on it, and the thread is proven by the type system rather than asserted by a comment.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L129-L143",
+          "version": "repo-lines-v1:sha256:dc0fc21b04d889eb4476578642daa7a6c0415c921a8fa42420ae0da67c07892b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3ZWI5Mjk0MDhjYzJiN2UxNzE5Y2JhZTBkYzFiMDlmZDA3OTkzZTdkNmVjMThhNDQ1OTFiNDI3YzBkMDUyNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiN2VmYjMyMTZmYWY1ODI3ZmQ1NzI5ZTI1ZmM5MDUyODk2YWQyNDI3Yzc3NWRiZTg3MTBlZmVhMDQ0YmIwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhMmI0OGQyZTY0NmY1MmIxMDVmN2FiMWQ4MDhmMzlmYmE5ZDU2MzZiMmMwMTYxMGI2ZTJmNzllMDE4MTBhMjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dfcfd1a414d14d6eb7212b1b9d2581d5",
+      "statement": "A panic-catching wrapper converts any panic inside detection into an error value rather than propagating, which is what lets the poll loop survive to the next cycle.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L64-L104",
+          "version": "repo-lines-v1:sha256:8adf042c9276096887151302d8a8c390ed0292ce9533c6910f040f8287e7b9a0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OTFmMTRiMWU0MzkzZmQwMTBiYmFlOWMyMmY5OGY2Yzk4ZGZhNGMwNzgxNmYzM2NiY2IzN2ZjN2VjZmY1ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNzlmYjY2NjlhYjUyMmE4N2MwMjg5MDRkNmFmZjNlMzJlY2ZkMjFkNTYwOWNjMTJmYWMyMjg3NTIyMTkxMTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4ODY0NGE5YjA2YzE5YjRkNDhlZmE4NDBlYjA5ZTAzMzY3NmQyN2Y5MDFlY2FkNDA3OGU1NzgyZDBlOThiNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0MmVlNjdkOTU0NGM1ZWYxYzM2MWJkMzQ1NTRhYzljYWEwMGIzNjBkNmRhYzk1ZGNkZTQ2YmUyZTJiODE3MjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed4bbcc045a1438aa3d60a15c2e7cee9",
+      "statement": "The bound is per probe rather than per capability, because detection spawns one scoped thread per capability and the timeout wraps only the subprocess seam.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/inventory.rs#L832-L874",
+          "version": "repo-lines-v1:sha256:46aa0e7faa58c26950b367eac518915b93373ef243006699ee7bba8f8f72f0e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzNmRiNjFiOGNiNGQyZDAxZjdiZjFhODc4YTlkMzY0ZGU5YTY3MTA1NzAxNGZhOTJiMTVlZmU3M2MxNzViZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxMDRiNTNmZGFkODMxMmU5ODZhYjc5ZWMyMTlmNDk2MjFjMzcxZGM0MjE4NzExNzc2OWJkNjM3NTEwOTU5M2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f3d9f67bb54c4c1b98a57d5bb6a3faa8",
+      "statement": "The status derivation lives in the shared core and is the same rollup the desktop application uses, adopted after the tray and the application reported different error counts.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L1-L11",
+          "version": "repo-lines-v1:sha256:d19414be84a618c446fee0e859d0bfa3674b6d291b9955d9d63c0e6f6f50cf54:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjZjE0Mzk1Nzc4MTEwMzU4OGFiYTU2MGYwZWQwNWViNmRiYTk5MWZlYzEwMzEyZjgyNTQwYmNhNWFhYTc5ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NWJhNDdiOTM2YzM5ZTliNTJiNWM0MTM2MTJjYzc5MWQ0N2IxZjFkZTA0ZWQxOGQ2YmI2MGQ2YTY1ZDFmODkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyZTFhMjE2ZDA3YzZiYWU5ZmIwNGRjNjU3MTc5MDJjYjg3OTg1YjI0YjhjYTcyNzMyYWRjMDBiNmNjMTc0NTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d5d5e32570db4e9a929902c720b2173c",
+      "statement": "The pre-detection state deliberately maps to healthy rather than to a warning, because not having looked yet is not a failure.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L90-L97",
+          "version": "repo-lines-v1:sha256:f34207ba1355f4bd15441cd42ffc1347ae504a7198da97a026d97ff4faf1296b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWUzYzJlOTJkMzJmY2E2MmY5Y2EwNjU0ZmZjZDhiNzVjODkxYTllNjc5YzAyNTlmZGIxMDIxNTUwZGQzYTVjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjFhMTMzYWQyM2E3OTMxOTU2MjU4MGIyMjcxZGM1ZDkwNDE5MDViMjI2ZjgyYzJiZjc5OWE2NDc4MWM5M2Y2MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzkzMTQxZTMyNThhYzljZjRhMjgzZWUwZTU1MDRmNDUzYWQyOGYxNmFmZTQwMzBiZDFjZDE5ZjczZGM2YWNlZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fdb8a08835d949cf945ca62b3e7a627e",
+      "statement": "The icon is drawn template geometry rather than a text glyph so nothing can land on the platform's emoji rendering path, and the per-item marks are plain ASCII for the same reason.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L160-L201",
+          "version": "repo-lines-v1:sha256:cf72dba7505036e6fcc03f12ad0ece92ca527c80bca3c4b9696d8a2dd122bfae:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwOWUwNTc3MGEzMjI2MGU3YzZmMmNiOWJkMjg2YTgwZDEyNGNjZTljN2ZlODFhYzUyZDk4Y2FkOWZiYjFkNDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMmJmNDgwMjU1M2ZmYmU2ZTNjZDlhOTgxYTdkY2Y0MjM2ODE1NzZlNTNlNzY1MDBjMTgxN2U4MmZlZDMzMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NjIyYWY2YWVlNTc1ODkyMzcwNjZkYmM3MTFkMjYzNWJjMjM4MTQzNmYwOTgyYmMyNGVkOTdkYWU1MDYxNjEifQ"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L110-L151",
+          "version": "repo-lines-v1:sha256:f55ff62e24ee3589a0000dd0652fac3b6b6d5fde09ea06a664c988164d6233fd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0N2I1OWZjYmMyODcyZDJmYzBlOTgxMDA3MDMyM2UwZDk3NTQyMTZhNDNlOWFiYTVhYTJhMzJjYmI3YTRlMDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNTU4ZjAxMzgxMTQyYzdkMzAyZjM1MWNkMDYxZDBjNDgzZTNjYjQwMTU4ZGQ4YjMxNGM5YTJjNzMzOWViODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1MDg4M2QzNDA0YzZkZGQ3N2QxZDExYmMxNWE2NjgxNTIxM2ZhNDk5NWJmNjU5ZGRmZjAxNDVhMmI4NzE3ZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkMjkwYTJiODA5YWE3Y2VjODhiYTk2Zjg0ZjZiMmE5Zjc5MjU0ZmEyZDFkYmQ3MmJhMTE4MWM0OWVlM2JkMzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8028e250b53f4cb5b2d0462d80761b94",
+      "statement": "Adding a capability never requires touching this binary because the core formats glyphs, labels and counts, and the tray only renders the resulting items.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/menubar.rs#L101-L169",
+          "version": "repo-lines-v1:sha256:6b5c67a441ddb9c9fa2e04cf9e6c2de0f7c5a1dc597b0b1b0cb656f43b583be5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhOGI2YmNiNDUzMjA3ODU0YjZmMWE5ZTBkYzg0ZGEwY2MzMDhkYTRhMzJlYjI1YjliNGFiOWMzMjIzYjkyZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5MzE0MWUzMjU4YWM5Y2Y0YTI4M2VlMGU1NTA0ZjQ1M2FkMjhmMTZhZmU0MDMwYmQxY2QxOWY3M2RjNmFjZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3c158e84fe4a4c359dec1fd90120af4a",
+      "statement": "The dropdown's content is computed with zero platform API, which is what makes the degraded-menu contract provable with an ordinary test rather than only a live accessibility walk.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L226-L308",
+          "version": "repo-lines-v1:sha256:10d88ac628648b36a6c9149a3e1a7d620d575015c36aa6f03e79d26408b4a3d7:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2YmEyYjU5OTY3MzJlNzEzOTBkM2UwY2M1YjliZmRmZTU4YWUzZDZkMzgzY2VhYTMyNzRiMzc1OTY1NWRlYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTA2MWMzM2FjODQ5OGQ5YzYzNTYxOWJhNjQxYzk0YTVhMjE0NWZiMWQ3ZGEyNWJjMDdlMzMzYzRlNjBiMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4MTI0YzUwYWUxNTkyNTVjNjczYzhjZmVlNTljMzEyMmNjMTg1NmQ5OTZhMWFkMjkyMGE0MzNjY2Y3MmQ0YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1MjY5MGVhN2YxMjE5YWE0ZjcyYjRiNmY1OGYxN2IwMmUxMmZkNjc1NDA5ZDY4MjQ0NzE5YWNlODU5MzhiY2IifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4a8e40b7c3204078b43ddf7da2c6a26e",
+      "statement": "The three action rows are appended unconditionally outside the payload match, so a degraded snapshot changes what is shown above them but never whether they work.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-status/src/main.rs#L268-L308",
+          "version": "repo-lines-v1:sha256:d3398ae4d14a5abf896a59026678548c5dc6674acbac63f530d24e7618d2e76d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5NGVjZGY1NGIyMmJiNTMyM2E1ODZkZjNmMzZlYzIwYzA4NDcwOGI0MjcxM2ViZjZkZjU2ZmQ3MjM0MGNjZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhNTA2MWMzM2FjODQ5OGQ5YzYzNTYxOWJhNjQxYzk0YTVhMjE0NWZiMWQ3ZGEyNWJjMDdlMzMzYzRlNjBiMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOTU0OWRlYjZmNzcxODRmOGI4ZjM2ODEyNWI1NTVjODllZmE4MmI3ZGNjNzY5MjY1N2Y5YzI0OGM5ZmE5ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1MjY5MGVhN2YxMjE5YWE0ZjcyYjRiNmY1OGYxN2IwMmUxMmZkNjc1NDA5ZDY4MjQ0NzE5YWNlODU5MzhiY2IifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

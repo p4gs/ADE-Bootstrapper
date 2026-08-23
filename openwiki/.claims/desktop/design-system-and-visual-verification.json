@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:f1249f21bde5081693be9e5a0352d39109ceaf16ea0bfb8ad4931735116212ae",
+  "claims": [
+    {
+      "id": "claim_f743618e39e54099a829d07ccefc15f7",
+      "statement": "All colour data lives in the engine crate as plain byte structs so the command line never links a rendering stack.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L1-L35",
+          "version": "repo-lines-v1:sha256:5f968d4cf079654c0f5d94e6625089d94b39fc64b86d28f1ed2324a53de52cd1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxYmFjNGNkNWQ0YThiMTM2YzEyYjA5YWU4MGU1NWQ0YWIxYmNlZjRhNmIyNjc1ZGJmNTMxOWEzZWM2MmVkNjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjMTEwNGY2NjNmMTI3NzhhMDA5NDMxNTc4OGQxMjY0OTMyOWQ1N2Q1ZGZiNjc3OTk0YjhlYjA5MDhlOThjNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2OTBjMGYyODY1OWU0YzVlMGVmMzk3Y2VmZTJlZmRkYmViNDIxNDM3ZTA1NjFhNWZhNTA2NTZkMjEwZTkyMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9306e2839d1846cc8d14d83b6b141e39",
+      "statement": "The split is load-bearing rather than taste because both desktop crates are excluded from the coverage gate by filename regex while the engine crate is not, so a colour decision moved into the app would leave the gate entirely.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/coverage-check.sh#L1-L17",
+          "version": "repo-lines-v1:sha256:5859cabcfdf5fddd0e4999bc07fd24e6fc945e237185b6abc6b8403d9cd737a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTVmYzA0YTgwYzk1MmY0OWNlNDE4ODYyN2M1M2IwZmJlOGM0NDA0MWI5NTJkNTkyYWNkMWRlOTk4NjE0NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYzQzNGZkM2M3ZTgzMGZmOTFkY2Y2ODgwMzM4NzNlNDM2YTQ4YjliNzNkY2FmMmQ2ODFjMDZhNzVlMWE0ODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_83f4a6e26da546589fad2cb72b78a0c9",
+      "statement": "The role vocabulary is a closed enum whose resolution is total over role and appearance with no custom-colour escape hatch, so view code cannot hit a missing token.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L192-L282",
+          "version": "repo-lines-v1:sha256:b51296b80b9694a1cbc30f1a54e3a5abc8612f02751053cc4bd4db4356080574:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkN2U3N2ZiMTUxY2QxMzE3OGRlMmYxMjc2OGJkZTNkZTBmNWM2ZjE1MDFmZmMxYjYzODQyZGFmNTQ1MjgxYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmYjUwMGE0ODI0NWNhZTgzMWM3MjlmYTc3NDNiMjk1ZDJiZjEwNmY2YTU5ODRiMWUwMmE5YjE2OWFiMTIwNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzNmE1MTgzMGI1OTUwOGE4ODlmYTI4N2Y4NDBiY2QyODRmZDk5NmM0NGZhODQyYmMxMzliYTFjYzJjNGJjYzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d4b8931d7b474c26990ab2b8fb86196f",
+      "statement": "The neutral ramp is a deliberately mixed identity, switching families on appearance rather than being one family with two variants.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L84-L163",
+          "version": "repo-lines-v1:sha256:ebc47b5dd649c885129fd49550adb0a7cc5e003360bde61ea3e7c5f0de4ce6ea:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmYjBjMzMyMDljNDA2MjAzYWNjYTY3N2ZlYWI3Njc5YzkwMzVmYmJhOGVkYzkzNjAzZDVjOGI4ODQ3ZmY4NWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MmM0MDY4NGViNmY2NDU3YmNmNWFmYTMyMmFkM2M0MTMzOTIxNjBkYjljZTgyMWEyMTNjODk4YWIyNGM5OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNjdmMzA0ODgyMzQ5M2NiMzUxNmNjNjliY2M3OGEzYzIzY2EwY2NlYThiZTU3M2JkN2I3ZTIyZDFlNjQwZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d1d04aa0736d4a9f87c08006ea2b0454",
+      "statement": "Contrast enforcement binary-searches for the smallest hue-preserving adjustment and returns the honest maximum when the target is unreachable rather than failing silently.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L446-L532",
+          "version": "repo-lines-v1:sha256:d522e7b79f775fc27757e28821e3f9c4c0a13d0c891b08f24f767f0ebdd7697d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NjJlNzdkMWNhZDM4ZDY0NzBjNTZmYjUwNjVmMGZiYmNkZDUzZjEyOTI4ZmIxZjJjMzE5ZGVlMzk5YWNmNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMGY4NTQ0OGQ0ZWM5NjRkMjg2NjU1YjcyNDJmNGQ4ZjFjOWE5NTVjZTM3MmE1MmQwYmU1MzNjMDRmMzMwNjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4MTZlNzIwZDU5NDViZDk4ZTQ5MmY4MjcwZjk2ZmY3NmU2M2RkMzZiMmQ2YTVlNDUwNGQxNWZhMjRiZTRkZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNDYwOTRmNTU3NjhlYTBlODFhNjM3ZmU0OGMwZTJjZGExZTk0ZTAwZDY0ZWYxMzc3ZGVhYmYxNGMwNTk1YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af20a05bf9da4940b03a873ecabdab1d",
+      "statement": "The material tier is selected by class existence rather than operating-system version parsing, and a reduced-transparency preference overrides every tier before any class is considered.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/chrome.rs#L1-L47",
+          "version": "repo-lines-v1:sha256:2fa48d0c1155ecd417e0f27cd6ee48312dfb6c18010ae34493083bf1dc97f690:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMjI5OGU4MTlhZmZkN2I2MmZhMTFjNWJlMDU4MjQ5NTE5MTNiNzFmNzc4MDFjMmNjYzQ1N2MxNmE4ZGNiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwMzhlM2M3OGM0MTdhNTU5NDkyOTI5ZWJlN2Q1NDcxMmQzYTY0MWU0MTBlNzdiNzc5ZWFmZDkzNjI1NWU5ZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ff6d3608aa1a474dbfc084f4a2bd918d",
+      "statement": "Two cross-crate constants are bound by test rather than by comment: the sidebar width against the native strip width and the window-control inset against the drag band.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/chrome.rs#L67-L85",
+          "version": "repo-lines-v1:sha256:7a2733188f760f4b4c2e8bd688ed4411be3c4c4e8e8fcabffcd01c80cdffd6a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOGFkYzhjYjM1MzRkZGZmZGRhZTA3NGY2M2NhNGFiNTUwY2Y4YTUxZTdhZjQwODk1YzAxNTVhZGFlYmM3NzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5ODkxODAxN2Y3OWFiN2ZhYWI0MmU2ZmU4ZGEyOTY2MmQ3OGQxYTRlNDFlYjJjODgwZjU0ZGZiNmI1MjQ2NWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f5d6323cfd3c4ee2a75547ff17bb4cd0",
+      "statement": "The icon language is painted geometry with one stroke weight and three sizes locked to the type scale, and emoji are banned by a gate that also bans the geometric status marks.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/icons.rs#L1-L34",
+          "version": "repo-lines-v1:sha256:abef617833a8477a2ea8d198429a6d9199de5055ea7c6b913f07760c016a5e41:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4Y2Y4ODhlMWYwZDliZDY3YjVjYTlkMDFmMWYzMDM2ZTYwNDI3MmMyZDY5MTJiOTdmMjExMmEyZDU1YjBkN2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhZDYyM2Y4NTcyYWY3OWY4NzViYmU1NzEwOWM0OGUzODk1MDVjNDgwNDBiYWNkN2M2MjA4MWJjNjU5ZmM4MjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5ZDIzNDdjNTA2NTZhNGQ0YzEyYzU5YTc2NjhkNDIwYzcwNzYzYjdlOWY5NDJjM2RkNjU4NjlmM2RhYWI2OWMifQ"
+        },
+        {
+          "resource": "repo://scripts/emoji-ban.sh#L1-L41",
+          "version": "repo-lines-v1:sha256:a7ed66db6ba24e3e9cebe57c89cff5ad55cbabdaad376c573e85fa7ad4ef6af9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NzVmOTI4NTQ2YWVlNzg1NWNiMWRiOWFmYzhhYjNmMWE4YTM0ZDQzZGU1YmJkNjJmNzA3NmQ3YmE5ZjM5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0YTJiZWNmZjhhZmIzNGRiMjYwZGFiYzk2OTE1ZmZlY2ZkZTg0ODkyOTU0MWM2MTkzZGU2ZDE2NGMyMWU4ZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c17b388346741038d7a7753ce09c627",
+      "statement": "Render colours store premultiplied channels, so a blend helper must unmultiply first; reading a channel off a translucent tint and re-applying alpha washes every status tint toward grey.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/theme.rs#L555-L567",
+          "version": "repo-lines-v1:sha256:4d388b8ce24089a0b309d728fd6727122737f9abab2617fae4e5af1ea90cac0c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNWIzMWQ3YzczMDRjMGFiNzFiOTQ5NjhkMmNiNWFjOWFkODk5ZTIwNzIzMGJmMjkyOGEzNzMxODM0MmJjNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjNWY1M2QxMGI0YzVkODA4OGI2N2Y0YmU4NjgyYTk0ZjNkN2I3NzgyY2UyNmFiODYwYTg3M2E2MzVlNGIwOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1ZWJhOTQzOWY0NzYzZmI1NTUyZGZmMTBmZGZmNTM0ODRiM2ZlOGQ3ZDY5ZDllODFiNWMzOGQ2YTU2NWMwODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0b9633ae032844f1bd5a6633217fcf57",
+      "statement": "The design reference records two hard-won rules: prime a frame before painting because font registration takes effect on the following frame, and snapshot states side by side because misalignment is invisible in isolation.",
+      "evidence": [
+        {
+          "resource": "repo://docs/UI-DESIGN-REFERENCE.md#L30-L41",
+          "version": "repo-lines-v1:sha256:81acb578944bcad31a0a9ddf964b82789d5dcd568c323b49a68476824ce76775:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmM2JmNDE0MDVkNWU2ZTVlODQwZTQ2MWQ3YjVlZTc4N2U4MDFhNDBkY2ExYTNlNWQ3NGM4ZGE3M2MxYWY0OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMDU4OWIxNGVlOGJiNWRmMTcxZTZjZGZlOTZjMmU3MDM5YTU2MjczNjJmNmVkOTc4NmJhYTNjYWEwMjRkNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhOTM2NDg3ZDRlZjVkMDVjODBhMTM4NjczNDI1ZWNkMmNmMWY5ZDEzODZkODk4NWYzYmRkNjgxNmRiYzQwN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5YmViMTRkYjI4NzNhZjlmMGMxZTAwNTI4ZThkNWNiMTExY2E3Mzk4NzcwNzA5Y2NhZGJkNDVlYWFkN2YzMDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_286e624595ee475b87abd96353c5af75",
+      "statement": "The test harness runs a fixed step count rather than to quiescence, because a row with a job in flight paints a spinner that requests a repaint every frame.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/testkit.rs#L9-L53",
+          "version": "repo-lines-v1:sha256:c4080f43f1755ef88e63b5a1112ad45decf7cc6f7b513e888ee3562873db23d6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhMDUzOGM5MWE2MDQxMmQ3YmJiMjE2NTAzZGYzMjRmZDk2ZDlkNmM2OTQ1NDk5NDk1YTFmMTFkZWFiMGEzNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiN2FmNzBiNDhkNGQwNmNiNjI2ZDE5ZGI2ZGEyODI0NTQyYjRjYTUzYjYyZDMxNTk3NWI4ZDc0ZDA4NWUwYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0OWU3OWQ5MTM1NDg2YzRhNjg0NzUzMjVjZDkzODMzYWRkYjAxMjBhOWUxNmJiZWEyODIxMThjNDZmZjRlNmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e6c773b364bd42aa933bde5c242b1c90",
+      "statement": "The dark-mode accent contrast bar is deliberately lower than light, documented as a real narrow gap left open rather than perturbing a reviewed baseline as a side effect of an unrelated fix.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/theme.rs#L981-L996",
+          "version": "repo-lines-v1:sha256:94ec962166a243d67e5b8e55e143bda5ab2c7e63e0d3d0ef6d55783478516326:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZjJjYmViYTU4YmMxN2UwODgxOGQyNWQwYzY1ZDYwYTEyZmJjYTQ4YmJjOTEwY2E5ZmRlYTNmZmNkNDM2NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyYjVlZGY1OTQ5Y2ZlYTY3ODIyY2Y2OTExMzIzNjNkNjhkNmYxZTE2OWY1ZTBkNGY3YzE0ZTVmYTFlNmQ0ZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MmJjMTZkN2NkOWFkYzBlYThhZjE1NzI2M2JlMjQzOWRmYTY1ODA0ODc3OWQwOTZjYWY0M2RjZmY0ODc0NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMTliN2Y1YzkwMGVmYzg4YzZhNmY1NjU0MDE3YTExYjhlZmM4MzgwZmU1N2JjYjkyZWI2YzU3NzlmMjRhNTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d76799fcc6e649a6a31f97aa71faccda",
+      "statement": "All colour data lives in the engine crate as plain byte structs so the command line never links a rendering stack.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L1-L35",
+          "version": "repo-lines-v1:sha256:5f968d4cf079654c0f5d94e6625089d94b39fc64b86d28f1ed2324a53de52cd1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxYmFjNGNkNWQ0YThiMTM2YzEyYjA5YWU4MGU1NWQ0YWIxYmNlZjRhNmIyNjc1ZGJmNTMxOWEzZWM2MmVkNjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjMTEwNGY2NjNmMTI3NzhhMDA5NDMxNTc4OGQxMjY0OTMyOWQ1N2Q1ZGZiNjc3OTk0YjhlYjA5MDhlOThjNjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2OTBjMGYyODY1OWU0YzVlMGVmMzk3Y2VmZTJlZmRkYmViNDIxNDM3ZTA1NjFhNWZhNTA2NTZkMjEwZTkyMzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8b38cfb19e5547b3bde00d52af48939f",
+      "statement": "The split is load-bearing rather than taste because both desktop crates are excluded from the coverage gate by filename regex while the engine crate is not, so a colour decision moved into the app would leave the gate entirely.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/coverage-check.sh#L1-L17",
+          "version": "repo-lines-v1:sha256:5859cabcfdf5fddd0e4999bc07fd24e6fc945e237185b6abc6b8403d9cd737a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTVmYzA0YTgwYzk1MmY0OWNlNDE4ODYyN2M1M2IwZmJlOGM0NDA0MWI5NTJkNTkyYWNkMWRlOTk4NjE0NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYzQzNGZkM2M3ZTgzMGZmOTFkY2Y2ODgwMzM4NzNlNDM2YTQ4YjliNzNkY2FmMmQ2ODFjMDZhNzVlMWE0ODIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7a1242243a01441d9552ca8d6844cb28",
+      "statement": "The role vocabulary is a closed enum whose resolution is total over role and appearance with no custom-colour escape hatch, so view code cannot hit a missing token.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L192-L282",
+          "version": "repo-lines-v1:sha256:b51296b80b9694a1cbc30f1a54e3a5abc8612f02751053cc4bd4db4356080574:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkN2U3N2ZiMTUxY2QxMzE3OGRlMmYxMjc2OGJkZTNkZTBmNWM2ZjE1MDFmZmMxYjYzODQyZGFmNTQ1MjgxYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmYjUwMGE0ODI0NWNhZTgzMWM3MjlmYTc3NDNiMjk1ZDJiZjEwNmY2YTU5ODRiMWUwMmE5YjE2OWFiMTIwNjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzNmE1MTgzMGI1OTUwOGE4ODlmYTI4N2Y4NDBiY2QyODRmZDk5NmM0NGZhODQyYmMxMzliYTFjYzJjNGJjYzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_307bc0a170634c1290dcae98f86a2d3f",
+      "statement": "The neutral ramp is a deliberately mixed identity, switching families on appearance rather than being one family with two variants.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L84-L163",
+          "version": "repo-lines-v1:sha256:ebc47b5dd649c885129fd49550adb0a7cc5e003360bde61ea3e7c5f0de4ce6ea:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmYjBjMzMyMDljNDA2MjAzYWNjYTY3N2ZlYWI3Njc5YzkwMzVmYmJhOGVkYzkzNjAzZDVjOGI4ODQ3ZmY4NWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MmM0MDY4NGViNmY2NDU3YmNmNWFmYTMyMmFkM2M0MTMzOTIxNjBkYjljZTgyMWEyMTNjODk4YWIyNGM5OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNjdmMzA0ODgyMzQ5M2NiMzUxNmNjNjliY2M3OGEzYzIzY2EwY2NlYThiZTU3M2JkN2I3ZTIyZDFlNjQwZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e995e24e2d084ab182252635db6f4ada",
+      "statement": "Contrast enforcement binary-searches for the smallest hue-preserving adjustment and returns the honest maximum when the target is unreachable rather than failing silently.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/tokens.rs#L446-L532",
+          "version": "repo-lines-v1:sha256:d522e7b79f775fc27757e28821e3f9c4c0a13d0c891b08f24f767f0ebdd7697d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NjJlNzdkMWNhZDM4ZDY0NzBjNTZmYjUwNjVmMGZiYmNkZDUzZjEyOTI4ZmIxZjJjMzE5ZGVlMzk5YWNmNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMGY4NTQ0OGQ0ZWM5NjRkMjg2NjU1YjcyNDJmNGQ4ZjFjOWE5NTVjZTM3MmE1MmQwYmU1MzNjMDRmMzMwNjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4MTZlNzIwZDU5NDViZDk4ZTQ5MmY4MjcwZjk2ZmY3NmU2M2RkMzZiMmQ2YTVlNDUwNGQxNWZhMjRiZTRkZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNDYwOTRmNTU3NjhlYTBlODFhNjM3ZmU0OGMwZTJjZGExZTk0ZTAwZDY0ZWYxMzc3ZGVhYmYxNGMwNTk1YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_92fa681e81e045a8ad1ec72008f44a31",
+      "statement": "The material tier is selected by class existence rather than operating-system version parsing, and a reduced-transparency preference overrides every tier before any class is considered.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/chrome.rs#L1-L47",
+          "version": "repo-lines-v1:sha256:2fa48d0c1155ecd417e0f27cd6ee48312dfb6c18010ae34493083bf1dc97f690:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMjI5OGU4MTlhZmZkN2I2MmZhMTFjNWJlMDU4MjQ5NTE5MTNiNzFmNzc4MDFjMmNjYzQ1N2MxNmE4ZGNiZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwMzhlM2M3OGM0MTdhNTU5NDkyOTI5ZWJlN2Q1NDcxMmQzYTY0MWU0MTBlNzdiNzc5ZWFmZDkzNjI1NWU5ZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_716023e0717b44189b18e0dbb95100f4",
+      "statement": "Two cross-crate constants are bound by test rather than by comment: the sidebar width against the native strip width and the window-control inset against the drag band.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/chrome.rs#L67-L85",
+          "version": "repo-lines-v1:sha256:7a2733188f760f4b4c2e8bd688ed4411be3c4c4e8e8fcabffcd01c80cdffd6a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOGFkYzhjYjM1MzRkZGZmZGRhZTA3NGY2M2NhNGFiNTUwY2Y4YTUxZTdhZjQwODk1YzAxNTVhZGFlYmM3NzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5ODkxODAxN2Y3OWFiN2ZhYWI0MmU2ZmU4ZGEyOTY2MmQ3OGQxYTRlNDFlYjJjODgwZjU0ZGZiNmI1MjQ2NWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a290d33fb0704b1dab5f2e4a9d395fc7",
+      "statement": "The icon language is painted geometry with one stroke weight and three sizes locked to the type scale, and emoji are banned by a gate that also bans the geometric status marks.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/icons.rs#L1-L34",
+          "version": "repo-lines-v1:sha256:abef617833a8477a2ea8d198429a6d9199de5055ea7c6b913f07760c016a5e41:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4Y2Y4ODhlMWYwZDliZDY3YjVjYTlkMDFmMWYzMDM2ZTYwNDI3MmMyZDY5MTJiOTdmMjExMmEyZDU1YjBkN2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhZDYyM2Y4NTcyYWY3OWY4NzViYmU1NzEwOWM0OGUzODk1MDVjNDgwNDBiYWNkN2M2MjA4MWJjNjU5ZmM4MjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5ZDIzNDdjNTA2NTZhNGQ0YzEyYzU5YTc2NjhkNDIwYzcwNzYzYjdlOWY5NDJjM2RkNjU4NjlmM2RhYWI2OWMifQ"
+        },
+        {
+          "resource": "repo://scripts/emoji-ban.sh#L1-L41",
+          "version": "repo-lines-v1:sha256:a7ed66db6ba24e3e9cebe57c89cff5ad55cbabdaad376c573e85fa7ad4ef6af9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4NzVmOTI4NTQ2YWVlNzg1NWNiMWRiOWFmYzhhYjNmMWE4YTM0ZDQzZGU1YmJkNjJmNzA3NmQ3YmE5ZjM5MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0YTJiZWNmZjhhZmIzNGRiMjYwZGFiYzk2OTE1ZmZlY2ZkZTg0ODkyOTU0MWM2MTkzZGU2ZDE2NGMyMWU4ZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_93a291c195414068b57f36bb6aa68257",
+      "statement": "Render colours store premultiplied channels, so a blend helper must unmultiply first; reading a channel off a translucent tint and re-applying alpha washes every status tint toward grey.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/theme.rs#L555-L567",
+          "version": "repo-lines-v1:sha256:4d388b8ce24089a0b309d728fd6727122737f9abab2617fae4e5af1ea90cac0c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNWIzMWQ3YzczMDRjMGFiNzFiOTQ5NjhkMmNiNWFjOWFkODk5ZTIwNzIzMGJmMjkyOGEzNzMxODM0MmJjNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjNWY1M2QxMGI0YzVkODA4OGI2N2Y0YmU4NjgyYTk0ZjNkN2I3NzgyY2UyNmFiODYwYTg3M2E2MzVlNGIwOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY1ZWJhOTQzOWY0NzYzZmI1NTUyZGZmMTBmZGZmNTM0ODRiM2ZlOGQ3ZDY5ZDllODFiNWMzOGQ2YTU2NWMwODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_beb12d798f804a9a8fd7648bcc287d0a",
+      "statement": "The design reference records two hard-won rules: prime a frame before painting because font registration takes effect on the following frame, and snapshot states side by side because misalignment is invisible in isolation.",
+      "evidence": [
+        {
+          "resource": "repo://docs/UI-DESIGN-REFERENCE.md#L30-L41",
+          "version": "repo-lines-v1:sha256:81acb578944bcad31a0a9ddf964b82789d5dcd568c323b49a68476824ce76775:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmM2JmNDE0MDVkNWU2ZTVlODQwZTQ2MWQ3YjVlZTc4N2U4MDFhNDBkY2ExYTNlNWQ3NGM4ZGE3M2MxYWY0OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMDU4OWIxNGVlOGJiNWRmMTcxZTZjZGZlOTZjMmU3MDM5YTU2MjczNjJmNmVkOTc4NmJhYTNjYWEwMjRkNWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhOTM2NDg3ZDRlZjVkMDVjODBhMTM4NjczNDI1ZWNkMmNmMWY5ZDEzODZkODk4NWYzYmRkNjgxNmRiYzQwN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5YmViMTRkYjI4NzNhZjlmMGMxZTAwNTI4ZThkNWNiMTExY2E3Mzk4NzcwNzA5Y2NhZGJkNDVlYWFkN2YzMDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7257bfd850304435966577ae4a72ed41",
+      "statement": "The test harness runs a fixed step count rather than to quiescence, because a row with a job in flight paints a spinner that requests a repaint every frame.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/testkit.rs#L9-L53",
+          "version": "repo-lines-v1:sha256:c4080f43f1755ef88e63b5a1112ad45decf7cc6f7b513e888ee3562873db23d6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNhMDUzOGM5MWE2MDQxMmQ3YmJiMjE2NTAzZGYzMjRmZDk2ZDlkNmM2OTQ1NDk5NDk1YTFmMTFkZWFiMGEzNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiN2FmNzBiNDhkNGQwNmNiNjI2ZDE5ZGI2ZGEyODI0NTQyYjRjYTUzYjYyZDMxNTk3NWI4ZDc0ZDA4NWUwYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0OWU3OWQ5MTM1NDg2YzRhNjg0NzUzMjVjZDkzODMzYWRkYjAxMjBhOWUxNmJiZWEyODIxMThjNDZmZjRlNmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_125d65bcac7a4e90b4d0df0998e3dfd0",
+      "statement": "The dark-mode accent contrast bar is deliberately lower than light, documented as a real narrow gap left open rather than perturbing a reviewed baseline as a side effect of an unrelated fix.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-control-center/src/theme.rs#L981-L996",
+          "version": "repo-lines-v1:sha256:94ec962166a243d67e5b8e55e143bda5ab2c7e63e0d3d0ef6d55783478516326:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZjJjYmViYTU4YmMxN2UwODgxOGQyNWQwYzY1ZDYwYTEyZmJjYTQ4YmJjOTEwY2E5ZmRlYTNmZmNkNDM2NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyYjVlZGY1OTQ5Y2ZlYTY3ODIyY2Y2OTExMzIzNjNkNjhkNmYxZTE2OWY1ZTBkNGY3YzE0ZTVmYTFlNmQ0ZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0MmJjMTZkN2NkOWFkYzBlYThhZjE1NzI2M2JlMjQzOWRmYTY1ODA0ODc3OWQwOTZjYWY0M2RjZmY0ODc0NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMTliN2Y1YzkwMGVmYzg4YzZhNmY1NjU0MDE3YTExYjhlZmM4MzgwZmU1N2JjYjkyZWI2YzU3NzlmMjRhNTkifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

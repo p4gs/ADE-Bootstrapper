@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:209edd459beea6aeb6c960ce8370f9459107a6149cd977cd4ed4fdb0489d484a",
+  "claims": [
+    {
+      "id": "claim_9a339e4ffbb642e59bc0b7e10954b32c",
+      "statement": "Both artifacts are written unconditionally on every apply with no external tool required, and a malformed custom-pattern option is a hard pre-write gate leaving nothing on disk.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L253-L279",
+          "version": "repo-lines-v1:sha256:d48c917b157ca7df0da04f255e0cbf8730e8b362e51a32bc01acbef387dfc6fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5YjJlYTkyMzBhMDllYjFkZmUyM2IyYTg0MzgwMjYwODZkY2MyNDk3MTI1ZmY1MjViZDQ0Y2RlNzkzZDE3ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0ODZlNDM2NzY1MWRlZmVlNTc5MjVhODFlZGEwODE0MmNkZGFiYWIyYmNmOGVmNDkxMTdiOTRkYzY3MmUxMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliM2M0YTEzYzkwYmU2NWFjOWE5NTc5Njg4NTNhY2VlZDQ2MTkyOWJhM2NiZTQ3MmE1MWQ4ODdlYjY3NjMwNmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f8f92c291f1434f96ae554de9b0c13f",
+      "statement": "Verify checks semantic classification rather than file presence: every source class must carry both the untrusted marking and the read-only-data treatment, so silently reclassifying one fails verify and names the class.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L350-L392",
+          "version": "repo-lines-v1:sha256:e863882acf306c4d08af20e8c4e58218adbc8b63b887d1e12780d11ef687e58e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMGYwNDgxODhhMTBhZWYwNzI4YjhlNzk1ZDZmMjY3ZGE5ODIzNWNhOGYzZDIyY2NjYzk3MDU4NjU4N2ZhODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc3NmI0YmUwZmVkMjhkMmRiZjNhNzkyZjE5MmIxYmM3NDM4ZGM0M2ZmYzQzMzliOThiNDRkNzdjYTViYTZlZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4MDFmMjQ1ZmU0MGM5ZjlkODQ1YmRiMjA0NGE0OTI4ODlhYTNmNjFhOGQxMTdkM2U5YzI1NDhlZGE4ZWI1ZDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_63b36b4709bd489b8ca5321f50ae72c4",
+      "statement": "Nothing invokes the scanner automatically; no module wires it into a coding-agent event, so it reaches the agent only as a written instruction to run by hand.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L295-L308",
+          "version": "repo-lines-v1:sha256:dff8347dd4ca74224469839fc6d3c8395cb27a47280a11d55050fe8f2034e924:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3M2I4ZDlkZDU3YTM4YjJmY2M3NzU3ODA5OWE2MjQ0NzJmY2NhNGU5YWZiYzc0OTk1MGNhNmM4MWE2ZTUxMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxMjdmYzdlY2Q3YzQyOTk3ZjJkNDdlYmNlMGM5YzBjZDg1YjkzNWNkNWJjNmZhMGE2MzFlOTJmNWM4ZWFkNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2OWY3YzQ0NjlhNjI4ZTI0ZWZmYjk5ZjMwOTdiZjQ5NzYzYjJlNDJmN2RlZTlhMjY3ZWE4YmIyOTIxZGM0NjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8c44fb77300645278c96073fb68af9c3",
+      "statement": "The shim fails open when the binary is absent, draining input and reporting a clean verdict, so a vendored repository without the binary on its path reports clean for genuinely malicious text.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L214-L224",
+          "version": "repo-lines-v1:sha256:95090dd57b6b232a0aef962c004a1732b714d96d42eee4a84fa2a27329bae43a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyMmU2Y2M2NjA5OTJkZjIxNmMwZThmYTVjYmMzMTJlYTcxZjdhNWMwZjg1YTkxZjVhYzE5Njg3MzY0MzgwMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFiMzYyYzY4ZjAwMGIzYjg0YjA3N2E2ZmQzZGVhZGVhNmJkODMwNWMzNmYyZWU2MzQzODRkNGJjMDZhYmYyYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyYmJlNzI0NGEzZjRlOTZiOTNhMGJkYzVlMGNmYWNjYWFmN2MxMzA4NDBjYjU0YzdkNGU2Y2MzNDcxMDVhN2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e07259e25ba4e0190c725dd94509881",
+      "statement": "Custom patterns are shell-quoted into the script's arguments so a pattern containing a quote cannot break out of the invocation line.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L195-L212",
+          "version": "repo-lines-v1:sha256:866bde9977a1f70f9384315cc8f6fc2404683934afbe4c26627cef7d0bd2b979:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNDVlZWY1ZmYyZmFlMWFhMDY2NzJiMDQwNTY1MDA5OTMxNDZkYTQ1OTM3NzFjYzM3NWZjYWVlY2JmMjJkNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMTBmZDZjZDIwOGQzOGVkYjMxMjFkMmRjN2UyOGVhNTUyZmNkOWRmMDgwMTJhZGMzZTA5ZjU0ZDMyMTM3NTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3NmMzMjgxZjMzODA1NjM4YzEwMWIyNDgwMjRjYzk2ZTA4MzIyMGRiYzFlZmEwN2IzMjU2ZWZkYTIyMDIxYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5Zjg0ZjJlM2MyNTQ4N2Q5ODRkNzUwYzU3NTUyMmY3ZGI5ZThiOWYxN2Q0OTU1MTdlMjhlYTdkZmRhOWJhNWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b2497b809394220a5fdbc35372f7d40",
+      "statement": "The patterns match imperative verb and object combinations rather than bare keywords, which keeps benign security prose from flagging at the deliberate cost of recall against paraphrased attacks.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L42-L75",
+          "version": "repo-lines-v1:sha256:b7dc8d8db97a53b1dc4b905687bf4c556f884811cf545b4bbf75e26dabd12ce4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiOGFhMzU5NGZkNjk3YjBhMDg5Y2ZiOTI3OTE5M2NiNzA4OWNhYmIzNzhhNDE2OTdlNjIzNjYxOGE2MjNjOWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkZDY1NWU1YmQ4NzcxZTg4Mzg1YTc1NDQ0NzI4Y2QwZjUwODQ4MDc2MDQwZDAyZDVlNWNhOTNhMTA3MWQ5YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiMGEyNjNlNTZlMjU4Nzc1ZTE4ZjA0ZjBlNmE0MDdiYzEwNjQ5Yzk5OWZmY2Q5NWQzYWE4NjM4NzkzOTI0MTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed0d277fab674d24a1dfdc99b2683233",
+      "statement": "An invalid custom regex reaching the scanner is silently skipped, which is safe only because apply and detect refuse to ship one, coupling the two guarantees.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/injection_defense.rs#L118-L124",
+          "version": "repo-lines-v1:sha256:5a40009a7caf6bda07221bde8b412c2031167acbd68b6e7b301e9a012656cdd3:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjBkNDUxNDcwMzQyZjMyMTRkYmQ5ZjE4NThhZDY5ZmFkZjk5NWVhNTM0ZmJhZGZhOTM5NTA5MWU5YzllZWRlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzVjYmQyMjRkM2Q1MDQzODQ2YmU2NjJkOTM5MDI5ZjRjYmM3NjM1ZDFjNzA5ZGMyZGY0ZTExZmQyYjNhZWQxZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzAxOTI3ZWYxZmZiMjA0MTE3NzA3YWQzODA2YjY1ODUzMWM3ODE0YjA4MmJmNzQ2NDU2NTdkNzgzMGVhNzUyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmIyNjBiOTI3N2Q4NGQzNWQyNTRhNDNkZjM4YTNlNjJmZjAxNmY4NGYwNjg5NTU0Mjc1NTIxNTI2YWQ0NTE3MSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

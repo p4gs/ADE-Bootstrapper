@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:3e6bb8e572856b3bed604cc9511fad48d70075426f1d361f12833d43f1e309e5",
+  "claims": [
+    {
+      "id": "claim_37afcaff326944a4a79b3b422e9e8d8b",
+      "statement": "Both the CLI command and the desktop app construct their own dependency struct and call the same collector, and the desktop side deliberately performs a fresh full re-detection rather than serializing cached state.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L328-L346",
+          "version": "repo-lines-v1:sha256:e4a6acb766a5b11ab24cc8aaa7cddffe07f93254c1cb4043630124cf12e07938:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNmZhM2JiZDg3MDJlZTM4M2NjNzg2MjgwYWU3NDZjMzQ1NWE0YzkzYzgwZGViZDBhODI4NDM3ZDM2NTRiMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVlNGIxM2RjZjVkNGIzZTA0MTFjYjQ1MGVlNjlhYWY0NjEzZmQ5MTFkMjczMDgxYTJhZjE4ZTIzYmRiNzVlN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwYjY1MmU2ZDZhNDFmMjEwMzkwNzE1ZGZhMTE4YzlhZDgxNmU3Y2U0ZjlmMGZiYjhkY2QzNTk4OTEwNmIzOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNWQxMTZhZmRjY2JkNTM3ZGVlMjRlNDQxZDVkN2FlMjFmY2M3YWUwMWU2MjAzMmE0ZjY3N2Y0NWIzMTYyMTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_10d9a5c5200949c2a79074872573af11",
+      "statement": "The collector fabricates nothing: it re-runs the same capability detection and verdict pass as the health command and the same status report as the status command.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L396-L484",
+          "version": "repo-lines-v1:sha256:701f11429e7621bc449fd9934e07dd2010cf46041a2141e77d9ac86595e9f644:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzZWI5NzJhYTlhMzgxNDNhYjFkN2RiNzZhNDBmNGE3YWVmOGRlMGFkZDM5YzMxNjhlNjY5MDRhYWM1ZTliZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwYmU2MjA4YzU3MDUzYjdjMGE0ZmU2ZmExMTQ2ODFlMTQxZWFlYWE4Yzk0MGI4NTRhY2ZhMWQ5OTJlNjBlNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0MGQxNmVlZmZiMTIxMjgxNWFlYTI4ZTVkYmM5MzBmZTZmNjUxMTRmZTljMzY2ZDdjOTk3M2ZlYzg5MWNjOTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_274f0ecf3d594829a90ec88ed49cecc8",
+      "statement": "Home-directory redaction is applied at exactly two places, the project path and the config error string, the latter because the loader embeds the directory inline in a sentence rather than as a separate field.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L401-L440",
+          "version": "repo-lines-v1:sha256:d97f108749a5f45958c2310e8a7dd6058851fe22d77c344ab8fa3289139ca6b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3ZWQwNDA0NmU5N2MzY2M2YTMxNzE3NGZlOWUxNjAyYThkOTQ3YTk0YTM4YTViMGM3Mzg5MzIyZmRlZjlhMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNmNmM2Q5ZjY2ODZiODA2MjlhZjlhZGJiMTQzY2JlZDUwNDlhMmU3NTViZGIyZWEwNDdiZGZhZmFjOTU5YmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjYjcyNjllZGIwZjQyYmQ1MTlmNWNlNWRlM2RjZWUzYjZlYTEzZmM3NzA3YzY5YWM2ZGI4ZGM2MjVjNmY1OTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1251c60c4f374d55beae8ee99da6c270",
+      "statement": "Redaction is a plain substring replace with two guards and no canonicalization, so a path reached through a symlink or spelled differently will not match and renders raw.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L79-L91",
+          "version": "repo-lines-v1:sha256:8db18133b7f7523905f709c0870b6e82cfaba4f551acf448120aecefb371c30f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkODU3NjZlYTFhZGFiMWJlODkxN2Q3MWVjZGU0NjhkZDMzMTBiYmUyOWI1ZjE0NjI5NGIxOGZkYTNmZDAzNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiMTE2ODY0NDJjNDA5NDY1NmVkNThlNDZkMWY4MzRiYTYxZTVlMjNhNDYxYTc1MzU4MjIxMGU4ZDhlNThiNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmZjM2ZDk5ZDYxMjE1MDVmMjQxMjViMWRiYTVkMjdiOTk5MjUyOWZlZDRhMzQxYmNlYThkZWZiNWZiNzg4ZjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0715b2c4c8fc4899b79028cd6c8e143c",
+      "statement": "Determinism is achieved by fixing every collection's order before rendering rather than sorting at render time, with projects explicitly sorted so ordering never depends on registration time.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L441-L458",
+          "version": "repo-lines-v1:sha256:4a47d78fbdb0f4b43a55b7e5079398820678f11150723df543590b365ccdc887:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlZjZkODVkYWQzMjQ1MmQxYzIwY2ZlNjgxNWM4NmYzYTgzMmExMjk2OTg1MDFiOGJiYmE2ODgyM2NlMzAzZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwNDY1ZmNkODE3YzM4OGRlZjI2YjRlMjEyMGQzNGE5ZWNjYjI5ZjhkY2RmOGRkMmIwODUyMGJjYmU4NmU4MGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmM2UzN2Y2NzljZDY2NzAyYjcxZjNmOThkN2IyYjYyZTAwMGEzM2FkYjQ4OTE1NDdjNjZhOTJkNDEyNGIxNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZTVkNTU2NjY0ZWI0NmFkNjhmZWY3ZmQyMWI3NTYwZWVmYjc1NDllM2U2NWQwNzIxODgzZmYyNjY4NDU4MTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c04839e015534a62ba2501450d1465fa",
+      "statement": "The generated timestamp is the single intended source of run-to-run difference, which is why the contract is determinism modulo timestamp.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L486-L500",
+          "version": "repo-lines-v1:sha256:d9506909310da41173d6f524ec214839e6865efaa0a3460b354ab69383e0cab1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2MjY3MjY1MTk0MGU4ZjcwMmQyY2EzOGJjZGM4OWQ3MDcwZDFkZmNjMDlmODg2MmEzMzI1ZTBkZGNjYjU2OTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczZDU5ZTA3YWQ0NTQ1OGI1MTc2OTQ5NzRiN2UyZDExN2ZiOWY5NWQ0MTA2MTk2ZDdjYTkxYzc5YzZhYTk5NmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ffd701ede9224b0682578b85c207e071",
+      "statement": "Every external probe is time-bounded and a timeout fails the same gate an absent tool fails, so a timeout is indistinguishable from absence in the output.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L337-L344",
+          "version": "repo-lines-v1:sha256:586f7463d993158509651f45257bc6c718a6f9da97f344791dd4cece08e2fdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzJmYzNmZmVlMWFlMTg4ZTViOTc3YWIxMWE3ZDEyZWFiMDZhMTJiMDgwYTBjMmM3MTUwNzY2ZjE2NTBhOWIxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmJjMmQxODljMTQzZjYzZGEzZjAxNzA2ZWIxNmMzNmVkMzYyYTcxZTU2MTUwNTJhMTEzMDA0ODBjNDMzYjQyOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzJlY2NkODg0YjhlZGUyNTI2ZmNiODkxMjFmOGM3MDYzNDgzNGIwZTZlNGUyZmI3MDgyODgxMjM2ZGI1M2FiNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTMxNmEwNzE2MDI1MTRhNzhjZmEwODdlYTIwYWUxOGQ1NDY5NWNjZmM4MDc5NWZhOWI4MTkyYzJkNWIzNTBiMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_02ff19b163054ea2aa52c54e2ac79323",
+      "statement": "The tier-3 section is hardcoded prose encoding a researched finding rather than runtime-derived, so it will go stale silently if the underlying module changes what it invokes.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L279-L317",
+          "version": "repo-lines-v1:sha256:10809485f58def46ae3d44f3da1e4d93d868dcb1b9c439c6b6141871be422582:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2NzJjNmE3ZTExYTIyZjgzMmM1OWE2M2M1NjIxYTE4Zjc2Y2Y3NDU4Y2Y1OWYyMDM4NzdlMzkwYjQxMGU1ODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3ZTc4N2UyMzFmMmUxMTg2ODdiMzZmZDBiM2NlMDA0ZTJkN2Y2MGJmYmM3ZWZiMmM2ZGVmYmM1MWViZGEzNTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6c1a6d294a714d61a557e626ed45697a",
+      "statement": "A corrupt machine-state file is invisible in the export, because the loader returns a warning alongside defaulted state and the collector reads only the state.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/gui/posture.rs#L334-L336",
+          "version": "repo-lines-v1:sha256:c2eccd884b8ede2526fcb89121f8c70634834b0e6e4e2fb7082881236db53ab4:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjUyNzg4NjQ5NDYxOGY1YjBlYjdjMmFlNDBkYjdhZjQ1MDE2ZmYxNmM0Mzc3NTRhYzkxOGJjNGZkNGFjZjQ4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWNhNzdkNzEwZWUwYTRhYjc5NmE0ZmRhMTBhNjNhMTczMjc0ZDRlM2UzNDQ3NWNjZDZjZWM4MzE0NDZhYzAyNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTBiNzEwMzc5MWRhZDdlODY0ZjRhOWUxMjNkMDgwNTBiODFmNmVkYmVkM2MwYjAwNTY5ZmQyMmM0NGFiZjY5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzllOTBhNDkxZGNkNTY2ZDMzMDQyNGQzNTdkNmMxOTg1ODUxN2Y5NTVjYTdjZWUyNGMzMTljOTg3MTUzZWFhOSJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

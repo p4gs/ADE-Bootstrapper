@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1a1b02f4b89ed40afc87e55d02485084968fcdbda63856635470dffa4baa4291",
+  "claims": [
+    {
+      "id": "claim_ed8b84053dd44d22829407ee07a67a8a",
+      "statement": "Seven rule files are emitted sorted by name, each a static template with no interpolation of machine state, and the sorted order is the iteration order for apply, plan and verify alike.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L117-L131",
+          "version": "repo-lines-v1:sha256:9c8d9ff80c8a5685aa1e38a20e1e95d3746a4e961945706f38c353350f7d1fbc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjODliMmQzNGY2YzFlMDk1ZGE5Yzg5YTVjMDE3MjZkNmY4ZjU0NmRhYWExYTBkMTAzMDlhZTEwNDEwYzYwZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjBmYzYwMzgwNmY3ODU1NGY1NGQ1MTNlZjhhNTA4MzQwYjJhNzJhN2M5N2RmYzM2MDAxNzY3MjI4NzJjOTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2MDFjYzQ0NDAyYTM4OTdmMmUyOGMxMzkxY2FmOWU1YjQ3N2I2NjgwYzQ1YmIzOTY5NjAzZWNmNzM5OGQ3MjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjZDhhYzMwNzJlOTI5MDcxMzNmYTQxMDY2ZGYyMTE0YWZmMDYxYjhhYWI2ZDFjYTExNDRiMmE1MWZhMTU5OWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d74bac4f6ea440bf8cd4a2fcae585e0c",
+      "statement": "Verify re-parses each rule's frontmatter, requiring a kebab-case id, a severity from a three-member allowlist and a non-empty applies-to array, which is the tamper detector sitting on top of the lockfile hash.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L59-L105",
+          "version": "repo-lines-v1:sha256:e8af45bc3ba9da76ff098b7a2520ec8a10e9898ff3d14e8d55660c9b8a24dcb9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlYWYxNmE1ZTJkYmI3MzE1YWY0OGEyM2UyNzY5Yzc1N2E1YzNiMjlmYTk1ODU2ZDRmZTYwYjVlMzE2YzJhM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5YzdhMDVlMTgyMjI2YzNkZDM2MzI0NDdkNzc0YWJhYTQ1NWNmZGU5ZjJjMGY5NTUyNmU3YmZmN2I2ZjZmM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyMmFjOGMwODVlZTRlMTdlMjg1MjZkYjBkMmVkZDljMjRlZTM1ZjllOTJlN2NkODZiODY5MmI1YWJiMTM5YjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a8bd05ea0b03475eac509f215edc112f",
+      "statement": "Verify additionally enforces that the frontmatter id equals the file's basename, closing the gap where a valid but mislabelled rule could be swapped in.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L481-L496",
+          "version": "repo-lines-v1:sha256:11e3c52e6f8ad6eaf870ed1980174aec9b6953d2736b9512ae6c8f9dc64c0b9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MDM4N2VkZWU3YmRlN2VjOWMzOGQ0ZTE4MjA4MTliMWVhYzgzNDE1Yzk0ZDg3Zjg1OTVlNzMxMzc3ZTE2MWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1Y2E4NjMwZGI1M2RkY2IzYTEyM2VhMWNmMzA4ZDBkZTY4YzAzOGEyNDE3MGRmZjVmYzZiZjQ5NDI3OGQ2ZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExOGU0ZjYyMDBkMDZlNzE4Zjg2Mzg4MWEyNDM5ZjVhMDE4OTYzODM4YzFiM2Q2YTZhNzEyYWNlMDc1MzUyZmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fa872a29550a44bb8a20f1d10fb317b7",
+      "statement": "Verify does not short-circuit: it reports one finding per rule file so a report names precisely which rules are broken.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L452-L498",
+          "version": "repo-lines-v1:sha256:6664cfe421a008393b66e8a6e466b5b048c9f30367652b44d247ebabd9398772:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMGYwNDgxODhhMTBhZWYwNzI4YjhlNzk1ZDZmMjY3ZGE5ODIzNWNhOGYzZDIyY2NjYzk3MDU4NjU4N2ZhODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5OWJkZWZlZWFjYTYzNDBlMDI5MGRjODZlODg5Yzg5ZDVlMTg5YWE1YmE0NGI1ODViM2I3MDczNGY0YTYyZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1MjE2MDRiMzVmYzQwYWYwMGNiYTRlZWEyZmQ1ZTJjM2FmMTg2M2IzOTExODVkN2JmNGJiMDllNzJkMGM4YjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_514bc86c50064aa899ce615c73313bf5",
+      "statement": "Apply cannot degrade because there is no external tool to detect; the only failure mode is I/O.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L359-L374",
+          "version": "repo-lines-v1:sha256:e946112d6e7c7f571bcd61c26f4393aa70c8c032d3d9ca80c9eae1594d07782d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5YjJlYTkyMzBhMDllYjFkZmUyM2IyYTg0MzgwMjYwODZkY2MyNDk3MTI1ZmY1MjViZDQ0Y2RlNzkzZDE3ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiODg5ZTEwYmM2NDI1ZWQ3MGU2YWY0ZDljZWJlYjczNWYxMTM2MmI4N2UzNWRmNDkyZTk4MTZiMDdlZjUzYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzNzUyMTRlMDI5MjkzYzExMjQzMThmYTc5OWI4MzY0YTBkNWMwMjgzYzE4ODgzNjA5ZGU4NTIzZDhkOGYxZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_faf7b88eec7f47899e4fd2a38c6d93d6",
+      "statement": "Detect deliberately does not degrade when no CodeGuard binary exists, because the upstream project is a ruleset framework rather than a CLI, so a missing binary is not a capability gap.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L405-L425",
+          "version": "repo-lines-v1:sha256:dcb73af73e55068f9c14cbba2687b99a3a7b70ed14eb390336ac5ce4a34234ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZmEzY2RiMTFiM2JlM2YxMmJjYzliN2UyNGE2ZTVkNGM0OGFhODcxMDJlZjVjOTYzMzhjZmRkZWJjMTYxYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3OGIxNGFmOWM3NTNmYWQxMDVkZmFlYjAxODFjZTQ1NmNiOTA0MmJjMjMwZDI5MDIwNzI3ODEzMDQ4ZTgyNzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzOGJiNjQ4NzZjZTAzMjM0YzUyZmEzYTkxNjZmZmJjYTkwYmNhOTI3MTc4OTBiMzkyNWM0NjZkMDZlMmUzNjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_938e93f92e60477fa16dc552cd556fb4",
+      "statement": "Vendoring extra rules is the documented extension seam but collides with the lockfile's unknown-file rule, so the intended sequence is vendor then lock; dropping files in without re-locking fails verify.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L410-L413",
+          "version": "repo-lines-v1:sha256:6f4a5173ca069aba54f74d26f2441f39ab2587abc997d16c5bfc178b637fdf59:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGU1N2JkOWM3YTY2M2Q2MjBmMzg2Yzc3ZDVjMTE3YzJlMmY5NGI1ODk2YzgyMDlmOGQ4NjM1NzdkZjRkNGIxOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q5YzVmZjJiZDYzNjE1YWEwZDRlNzZmZDIwNTQ5NjcwOTUwNmU1NTVhZWJiMGRhZWFjOGVmNWViNTVmZDhiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWZhMzM2OTU0NGU4OWMzNjlkNDY0Njk3MWQxNThiYTMyZTQ5Y2E5NDk4YmFmNGVlMTMwMjJjNzNlMDk4NTQ4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTlkYTZiZmFhMjlhOGM4MGYwN2NiMjI0MjVjYTAxNTJjYmFmNWFiM2FmMDRkNzc5ZWQxNTUyMDMyMzUxZTQ3MyJ9"
+        },
+        {
+          "resource": "repo://crates/ade-core/src/lockfile.rs#L160-L172",
+          "version": "repo-lines-v1:sha256:64f81bd87f3256f6a41ec99de56c506954f0f29dc5596bd49c594efe30539763:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiZDU0ZDkyY2NlZmE2OWE4NTQyN2M5ZGRkMzU2MTYxMzNmYjgwNTIyYWRiMzRlN2RhODBmZjZkMGUwYjY2NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllNTk5ZWY1MTRkYzllNjVhODExMWIxNzA0YjgxY2NkOWY5Yjg1YjBjZmY5ODBkNjA2MzdkY2I2M2I5NGY4YTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_746c2fa3643947f497a167348b4f6385",
+      "statement": "ADE guarantees the rule files are present, well-formed and unmodified but does not enforce the rules: there is no scanner, no applies-to matcher and no severity-driven behavior anywhere in the codebase.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/guardrails.rs#L390-L403",
+          "version": "repo-lines-v1:sha256:5c5ec4dd604e1ab963e419c15308aeddd91ee4493332cf5df5cb37281354d6db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3M2I4ZDlkZDU3YTM4YjJmY2M3NzU3ODA5OWE2MjQ0NzJmY2NhNGU5YWZiYzc0OTk1MGNhNmM4MWE2ZTUxMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4OTNmNDBlMzc4MWViODk2YzgyZDA0NmEwODA2N2ExMWUzNWNkZjJmMWRmYWYyNmZlYTkwYjhkYjY2NzY0MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhMzYyNmU1YzU2MTVjMzFlYjIwNDg0MGRmZTQ3OGMxZjViYzc0OGNjNmRmZjQzOTE5M2NhNDQwMGQzMjE3ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhODAyNWJiYjE3MDQ1MjgxODdlZTI2Yzc1MjY2OTI0ZGMzMWIxZjQxNTMwZmM5MmEzYTQzMTEyMTU5ZjI0ZmMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

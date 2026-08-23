@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:41409c798966075c699c7e5187e6730c02c41e74426a75c72ca39a17b9e6d44e",
+  "claims": [
+    {
+      "id": "claim_0819da649e5f4a61bc9c2b6c954faa8b",
+      "statement": "ADE owns exactly one region of an instruction file, delimited by fixed begin and end markers, and proves ownership with a provenance comment carrying the sha256 of the trimmed body; ownership is a content claim rather than a path claim.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/managed.rs#L19-L27",
+          "version": "repo-lines-v1:sha256:8fe06bc19b59642a22ad1b93ce458ba4bfb1023a72602c4150386ca2c3cd08ee:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDI3ODQ3OTk5ZjA0YzBjYWE0NjhkZTI1MGQ2YzA0OTIzNmE2ODk0YjMyZWNjMThiMDI5ZmQ1MTc0NDZkZmU3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjUyNjBiOTdkOWQ3ZWNhMTA3YTNiZDZhZDY3MjU2YjdlZGFkYzZhMzhjNTAzMzVhMTQ5YjU3ZTQ3MDY0ZWQ3MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjFkZGJmZmE3YmVhY2RkZWQ2NWE0ODQxOTVhOTkxNzM2ZTkwMjE3MGU3NWUyY2FkYWJmZTBjZmRmNTJhMGQ5ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f6fb60eef68b485ca491ebf7476adb39",
+      "statement": "The managed body is trim-end normalized before both hashing and rendering, so trailing whitespace can never change the content hash.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/managed.rs#L20-L26",
+          "version": "repo-lines-v1:sha256:5742022a739fcb54be3571d8e3e8fc63373f586ddeed9e01bc3b249e5f9cac76:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTdhY2Y5ZTNhMzRlMjc2OWJmNjJjNjJjYzhiZjlkNzJhYjExNjkyOGRiMGQ4OTQxNDdkMWU3ODcxNTkyMzZjMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODBhYzIyODZmZGIyOGQxYzE3YzdmZWY5YWEwZDFhNDYxMWIyOWQwYjc0NTE2YjczN2U3ODY3MWZjYjljNGYwYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTQ3OWE5YWUzMzNjOTUxM2Q4OTc4MTA4MWUwOTlhY2IxN2NjYmU2M2Y5MjBiMWNiNDQ4MDQ1ZGMyZDI4MjFkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjBiZWE2ZTJmYjNkMTA5M2JhM2IwZTI4NDFmYWFlNTEwMGIzYWU0OGVjNjI5ZmU2YmNlZWZhMTYxZmQ2MmM2ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b0d06bd36075445580dcee0a428924e1",
+      "statement": "upsert_managed_block selects among four outcomes by counting markers rather than parsing: zero of each appends, one of each replaces, and anything else is refused as corrupt.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/managed.rs#L81-L134",
+          "version": "repo-lines-v1:sha256:fa5674b5d2b2178806dda59bac081dcc464dcab2804fad5d25498e71517cf57b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNTI4ZjI4MzQ4YTVmYWFkYjJkNTAzN2Y1MWZiN2I0ZWJiMWZlNzk1ZjQ4YjVjZGU4NThiNDdmN2I2N2QxMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwZTM3YTlkNjk3NDBjNTY2OTliMjMyZTAxNmMxMDkxNDI5NjUyODc4ZWYwNzkwN2NhMjE5N2ZmMTZkNDU1ZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkMGQ5MjRiMTAyZjNiNTE2ZjY5MDViN2JmZDVjZDJhMTU2YzJkMzBjODk0ZGE1MTEyZTE4NzZjYTMwMzE4MGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f715322df3d94ad5bf27dd788f0c314c",
+      "statement": "Markers present with no content-hash provenance line are treated as not ADE's and refused, because replacing them would destroy content outside ADE's ownership.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/managed.rs#L106-L113",
+          "version": "repo-lines-v1:sha256:ff9ed1b2e4c883e9b213e046ca5711d474fd439c9aa2e0c4a11fe61f35f263ec:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzAyMGE3NmZhY2UxNDNkMjQ3NWVkYmQ1MmFkNTVjNzk5Mzg5ZWZkMTQ2ODU4M2E2NTAwYTI0MGQ5MDkyNGNlNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVjZGVmODA4NWFlNzRhYjYzNmQ2NDU5ZjVjNmQ1ZmJmYjBkYjI2NGYxYjBkNzViYWM1MTljOWIzZjY3MTdhYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTQxNjI1MTllNTFkZTZlYzM4MjgxNTdjZWFhY2VkZTlhMjZkZjg5MTQxN2M1ODFhNGIyZjIwMGIwNTAzNjExOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWM0YjJkOGQ2ZDFmNmNhN2JkYjVhNTMwZTQ0YjYyMDVlNTBkM2I4MDRmMDY3ODg5MDI0YzA0NGZiNjczNTI5NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_68aad4648c014985b168be88aa534e29",
+      "statement": "A body whose recomputed hash differs from the declared one means a human edited inside the block; the write is refused and the remediation points at the user-owned local instructions file.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/managed.rs#L114-L118",
+          "version": "repo-lines-v1:sha256:ab6223609405ebcb1c23c4cf6ebf9e04437ae8311c16f0704f089aa6a750e68a:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzJjNzBmYTQwZDQyN2JiZmE5MTEyODhhZTcwZWQ3MzkwYTUxMDg2NjcwY2E0ZjQ0YWJkYTcxYjE5ZDk2MTc4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTZiMDQ0OTE0Njk3MjJlODM2M2E5NGU0MDQ0NTM4ZTAxM2EyYTIxN2UzNmIxZTU2OGJhNjBhY2I3YjRjOGYyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmE1M2UzZTRkZTk0MmNmNzg1MWI1YmJiODJkZmI3Yzg1ODE5YTgzNjBiNjdkMDE4ZmE1NWIwNWE3NWVhZmQwYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDc1YzQ5YTYyMmY0MDc5MDZjYmQxNmI2YmYxNTdmNWIzMzZkYzY4ZTU4ODk4MTkyNmM0ZDNjYzQ1YWJjZmFkMyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a370fdb43e7e41b48a8ce3ededf6a2e2",
+      "statement": "remove_managed_block deliberately inherits every refusal of upsert, because uninstalling is not a licence to delete content ADE cannot prove it wrote; its one documented lossy behavior is whitespace-only.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/managed.rs#L146-L202",
+          "version": "repo-lines-v1:sha256:6d016cf9ebcce7e0e92b1e9a3291db891c88a619e161594148e86ecf5547a34e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxODJkM2MyMGQwOGJlMjQ0MzVkOWYxN2MxYTUxMDRiZjU5ODczOGMzYTAzZmM2N2YyNjQwNTJhMDMyYTAzMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3ODRhYWE5MjFmMDM5MDRjMjU1YWMzMGUxNWY5M2I1NmY0YzIzMjMyYzc0MjA4YTBiMGNkNzUwMTE2M2MyYmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2MDI5YWQ0MWRiMmVjNjUyOGY5M2MwMDczZjg1NmNhZWY2YmJjNGIzZjg2MWI2ZDk4OGViNGZjN2NkMzk5ZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_07547444301a4d119c221fbcdead53c6",
+      "statement": "strip_stub treats an untouched stub, an empty file and an absent file as equivalent to no user content, by stripping HTML comments, blank lines and the exact stub heading.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/instructions.rs#L88-L106",
+          "version": "repo-lines-v1:sha256:85111cb80627acf454ce9fd22f3ce4883a13264c331325728486f6a19b9f9c41:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2QxZWY5N2RhYmM1NGZhZGU4NjRjYTA2YTdmNGZiNjRiNzI1MjcyZjdmZjUyNGVkMTIwYmU2OWQ1ZjE4NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmOGIyYTAyMGQ5OTY3MTJhNDA5MDRiMDM3MTk1ODkxNWE1NTk5NzEyMjRiYzk0M2MwMzdkNTMzYzI4YWU4M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c41b6ed18f2441b481817636db0ac6b2",
+      "statement": "The HTML comment stripper leaves an unterminated comment opener in place rather than swallowing the rest of the file, matching the oracle's lazy regex semantics.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/instructions.rs#L67-L86",
+          "version": "repo-lines-v1:sha256:89adc7c30c6b0426763aa961565d28d1d01caf5a1802bb881aef57800cfb0dc1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MDRlMjU2OTJkNmJjNGYzMDBjNWRhMmY1ZTMwYTlhZDU0ZWNjYmFhZmFmYjljNzdhYzIzZmI3ZTBhM2YwOWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwMzU2MzQ0MTE2N2JlNmRiYmQzMTI0NjM4MTg4ZWExMTk4ZjExOTI3ZWUyYTMyMDdmZWZmMTVhZThmNDE0NTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b7eadaed96864aed9a1d0a2a1f009e02",
+      "statement": "Translation targets are deduplicated by path, so the five coding agents sharing one instruction file collapse into a single write, and targets are sorted for determinism.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/translate.rs#L37-L58",
+          "version": "repo-lines-v1:sha256:b45ae75da550264d0f9f90c08938888e23fb4d67850b75dd6529518de8d6a3d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZTY0NTJmZjA5NzVjMjQ0NzhhMTY1NzM0ZjhiYThlYzRkMmIyNjIxMmRjZDlmMzFmODVlN2QzZTgzOTVkOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNWVmMmMwMGJhOGEwZTM1NGQ0MjM3MGE1M2ExMGMzM2IzYTE1NzE4NGIzOGFlYWNlMTIyMjE2NTFjYmQ3NDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2YmU0NjE0NTIxMjg1ZmExZmIwMjc4NDFjOWQwOTAwZjVkMjZmMzk3ZWQxODgzZDExYjhkMjM2ZTU3YzQ5NmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d4edf515e42486bb12198f2283b6245",
+      "statement": "A target that exists but is not a regular file is refused before any read, guarding against clobbering an intentional secret mount.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/translate.rs#L60-L86",
+          "version": "repo-lines-v1:sha256:c7ca8eaa05844fe0913efddab8678647c1048a434c34a26510d8cce0df577657:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiNzU0M2FjOGM2NTY4NTNjZTE5YTM5NjE4MmMxZGI2NzE1MGMzYjAyMWY0OTAxMzA0ZWFlNDBjYTUzMTI3NGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjOWRhOTM1YTA5OGE2NDc4Yzc5YzU2YzAwZjgwMDNjYjE2NWQ2ZGZiNGIwMWZkOThkODEzNzgxYmY0ZTU5N2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmOTM4ZGZkNTg0ZjU5MzUwMTRlNDA0NmQ0MDYyMTk0ZTBkYjM4ZmFhNmJkZjBjZmEyZWY1NWI1NTlkZDA3NGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc7b601f79a04ee89e202292df63528d",
+      "statement": "Translation refusals are per file: one poisoned instruction file does not stop the others from being written, and the refused file is left byte-identical.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/translate.rs#L89-L110",
+          "version": "repo-lines-v1:sha256:616d40816ce6ee934b37868e27f7fea044bdb5874e8fb892fe4a4828f69c3e07:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2OTZiN2E5YjYxNGNhMzBhN2FkNjdlYjQ2YmVhY2MzOTNkM2M5NzNiMDg5Y2FmMWNhNjU4NDg1NmYzYWMyNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlODJiMjE4MjBjNDM0N2Y3ZjliOGVjZDdjZGUxMDc0NDIwYmMxMmQxMGFkZmU2Y2RlYWM5YTMzMTM5MWY4NjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4YTQ3NzFlZTI5NDA0ZTFiMmM5YTI3NzcxNjY5OWIzM2I5NDFkZTE0NDhiM2VhMDUyZTBiMDlhY2ZjMmRjOTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b2b399fc33874f838ca004299c62cb3a",
+      "statement": "Drift detection compares the extracted block against a freshly rendered one by byte equality, distinguishing a missing file from a missing or corrupt block from a merely stale one.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/translate.rs#L116-L148",
+          "version": "repo-lines-v1:sha256:5e90604bd8737c548b6b18a9557aba822a890adab6f7c13c844aacc939e8231d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkNGFkMTJjNDFiYTRiZmI3MDUzMmUxMGVkMDc0YmM4OTI1ODdjZjRlOTQwMjMwMmQ0ZjQwODc4MjNhZjVlNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhN2VmYzZlNDJmMTdjOGEzYTA0MWM2M2Q5MDZhODIxYWViMjgwZDVlOGFhZmRiNDUwMzJhZDZlYjdhNzQ1MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiYzk4ZDZiMGRjNDkyYzUwMTZkZjEwODA1YTNhNTRlYjljMTg0YTVhNjEzN2U3ZjRiZWNmYTBjMjIwNTUwZDAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}

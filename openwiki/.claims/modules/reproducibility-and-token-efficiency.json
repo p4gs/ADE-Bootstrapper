@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:1a007846c0e3d1478dedabc46b1f454ac311af33580bd1de0932be2cfdc622e9",
+  "claims": [
+    {
+      "id": "claim_ce784b6e34124f438a00a1be7ccc98b3",
+      "statement": "The manifest is the one artifact deliberately allowed to contain machine-varying values, with content still key-ordered so ordering is stable even though the values are not.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/reproducibility.rs#L1-L12",
+          "version": "repo-lines-v1:sha256:b3737065d9510446377a2c58f34010b91cc12f530838af27e7f613cb63603094:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmZjhhMWVjNWNlNDU3NTYwNDlhNDQ5MWVmMmFkYzNmMmI0YzU0NTY1ZjkxNGZjMjc2OGY5YTM1OTE1MWIzMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhOTdlZmUxMjcyN2NlNzBkOWZiYzdiNTg3NmVlZmU1NjlmZGE0MjE3MTZkNzlkNWJjNWY5MTYzNzRmODYxZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmOGE3OGZlM2VjNTQyOGExOWI1MGU3NmI2MWJmZmIxNjlkNDU4MTlmNzcwYjE5ZjI0NTk0OTQ2NWI5NGI4MjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_85f46e3abec341d78cdc3b5a60ea8ecf",
+      "statement": "Absence is recorded as null rather than as an error, and a fully null manifest is still a successful apply.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/reproducibility.rs#L27-L41",
+          "version": "repo-lines-v1:sha256:6c5840792cac00078bfbbdab94187930283a2a51c9cdb6db5652bd10383a22a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5MzE2MGJkNDhjMTNhOTUxMjg2M2NhZTBjODA5OTdlMTAzZGY5MDdlNmQ0ZWUwOTEwMGY0MzFmMjRhMjQ4ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEyMzViNzMzZjk4YTI1ZjQ5ODBhYjYwYTRlYTcwMDY2YjJiMTUyOTgxYzMyYzg5NGJkZjg1Njk2ODMxOWM4YWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhMDk2ZmU4YWRjZWNkNWNlNzg0NWIwZjU0MTEwYTk1Y2U4YjMyMTIyN2Q0NmNlOTkxOWZiYzQwZDM1NmJhNTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_32e463ed8a8f440cbe69583da97e1a2a",
+      "statement": "Version drift is informational and never fails verification; the only way this module's verify fails is a missing, unparseable, or structurally incomplete manifest.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/reproducibility.rs#L234-L264",
+          "version": "repo-lines-v1:sha256:41446317f3ae33e41cf5fd550fc7e3aaeeb6811f4a4b5000bf03e6fb88da1780:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjOTlmY2ZlYTJiZDZiZjU2ODFjNWZkMGZjNDViOTAzMzE5ZWJlZjljMGFhMDEyNDU5ZWM4NjM4OTBkOGEyOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjYTYwYzdhYmY0Y2NjZTMxNTc4OThiM2E4MTU5MTFkNjA4NzU2MmZiMGM2OWUwMGM1NWFmYmRiZTY1YWJlMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5OTgzZmRhOGJhYWQ1YTNhODJlZmMwODQ5MzJmYTkwMjc0NjRmMDY2ZDVlNjUwM2UxMzBlMzVhNGI2ZjU5NGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5ZTc2MzU1Y2YxMTk5NDgwYzNmOTk4MzZiMTQ4NmM4NDFkODkxZmFhZDkwNGM2MDhlMDkzMDIyZDM3NTdhZWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c97ccfaeb3f54486bc1033ba746b3089",
+      "statement": "The manifest does not pin, lock or install anything: nothing consumes it to constrain a build, and comparison is exact string inequality with no semantic version parsing.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/reproducibility.rs#L60-L93",
+          "version": "repo-lines-v1:sha256:43dcb5ca2374668f4cb54e6a8f7e92be99c2d2e9a7ef1832fb18588aff18dbe7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjNTc1ZDdjYTg3NTcyYTVjOTg1NWE2NjIyYTg2YWZmYWNkYTU4YjhmN2UwMTNiMmE1Y2FjNDlmMTk4Njg4MDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2YTg4MDQ0M2M0ZGRjNDQ3YWRhMmMwOTUzYWVhYzA5MDg2MTdjNmEwOGMxNzVkODM5MTE1OTg3Y2ExNWVjNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4YTA2ODg5MWNlZWQxNjMwOWRiZWNlYTZmMGZkYzNhZDIyNTMyZWU5OGFiM2UxYjA4MWFkMDM2NWJiY2M0YTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5c354ce715e041d5b663eecfca7d01f0",
+      "statement": "The token-efficiency module measures no tokens: it writes a static contract whose only dynamic field is whether the tool was detected.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/token_efficiency.rs#L25-L42",
+          "version": "repo-lines-v1:sha256:1b31fa6659001f4ff7a512bf814455d12b22b6c5374b5b976b1e36f4fdde1331:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNzI0YmQzMDBjYzYzNmEwZDBkNGU3MzdlZWVlZWJjNjQ5ZTBlZmMyOGM0NmE5NmJiYmRkYzhlMTNlNGUzZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzMzQyNmZmNzgzMDFiN2MzMzM3ZjM0NmRjNzdhOTI1YmIzOWE2OGVkMmY4NzUyMzhiODIyMzVkZjQzMzExOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5ZThhNWU3OWQ5ZWY0NGE1ZjJkMjFhMmJkODIwZjE1MmQ3NTIzMjJlMmI1N2YwNjkxMzBjMzRmMmEwZGJjODcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_541b1bb3396a44b68cfe874b651859ca",
+      "statement": "Its verify re-derives that flag from the live machine and fails on mismatch, making it the one module here that hard-fails on environment drift, the opposite of the reproducibility module's stance.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/token_efficiency.rs#L146-L158",
+          "version": "repo-lines-v1:sha256:f00aad1f9b05d6fa18c8165881b0788c30ecafb1753b18e0ddfedc64c6de07ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1OWY5ZmIxZTE2NzBmMmRjMjQ5YjAwZDhhYWFhODExMzdmMzBhMDYyOTNkNWQ3NjgyMTRlYjU3YzcwMTA1ZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2YjA0NDkxNDY5NzIyZTgzNjNhOTRlNDA0NDUzOGUwMTNhMmEyMTdlMzZiMWU1NjhiYTYwYWNiN2I0YzhmMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwM2FiMjZmYTg1YmU0ZWQ5ZmFkMzBhNmNhZTg0ZGZhN2MyNDViMGM4OGY0NzdkZWM4OTMyNzA4NWJjMTE3MzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiZTYxZGI4MjRiZDNjOWQ1YWQxNjJhOTkxZTY3NTE2Y2ViZjg0NzA5YWI0NTY0ZTBkNDVjOGViOGU2Y2U4ZTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a0d65b64d21740e691f531bd204c010a",
+      "statement": "Neither module wires anything into a coding agent, so their instruction blocks are the entire behavioral channel and wrapping is instructed rather than installed or intercepted.",
+      "evidence": [
+        {
+          "resource": "repo://crates/ade-core/src/modules/token_efficiency.rs#L104-L111",
+          "version": "repo-lines-v1:sha256:931268710ac419b10a6534f8ec0ada7a49e5f0ba9037a7adf81aa42354ee515b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWVkM2U5MTIxNjlmNTJkOGE3MmFmM2RhZTBiNmI1NTA4ZTQ1MDI5ZDliMjBlYzMzNDk1ZjUzNzFiZjc5ZWJlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg5M2Y0MGUzNzgxZWI4OTZjODJkMDQ2YTA4MDY3YTExZTM1Y2RmMmYxZGZhZjI2ZmVhOTBiOGRiNjY3NjQxMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTc2ZWJmMjIxMTllNjE0MDRkOGU2ZGUwNjg2OTYzNmQyYzllZGIzNTgzZDM1NGYyYTlhMDhjMzdkOTg2ZGVkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTc2YTRlNTI2NDJlYzAwYWRhZGVkNGI3MDYyZTNjMGIxOTc3YmYzMTE4YTg5ZDZlZmJhMGUyYzE4MzFiZWU1ZiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.3.3",
+    "at": "2026-08-22T21:06:03.708Z"
+  }
+}
