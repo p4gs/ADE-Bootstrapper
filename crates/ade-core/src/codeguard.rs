@@ -185,14 +185,13 @@ pub fn probe_presence(def: &AgentCodeGuardDef, deps: &CodeGuardDeps) -> Presence
 
 // ── CG-3: install actions ───────────────────────────────────────────────
 //
-// Content source for RuleFiles/SkillFiles is deliberately NOT decided here.
-// Whether ADEB fetches CodeGuard's rules live from upstream at install time,
-// or vendors a pinned snapshot the way `guardrails.rs` vendors its own seven
-// rules, is a real tradeoff (always-current + a new network dependency, vs.
-// deterministic + a sync-maintenance burden) that has not been put to the
-// owner. `install_rule_or_skill` therefore takes `content` as a parameter
-// rather than fetching it — the caller decides the source; this function
-// only guarantees CG-7 safety on the write.
+// Content source for RuleFiles/SkillFiles: RESOLVED (owner decision,
+// 2026-08-23) — live-fetch from upstream, never a vendored snapshot. See
+// `fetch_rule_content`/`fetch_latest_release_tag` below. `install_rule_or_skill`
+// still takes `content` as a plain parameter rather than fetching it itself —
+// the two stay composable (a caller fetches, then writes through CG-7's
+// safety path), and it keeps this function trivially testable with static
+// strings instead of a fake network layer.
 
 const MARKETPLACE_SLUG: &str = "cosai-oasis/project-codeguard";
 const PLUGIN_SLUG: &str = "codeguard-security@project-codeguard";
@@ -270,6 +269,66 @@ pub fn install_rule_or_skill(
     }
     let path = dir.join(filename);
     Some(write_with_provenance(&path, content, prior))
+}
+
+// ── CG-3 (remainder) / CG-6: live content + version fetch ──────────────────
+//
+// Resolved (owner decision, 2026-08-23): live-fetch from upstream, not a
+// vendored snapshot. `curl` via the same injected `exec` every other
+// network-touching check in this codebase already uses (`latest_version_argv`
+// shells to `brew info`/`npm view`, never a raw HTTP client crate) — this
+// stays consistent with that and adds zero new dependencies. Every fetch is
+// pinned to a specific release tag, never `main`, matching CodeGuard's own
+// remote-install guidance: "Pin to a release tag if you need a stable,
+// auditable snapshot."
+
+const CODEGUARD_RELEASES_API: &str =
+    "https://api.github.com/repos/cosai-oasis/project-codeguard/releases/latest";
+const CODEGUARD_RAW_BASE: &str = "https://raw.githubusercontent.com/cosai-oasis/project-codeguard";
+
+/// CG-6: the latest published release tag, or `None` on any failure — a
+/// down network or a rate-limited API must degrade to "no update known",
+/// never propagate as an error that blocks an otherwise-successful install.
+pub fn fetch_latest_release_tag(deps: &CodeGuardDeps) -> Option<String> {
+    let result = (deps.exec)(
+        &[
+            "curl".to_string(),
+            "-sL".to_string(),
+            "--max-time".to_string(),
+            "10".to_string(),
+            CODEGUARD_RELEASES_API.to_string(),
+        ],
+        &ExecOpts::default(),
+    );
+    if result.code != 0 {
+        return None;
+    }
+    let parsed: serde_json::Value = serde_json::from_str(&result.stdout).ok()?;
+    parsed
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .map(str::to_string)
+}
+
+/// CG-3: fetch one rule file's raw content, pinned to `tag` — never `main`,
+/// so two installs at the same tag are byte-identical and reproducible.
+pub fn fetch_rule_content(deps: &CodeGuardDeps, tag: &str, rule_path: &str) -> Option<String> {
+    let url = format!("{CODEGUARD_RAW_BASE}/{tag}/sources/rules/core/{rule_path}");
+    let result = (deps.exec)(
+        &[
+            "curl".to_string(),
+            "-sL".to_string(),
+            "--fail".to_string(),
+            "--max-time".to_string(),
+            "10".to_string(),
+            url,
+        ],
+        &ExecOpts::default(),
+    );
+    if result.code != 0 || result.stdout.is_empty() {
+        return None;
+    }
+    Some(result.stdout)
 }
 
 // ── CG-7: provenance — never overwrite a user-modified file ────────────────
@@ -351,7 +410,11 @@ mod tests {
         let exec: ExecFn = Arc::new(move |argv, _opts| {
             let joined = argv.join(" ");
             for (prefix, (code, stdout, stderr)) in &rules {
-                if joined.starts_with(prefix.as_str()) {
+                // Matches testutil::fake_exec's own semantics: a rule may key
+                // on a command's leading words (e.g. "claude plugin install")
+                // or, for curl calls, on the URL sitting at the END of argv —
+                // `contains` covers both without two matching strategies.
+                if joined.starts_with(prefix.as_str()) || joined.contains(prefix.as_str()) {
                     return crate::types::ExecResult {
                         code: *code,
                         stdout: stdout.clone(),
@@ -688,6 +751,121 @@ mod tests {
         assert!(
             hits.is_empty(),
             "install actions touched a meta-prompt file: {hits:?}"
+        );
+    }
+
+    // ── CG-3 (remainder) / CG-6: live fetch ──────────────────────────────
+
+    #[test]
+    fn fetch_latest_release_tag_parses_the_real_github_releases_shape() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &[],
+            &[(
+                CODEGUARD_RELEASES_API,
+                (0, r#"{"tag_name":"v1.3.0","name":"v1.3.0"}"#, ""),
+            )],
+            tmp.as_path(),
+        );
+        assert_eq!(fetch_latest_release_tag(&deps), Some("v1.3.0".to_string()));
+    }
+
+    #[test]
+    fn fetch_latest_release_tag_degrades_to_none_on_network_failure() {
+        let tmp = make_temp_dir("codeguard");
+        // curl itself fails (offline, DNS failure, timeout) — no rule matches
+        // the fake_exec table, so it falls through to the 127 default.
+        let deps = deps_with(&[], &[], tmp.as_path());
+        assert_eq!(fetch_latest_release_tag(&deps), None);
+    }
+
+    #[test]
+    fn fetch_latest_release_tag_degrades_to_none_on_malformed_or_rate_limited_response() {
+        let tmp = make_temp_dir("codeguard");
+        // GitHub's real rate-limit body has no tag_name field at all.
+        let deps = deps_with(
+            &[],
+            &[(
+                CODEGUARD_RELEASES_API,
+                (0, r#"{"message":"API rate limit exceeded"}"#, ""),
+            )],
+            tmp.as_path(),
+        );
+        assert_eq!(fetch_latest_release_tag(&deps), None);
+    }
+
+    #[test]
+    fn fetch_latest_release_tag_degrades_to_none_on_non_json_body() {
+        let tmp = make_temp_dir("codeguard");
+        let deps = deps_with(
+            &[],
+            &[(
+                CODEGUARD_RELEASES_API,
+                (0, "<html>502 Bad Gateway</html>", ""),
+            )],
+            tmp.as_path(),
+        );
+        assert_eq!(fetch_latest_release_tag(&deps), None);
+    }
+
+    #[test]
+    fn fetch_rule_content_pins_the_url_to_the_given_tag_not_main() {
+        let tmp = make_temp_dir("codeguard");
+        let url = format!(
+            "{CODEGUARD_RAW_BASE}/v1.3.0/sources/rules/core/codeguard-0-input-validation.md"
+        );
+        let deps = deps_with(
+            &[],
+            &[(&url, (0, "# input validation rule", ""))],
+            tmp.as_path(),
+        );
+        assert_eq!(
+            fetch_rule_content(&deps, "v1.3.0", "codeguard-0-input-validation.md"),
+            Some("# input validation rule".to_string())
+        );
+    }
+
+    #[test]
+    fn fetch_rule_content_degrades_to_none_on_a_404() {
+        let tmp = make_temp_dir("codeguard");
+        // curl --fail exits non-zero on 4xx/5xx; no rule matches, falls to 127.
+        let deps = deps_with(&[], &[], tmp.as_path());
+        assert_eq!(
+            fetch_rule_content(&deps, "v1.3.0", "does-not-exist.md"),
+            None
+        );
+    }
+
+    #[test]
+    fn fetch_rule_content_degrades_to_none_on_an_empty_body() {
+        let tmp = make_temp_dir("codeguard");
+        let url = format!("{CODEGUARD_RAW_BASE}/v1.3.0/sources/rules/core/empty.md");
+        let deps = deps_with(&[], &[(&url, (0, "", ""))], tmp.as_path());
+        assert_eq!(fetch_rule_content(&deps, "v1.3.0", "empty.md"), None);
+    }
+
+    #[test]
+    fn different_tags_produce_different_urls_reproducibility_is_pinned_not_floating() {
+        let tmp = make_temp_dir("codeguard");
+        let v1_url =
+            format!("{CODEGUARD_RAW_BASE}/v1.2.0/sources/rules/core/codeguard-0-crypto.md");
+        let v2_url =
+            format!("{CODEGUARD_RAW_BASE}/v1.3.0/sources/rules/core/codeguard-0-crypto.md");
+        let deps = deps_with(
+            &[],
+            &[
+                (&v1_url, (0, "# v1.2.0 content", "")),
+                (&v2_url, (0, "# v1.3.0 content", "")),
+            ],
+            tmp.as_path(),
+        );
+        assert_eq!(
+            fetch_rule_content(&deps, "v1.2.0", "codeguard-0-crypto.md"),
+            Some("# v1.2.0 content".to_string())
+        );
+        assert_eq!(
+            fetch_rule_content(&deps, "v1.3.0", "codeguard-0-crypto.md"),
+            Some("# v1.3.0 content".to_string())
         );
     }
 

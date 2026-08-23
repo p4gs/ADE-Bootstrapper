@@ -8,7 +8,7 @@ phase: build
 progress: 259/269
 mode: autonomous
 started: 2026-07-12T08:49:30Z
-updated: 2026-08-23T15:45:00Z
+updated: 2026-08-23T16:20:00Z
 principal_stated_goal: "Update ADE Bootstrapper so it has a GUI application and task bar helper so it's easy for users to see what capabilities/tools are installed and running on their laptop/desktop. This should allow users to enable, disable, uninstall, reinstall, install, and update to the latest version for each capability/tool. It also will allow them to see errors or warnings related to each capability/tool. You must fully test this end to end on my machine to ensure it's working as intended. Use Interceptor MacOS bridge to do so"
 principal_goal_revision_2026_07_25: "Wait - this GUI app should be an OS native app, not a web app. It should be built in Rust as much as possible. The GUI should be sleak, modern, and polished."
 principal_goal_revision_2026_08_22: "Scan p4gs/ade-bootstrapper and then remediate ALL findings and gaps in its SSCS posture."
@@ -1173,8 +1173,10 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   for Claude Code and Codex). MCP is an explicit, separately-elected opt-in
   mode, never the default — matching CodeGuard's own stated guidance, reversed
   from this feature's first framing. PARTIAL: `install_claude_plugin` and
-  `install_rule_or_skill` built and tested for all six agents; the MCP-as-opt-in
-  dispatch path is not built, so this stays open until that half exists too.
+  `install_rule_or_skill` built and tested for all six agents; content source
+  RESOLVED (owner, 2026-08-23) as live-fetch, and `fetch_rule_content` /
+  `fetch_latest_release_tag` are built and pinned to a release tag, never
+  `main`. Still open: the MCP-as-opt-in dispatch path does not exist yet.
 - [x] CG-4: No CLAUDE.md/AGENTS.md edit for any agent in the default path —
   every canonical location above is already auto-discovered by its agent.
   Verified empirically per agent before shipping, not assumed: OpenWiki's own
@@ -1186,11 +1188,14 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   rule-file/skill fallback automatically, so the agent is never silently
   unguarded. Whether this fallback needs a meta-prompt pointer is decided
   per-agent by the same empirical test as CG-4, never assumed identical to CG-3.
-- [ ] CG-6: Installed ruleset version is tracked per agent (mirroring
+- [~] CG-6: Installed ruleset version is tracked per agent (mirroring
   `reproducibility.rs`'s existing tool-version-in-manifest pattern) and
   compared against CodeGuard's upstream latest release; `ade doctor` /
   capability inventory surfaces "update available" the same way OpenWiki's
-  version drift already does.
+  version drift already does. PARTIAL: `fetch_latest_release_tag` is built and
+  tested (degrades to `None` on network failure, rate-limit, or a non-JSON
+  body — never an error that blocks an otherwise-successful run). Not yet
+  built: the per-agent installed-version record, and the `ade doctor` surface.
 - [x] CG-7: **Never overwrite a user-modified rule/skill file.** Every file
   ADEB installs is content-hashed at install time (the exact proven pattern
   `managed.rs`'s `upsert_managed_block` already uses for CLAUDE.md/AGENTS.md —
@@ -1256,18 +1261,28 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   inferred from the code never mentioning those filenames.
   `cargo test --workspace` 444/444 green (was 436). Clippy clean. Coverage:
   100% function, 97.10% line.
+- CG-3 (content half), CG-6 (partial) · `fetch_latest_release_tag` (GitHub
+  releases API via `curl`, parses `tag_name`, degrades to `None` on network
+  failure / rate-limit / non-JSON body — never propagates as an error) and
+  `fetch_rule_content` (raw.githubusercontent.com pinned to a release tag,
+  never `main`; `--fail` + empty-body check both degrade to `None`) — 8 tests,
+  including one proving two different tags resolve to two different URLs
+  (reproducibility is pinned, not floating). One real red-then-green cycle:
+  the first run of these tests failed for real (the test harness's own exec
+  fake only matched argv prefixes, and a curl URL sits at the end of argv,
+  not the start) — fixed the fake to match `testutil::fake_exec`'s actual
+  semantics, re-ran, genuine green.
+  `cargo test --workspace` 452/452 green (was 444). Clippy clean. Coverage:
+  100% function, 98.44% line.
 
 ### Remaining Work
 
-- [ ] CG-3 (remainder): MCP opt-in dispatch and real rule/skill CONTENT —
-  the writer exists and is tested against placeholder content; where that
-  content actually comes from (live-fetch vs. a vendored pinned snapshot) is
-  still open, recorded inline in the module as a deliberate non-decision, not
-  an oversight.
+- [ ] CG-3 (remainder): MCP opt-in dispatch — not started.
 - [ ] CG-5: MCP-failure fallback trigger — depends on the MCP half of CG-3
   existing first.
-- [ ] CG-6: version-drift check against CodeGuard's upstream releases — not
-  started.
+- [ ] CG-6 (remainder): per-agent installed-version record, and the
+  `ade doctor` / capability-inventory surface for "update available" — the
+  fetch primitive exists; nothing persists or reports on it yet.
 - [ ] CG-8: machine-scoped opt-in config surface — not started; `CodeGuardDeps`
   takes an already-resolved `home_dir` today, no persistence layer yet.
 - [ ] CG-9, CG-10: no integration test yet proving cross-repo silence / verify
@@ -1287,6 +1302,14 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   content-hash-refuse pattern rather than inventing a new one.** That
   mechanism is already proven, tested, and is the exact shape this need
   requires: prove provenance, refuse on mismatch, never silently reconcile.
+- 2026-08-23 — **Content source resolved: live-fetch, not a vendored
+  snapshot (owner decision).** Implemented via `curl` through the same
+  injected `exec` every other network-touching check in this codebase already
+  uses (`latest_version_argv` shells to `brew info`/`npm view`) — zero new
+  dependencies, and consistent with the one established pattern rather than
+  introducing an HTTP client crate. Every fetch is pinned to a specific
+  release tag, matching CodeGuard's own remote-install guidance to pin for a
+  stable, auditable snapshot; `main` is never fetched.
 - 2026-08-23 — **This lives in the machine-scoped capability-inventory system,
   not as a 16th repo-bootstrap module.** The effect is agent-wide and
   repo-independent by the owner's own stated intent, which is a different
