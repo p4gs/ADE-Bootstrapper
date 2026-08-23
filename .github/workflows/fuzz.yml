@@ -1,0 +1,69 @@
+# ADEB: continuous fuzzing (cargo-fuzz / libFuzzer) of hook_append — the one
+# entry point in this codebase that parses genuinely untrusted, externally
+# supplied text (a harness PostToolUse event's raw stdin). Builds every
+# push/PR to catch bit-rot immediately; a scheduled run fuzzes it for real,
+# which is what OpenSSF Scorecard's Fuzzing check actually looks for (it
+# greps for the `libfuzzer_sys` import cargo-fuzz targets carry).
+name: Fuzz
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "crates/ade-core/src/hook.rs"
+      - "crates/ade-core/fuzz/**"
+  pull_request:
+    paths:
+      - "crates/ade-core/src/hook.rs"
+      - "crates/ade-core/fuzz/**"
+  schedule:
+    - cron: "37 5 * * 3" # weekly, real fuzzing budget, not just a build check
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    runs-on: macos-latest
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # cargo-fuzz requires nightly (sanitizer flags are unstable). Same
+      # pinned-branch-head convention as ci.yml's stable pin, same comment.
+      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb # nightly (2026-08-05)
+      - name: Install cargo-fuzz
+        uses: taiki-e/install-action@ba47c86ac325773530516bb756137ac718732518 # v2
+        with:
+          tool: cargo-fuzz
+      # Every push/PR: build only, catches the target bit-rotting against
+      # API changes in seconds. Scheduled run: actually fuzz for a minute —
+      # short by cargo-fuzz standards, but real, and cheap enough to run
+      # weekly without burning meaningful CI budget.
+      # --target pinned explicitly: cargo-fuzz's own host-triple detection
+      # picked x86_64-apple-darwin on a macos-latest (arm64) runner and that
+      # target's std lib wasn't installed (E0463) — reproduced in CI, not
+      # hypothesized. aarch64-apple-darwin matches deny.toml's own shipped-
+      # target list and this runner's actual architecture.
+      - name: Build fuzz target
+        working-directory: crates/ade-core
+        run: cargo fuzz build --target aarch64-apple-darwin hook_append
+      - name: Run fuzzer (scheduled only)
+        if: github.event_name == 'schedule'
+        working-directory: crates/ade-core
+        run: cargo fuzz run --target aarch64-apple-darwin hook_append -- -max_total_time=60
+      - name: Upload crash artifacts (if any)
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-crash-artifacts
+          path: crates/ade-core/fuzz/artifacts/
+          if-no-files-found: ignore
