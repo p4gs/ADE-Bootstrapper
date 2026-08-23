@@ -1129,7 +1129,7 @@ glyph rule checks `installed` before severity. It is the same class of
 inconsistency fixed in the verdict, but changing tray glyph semantics belongs
 with the SF Symbol status icon in Phase 2, not smuggled into Phase 1.
 
-## CodeGuard Integration (planned, not yet built)
+## CodeGuard Integration (in progress — 3/10 closed)
 
 **Goal.** Bootstrap the AI coding agents ADEB detects on a machine — not any one
 repo — with Project CodeGuard's security ruleset, so every agent generates
@@ -1158,15 +1158,15 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
 
 ### Claims
 
-- [ ] CG-1: One capability entry per agent (`codeguard-claude-code`,
+- [x] CG-1: One capability entry per agent (`codeguard-claude-code`,
   `codeguard-codex`, `codeguard-cursor`, `codeguard-opencode`,
   `codeguard-antigravity`, `codeguard-hermes`), each relevant only when its
   corresponding harness capability is itself present — capabilities gain a
   `depends_on` edge, which does not exist in the model today.
-- [ ] CG-2: Presence for each entry is checked by reading that agent's own
-  state (`.claude/settings.json` `enabledPlugins` for Claude Code, file
-  presence under `~/.cursor/rules/` for Cursor, etc.), never by `which` on a
-  binary — CodeGuard has no CLI.
+- [x] CG-2: Presence for each entry is checked by reading that agent's own
+  state (`claude plugin list --json` for Claude Code, file presence under its
+  own user-scope directory for the rest), never by `which` on a binary —
+  CodeGuard has no CLI.
 - [ ] CG-3: Rule files / Agent Skills at each agent's own canonical user-scope
   location are the DEFAULT install path (`~/.cursor/rules/`, `~/.agents/rules/`,
   `~/.opencode/skills/`, `~/.hermes/skills/`, plugin-marketplace registration
@@ -1189,7 +1189,7 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   compared against CodeGuard's upstream latest release; `ade doctor` /
   capability inventory surfaces "update available" the same way OpenWiki's
   version drift already does.
-- [ ] CG-7: **Never overwrite a user-modified rule/skill file.** Every file
+- [x] CG-7: **Never overwrite a user-modified rule/skill file.** Every file
   ADEB installs is content-hashed at install time (the exact proven pattern
   `managed.rs`'s `upsert_managed_block` already uses for CLAUDE.md/AGENTS.md —
   a provenance hash, refuse on mismatch, never silently reconcile). An update
@@ -1236,6 +1236,27 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
 | CG-8 | config | opt-in is off by default | fresh machine shows no agent wired without explicit action | fresh fixture home dir | |
 | CG-9 | anti | cross-repo silence | bootstrap Repo A, verify Repo B's agent-visible state unchanged | two-fixture-repo probe | critical |
 | CG-10 | anti | repo-scope isolation | `ade verify` on any existing repo is unaffected | `ade verify` before/after CG-8 action | critical |
+
+### Verification
+
+- CG-1, CG-2, CG-7 · `crates/ade-core/src/codeguard.rs`, 15 tests, all in-file.
+  `cargo test --workspace` 436/436 green (was 421; zero regressions).
+  `cargo clippy --all-targets -- -D warnings` clean. Coverage on the new file:
+  100% function, 96.06% line — the 10 uncovered lines are defensive branches,
+  not chased per the standing 95%-floor-not-100% doctrine.
+
+### Remaining Work
+
+- [ ] CG-3, CG-4: actual install actions per agent (plugin-marketplace
+  shell-outs, rule/skill file content) — not built. `InstallShape` is defined;
+  no writer exists yet.
+- [ ] CG-5: MCP-failure fallback trigger — depends on CG-3 existing first.
+- [ ] CG-6: version-drift check against CodeGuard's upstream releases — not
+  started.
+- [ ] CG-8: machine-scoped opt-in config surface — not started; `CodeGuardDeps`
+  takes an already-resolved `home_dir` today, no persistence layer yet.
+- [ ] CG-9, CG-10: no integration test yet proving cross-repo silence / verify
+  isolation — trivially true today only because nothing writes anything yet.
 
 ### Decisions
 
