@@ -158,3 +158,7 @@ Honesty about scope is a feature; these are the limits of each claim:
   the docs say which is which.
 - **The GUI never acts on its own.** No auto-updates, no scheduled jobs, no network
   calls except the package-manager subprocesses you explicitly trigger.
+
+## Security
+
+Found a vulnerability? See [SECURITY.md](SECURITY.md) for how to report it privately.

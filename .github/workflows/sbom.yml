@@ -1,0 +1,57 @@
+# ADEB: SBOM generation (Syft via anchore/sbom-action, CycloneDX JSON).
+# An SBOM is a query target for OSV/VEX, not a control by itself — vuln-scan.yml
+# is the actual defense; this is what makes that defense queryable/auditable.
+name: SBOM
+on:
+  push:
+    branches: ["main"]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sbom:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # attach SBOM to releases
+      id-token: write # sign SBOM attestation (Sigstore Fulcio), release only
+      attestations: write # publish the attestation, release only
+    steps:
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          artifact-name: sbom.cdx.json
+          upload-release-assets: true
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom-cyclonedx
+          path: sbom.cdx.json
+      # Release-only: the binary attestation in release-slsa.yml covers the
+      # artifact; this covers what's IN it. sscsb (this project's sibling)
+      # already ships SBOM attestation — matching, not diverging without saying so.
+      # actions/attest-sbom is DEPRECATED (its own action.yml emits the warning
+      # at run time) in favor of calling actions/attest directly with sbom-path
+      # — verified against the live action.yml this session, not assumed.
+      - name: Attest SBOM (release only)
+        if: github.event_name == 'release'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: sbom.cdx.json
+          sbom-path: sbom.cdx.json

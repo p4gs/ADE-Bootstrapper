@@ -1,0 +1,36 @@
+title = "ADE Bootstrapper gitleaks configuration"
+
+[extend]
+useDefault = true
+
+# ade.lock.json is a content-addressed lockfile: `"<path>": "<sha256-of-that-file>"`.
+# gitleaks' generic-api-key rule cannot distinguish a SHA256 content-integrity
+# hash keyed by file path from a leaked credential — both are high-entropy hex
+# strings paired with a key-like string. This is the documented, narrow
+# exception: the scanner fundamentally cannot model "this hex string is a
+# lockfile checksum, not a secret" (no rule variant targets that semantic).
+# Scope is exactly one file, not a rule-wide disable — every other path in the
+# tree still runs the full default ruleset including generic-api-key.
+#
+# Singular [allowlist] (not the newer [[allowlists]] array form) deliberately —
+# CI runs gitleaks-action v3.0.0, which bundles gitleaks 8.24.3 internally
+# (verified via its own run log: "gitleaks version: 8.24.3"), predating the
+# array-of-tables allowlist syntax; this repo's local gitleaks (8.30.1, via
+# Homebrew) accepts both forms, so testing only against the newer syntax
+# locally passed while CI's older bundled binary silently didn't apply it —
+# caught by watching the actual CI run, not assumed from a local-only test.
+# tests/modules/observability.test.ts (ISC-87) plants a synthetic
+# github-pat-shaped fixture string (literal alphabet+digits, zero real
+# entropy) specifically to test that the observability module's own
+# credential-redaction logic catches it. Path-scoped (not a literal-string
+# regex) DELIBERATELY: an earlier version of this file matched the fixture
+# by embedding its exact text in a regex — which then got flagged as a
+# "real" secret by Trivy's OWN independent secret scanner reading THIS
+# config file, since the string is real-PAT-shaped regardless of which
+# file it sits in. Excluding the whole test file trades a little
+# secret-detection coverage in one file that exists to test redaction
+# against never again writing a scannable-looking token into a config
+# gitleaks/trivy/etc. will themselves read.
+[allowlist]
+description = "ade.lock.json content-hash entries + a deliberate synthetic test fixture, neither a credential"
+paths = ['''^ade\.lock\.json$''', '''^tests/modules/observability\.test\.ts$''']

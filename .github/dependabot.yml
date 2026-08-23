@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+
+  # "bun" is its own package-ecosystem value (GA Feb 2025, GitHub Changelog
+  # 2025-02-13) — NOT npm. npm's updater does not regenerate bun.lock, which
+  # would make every JS-ecosystem PR fail ci.yml's `bun install --frozen-lockfile`
+  # on arrival — caught by Max's second-look review before this ever shipped.
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+
+  # Keeps every SHA-pinned action in .github/workflows/ current — pinning
+  # without this is a security posture that only gets staler over time.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10

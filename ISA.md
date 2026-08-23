@@ -5,13 +5,19 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 223/225
+progress: 239/243
 mode: autonomous
 started: 2026-07-12T08:49:30Z
 updated: 2026-07-26T15:25:00Z
 principal_stated_goal: "Update ADE Bootstrapper so it has a GUI application and task bar helper so it's easy for users to see what capabilities/tools are installed and running on their laptop/desktop. This should allow users to enable, disable, uninstall, reinstall, install, and update to the latest version for each capability/tool. It also will allow them to see errors or warnings related to each capability/tool. You must fully test this end to end on my machine to ensure it's working as intended. Use Interceptor MacOS bridge to do so"
 principal_goal_revision_2026_07_25: "Wait - this GUI app should be an OS native app, not a web app. It should be built in Rust as much as possible. The GUI should be sleak, modern, and polished."
+principal_goal_revision_2026_08_22: "Scan p4gs/ade-bootstrapper and then remediate ALL findings and gaps in its SSCS posture."
 ---
+<!-- NOTE (this PR, 2026-08-22): the 2026-08-02 design-system-rebuild goal
+revision and its full ISC-304+ execution history live on the `feat/phase-j-design-system`
+branch's own ISA.md, not here — that work hasn't merged to main yet. This PR is
+scoped to the SSCS-remediation goal only, cherry-picked cleanly off main rather
+than dragging in an unmerged, unrelated branch's mid-flight document. -->
 
 # ADE Bootstrapper — Project ISA
 
@@ -395,6 +401,143 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - [x] ISC-230: a tool with no version command at all (`ccc`) is modelled as such rather than probed and reported permanently broken — an empty `version_args` means "does not report a version", and every other capability still requires one
 - [x] ISC-231: a failed install of an ABSENT tool is one problem, not two — it does not raise both a "broken" row and an "uncovered" row, and the failure is carried as the reason the gap is still open
 
+### Software supply chain security posture (2026-08-22)
+
+Context: `/goal` — "Scan p4gs/ade-bootstrapper and then remediate ALL findings and gaps in
+its SSCS posture." Audited via `Skill("SupplyChainSecurity", "AuditProject")`'s seven
+baselines. Existing strengths confirmed before writing any claim below: `cargo-deny`
+(licenses/advisories/bans/sources) wired into CI; rustfmt + clippy `-D warnings`; 95%
+line+function coverage gated on BOTH the Rust workspace (`cargo-llvm-cov`) and the TS
+oracle (`bun test --coverage`); a Rust/TS parity harness; native GitHub secret-scanning
+push protection already enabled at the repo level (`security_and_analysis` API, verified
+live); zero plaintext credentials, zero `insecureskipverify`-class patterns, zero
+`pull_request_target` in any workflow; bun's default script-trust model already blocks
+untrusted lifecycle scripts (`bun pm untrusted` → 0, verified live) — baseline-1 win #2
+already holds without extra config. No runtime credential storage anywhere in the tool
+today, so baseline 7 (OS keystore) is PASS-by-inapplicability, not a gap to force.
+
+Research-before-implementation (baseline 2) ran live this session, not from the skill's
+cached snapshot alone: `slsa-framework/slsa-github-generator` (what sscsb, ADEB's sibling
+project, used for its own SLSA workflow) is now explicitly unmaintained upstream, which
+recommends GitHub-native `actions/attest-build-provenance` instead — confirmed as a real,
+actively-maintained action (`gh api repos/actions/attest-build-provenance`, latest release
+v4.2.2 published 2026-08-06) with the correct `id-token: write` + `attestations: write`
+permission shape. ADEB adopts the current path rather than copying sscsb's older one.
+
+- [x] ISC-320: every third-party GitHub Action reference across all workflow files
+      (existing `ci.yml` plus every new workflow this phase adds) is pinned to a 40-char
+      commit SHA with a `# vX.Y.Z` trailing comment, never a tag — verified via
+      `rg -n 'uses:\s*[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+@v' .github/workflows/` returning
+      zero hits, and `actionlint` + `zizmor` both clean. Defends tj-actions CVE-2025-30066
+      (retroactive tag rewrite). The one deliberate exception, matching sscsb's own audited
+      precedent: `slsa-framework/*` is N/A here since ADEB uses `actions/attest-build-provenance`
+      instead, so no tag-pin exception is needed at all this time. *(both greps 0 hits;
+      `actionlint` exit 0; `zizmor --persona=pedantic` 18/30 findings remaining, all 3
+      documented as deliberate exceptions in Decisions)*
+- [x] ISC-321: every `cargo build`/`cargo test`/`cargo clippy` invocation in CI runs
+      `--locked`, so a CI run can never silently drift `Cargo.lock` out from under the
+      committed lockfile — verified by grep on the workflow file
+- [x] ISC-322: CodeQL wired (`rust` + `actions` languages, matching sscsb's own proven
+      config) on push/PR/weekly schedule, SHA-pinned
+- [x] ISC-323: SAST — OpenGrep wired on push/PR, pinned release binary verified via cosign
+      before execution (no official OpenGrep Action exists), gated `--severity ERROR --error`
+      (the skill's own documented Opengrep gotcha: a bare `opengrep scan` exits 0 even on
+      ERROR findings), SARIF uploaded to code scanning
+- [x] ISC-324: SCA — Trivy (fs: vuln+secret+misconfig) and Google's OSV-Scanner V2 reusable
+      workflow both wired, covering the TypeScript oracle tree (`bun.lock`) that
+      `cargo-deny` cannot see, on push/PR/weekly schedule
+- [x] ISC-325: CI secret-scan redundancy — TruffleHog + Gitleaks wired on push/PR (defense
+      in depth beyond native GH push protection and the local pre-commit hook, which only
+      protects commits made by someone with the hook installed)
+- [x] ISC-326: SBOM generation wired (CycloneDX JSON via `anchore/sbom-action`) on push to
+      main and on release, uploaded as a build artifact and attached to releases
+- [x] ISC-327: OpenSSF Scorecard Action wired, SARIF published to code scanning, results
+      published (enables the public score + REST API)
+- [ ] ISC-328: SLSA build provenance for release binaries via `actions/attest-build-provenance`
+      (not the unmaintained `slsa-github-generator` — see research note above), with a
+      verify step in the same workflow proving `gh attestation verify` succeeds against the
+      built artifact before the workflow is considered evidence of anything
+- [x] ISC-329: branch protection on `main` via a GitHub Ruleset (not classic branch
+      protection — matching sscsb's own audited "no-bypass-for-admins" precedent, since
+      classic protection's admin-bypass is exactly how the chalk/debug and lottie-player
+      maintainer-takeover incidents happened): deletion + non-fast-forward + required
+      signatures blocked, `bypass_actors: []`, required status checks matching this
+      workflow's actual CI job names exactly (not aspirational names). Created LAST,
+      after every other push this phase needed — a `pull_request` rule blocks direct
+      pushes, including the owner's own, so bootstrapping it before finishing this
+      phase's own commits would have locked this session out mid-run. Required checks
+      widened past Max's F3 finding: `rust`/`oracle`/`parity` (pre-existing) PLUS
+      `trufflehog`/`gitleaks`/`opengrep`/`trivy` — the four new deterministic
+      pass/fail gates, now that F1/F3 fixed their gating semantics. CodeQL/Scorecard/
+      SBOM/OSV-Scanner deliberately left as code-scanning-alert/informational rather
+      than blocking, a recorded choice not an oversight: they're the more
+      exploratory/false-positive-prone class for a solo maintainer, unlike the four
+      required ones which are deterministic secret/vuln/SAST gates. Ruleset id
+      `21214621`, `gh api repos/p4gs/ADE-Bootstrapper/rulesets/21214621` confirms
+      `current_user_can_bypass: "never"`, matching sscsb's own ruleset shape exactly
+- [x] ISC-330: `.github/dependabot.yml` added covering `cargo`, `bun` (its own native
+      ecosystem key, GA Feb 2025 — corrected from an initial `npm` mistake per Max's F2),
+      and `github-actions`, on a weekly cadence, so SHA-pinned actions and dependencies
+      still get automated update PRs instead of going stale in place the moment they're
+      pinned
+- [x] ISC-331: the pre-existing, verified-working `ade init` self-hosting output — `.ade/`
+      (policy + guardrails + audit-hook scaffold), `ade.json`, `ade.lock.json`,
+      `.pre-commit-config.yaml` (local TruffleHog hook, live-tested via
+      `pre-commit run --all-files` → Passed), `.claude/settings.json` (audit-log hook +
+      destructive-command guardrails), `AGENTS.md`/`CLAUDE.md` (the harness-instruction
+      translation) — staged for commit. It was sitting on disk, fully generated and verified
+      functional, but never committed, so it protected nobody who wasn't the exact machine
+      it was generated on. `openwiki/` is explicitly OUT — a different tool's separate
+      uncommitted output, unrelated to `ade.json`'s module set, not this phase's call.
+      `.ade/manifest.json`'s `ccc`/`openwiki` entries were hand-corrected from stale `null`
+      to `"present"` once (Max's F7) — that hand-fix was NOT durable: a later `ade lock`
+      silently regenerated the file back to `null`/`null` from its own (differently-sourced
+      than `ade doctor`'s) detection path, proving the hand-fix was fighting the tool's own
+      reproducible output rather than correcting it. Final state ships whatever `ade apply`
+      itself produces after this PR's rebase onto fresh `origin/main` — `null`/`null` for
+      `ccc`/`openwiki` (the tool's own current, reproducible answer) plus two NEW entries,
+      `serena` and `sscsb`, picked up from origin/main's own `4461e60` integration work.
+      `ade verify` PASS on this exact committed state, not a hand-patched one
+- [x] ISC-332: research-before-implementation logged as its own dated entry in `##
+      Decisions` (this section's header note is the content; this claim is the pointer
+      making it a first-class, gate-checked entry rather than prose that could rot)
+- [x] ISC-333: the coverage baseline's 95%-not-100% gap against this skill's generic
+      100% target is logged as a ratified, named deviation in `## Decisions` (source: the
+      principal's own standing global operational rule, not a per-project shortcut) —
+      never silently left as an unexplained divergence from the skill's stated baseline
+- [x] ISC-334: `SECURITY.md` added with a vulnerability-disclosure contact/process, linked
+      from `README.md`. Private vulnerability reporting also ENABLED at the repo-settings
+      level (`gh api -X PUT repos/p4gs/ADE-Bootstrapper/private-vulnerability-reporting`) —
+      found disabled during the audit; SECURITY.md would have pointed at a dead button
+- [x] ISC-335: every new/changed workflow file passes `actionlint` and `zizmor` clean, and
+      `cargo fmt --all -- --check` / `cargo clippy --all-targets -- -D warnings` /
+      `cargo test --workspace --locked` / `cargo deny check` / `bunx tsc --noEmit` /
+      `bun test --coverage` all still exit 0 after this phase's changes — no regression to
+      any pre-existing gate while adding the new ones. **Caught a real, live gap in the
+      process of verifying this claim, not a regression from this phase's own edits:**
+      `cargo deny check` FAILED on first run — `webbrowser 1.2.1` (pulled transitively via
+      `egui-winit` → `eframe` → `ade-control-center`) carries GHSA-2ph8-5cr8-hr33, a real
+      published advisory (BROWSER env var argument-injection), fixed upstream in 1.2.2.
+      `cargo deny check` was already wired in CI before this phase — this was a live,
+      unremediated finding CI would have been failing on the next time anyone ran it, not
+      something this phase introduced. Fixed: `cargo update -p webbrowser --precise 1.2.2`
+      (`Cargo.lock` diff is exactly that one line); `cargo deny check` now exits 0 and
+      `cargo test --workspace --locked` still passes against the updated lockfile. All
+      other gates ran clean on the first pass. One workflow bug also caught and fixed here:
+      `cargo deny check --locked` was written into `ci.yml` before this was run locally —
+      `cargo-deny` does not accept `--locked` as its own flag (`error: unexpected argument`);
+      corrected to bare `cargo deny check`
+- [x] ISC-336: independent second look run per Algorithm claim 11 and the standing
+      Forge-auto-include rule for E3+ coding work — Forge unavailable this session (codex
+      unauthenticated, same gap already logged 2026-07-12), so Max (in-family, non-forked,
+      top-rung, fresh-context) ran instead. Verdict: concerns → 10 findings, all
+      dispositioned in Decisions (8 fixed, 1 corrected-not-fixed, 1 accepted-as-is with
+      rationale). Nothing silently absorbed
+- [ ] ISC-337: pushed to `main` (solo-owned public repo, no PR-review norm — the default-ship
+      carve-out applies), CI watched to green on the actual triggering event for each new
+      workflow (not just "the YAML parses"), and Scorecard/SBOM/attestation evidence
+      confirmed live on GitHub after the push, not just believed to run because the file exists
+
 ## Test Strategy
 
 | isc | type | check | threshold | tool |
@@ -477,6 +620,11 @@ Ship ADE Bootstrapper v0.1: a zero-runtime-dependency Bun/TypeScript CLI (`ade`)
 - 2026-07-25T16:20Z — **Owner-ratified (AskUserQuestion after an explicit pressure-test round): the ENTIRE product goes Rust — full port now.** The owner's thesis: super easy to install/manage, performant, low-resource, highly secure, cross-platform (macOS/Windows/Linux). My honest pressure-test, which he asked for before acting: raw performance is a wash for a config generator — the decisive wins are (1) single-static-binary distribution (the "first install Bun" opener fails the product's own promise), (2) Windows reach, (3) the hooks hot path (per-commit/per-tool-call hooks become a ~5ms `ade hook` call and target repos need NO JS runtime), (4) runtime-free attack surface + supply-chain attestation (cargo-vet/deny/SLSA) for a GRC audience, (5) portfolio coherence (OCEAN/nthpartyfinder/rtk are Rust); Go named honestly as the credible rival (loses on portfolio fit + the already-built egui GUI). **Port mechanics:** the zero-runtime-dep TS v0.1 (~4,100 lines + 377 tests, adversarial-audit-hardened) becomes the executable specification — differential tests demand byte-identical artifacts vs the oracle (divergence allowlist: version strings, hook wiring), cross-version verify compatibility, and replays of the six audit attacks. **Architecture simplification:** the localhost API server is DELETED — Control Center and tray link ade-core directly; nothing listens on any port (ISC-175); tray↔GUI job visibility via `$ADE_HOME/jobs.json`. The half-built TS GUI layer (src/gui/*, gui command) is removed to keep the oracle minimal; the report.ts extraction stays (tested, behavior-preserving). Risk named: the audit-hardened semantics (managed-block refusal, checkpoint anchoring, tree enumeration) are where ports quietly regress — they get dedicated replay probes (ISC-163), not just diff coverage.
 - 2026-07-25T15:05Z — **Mid-run owner revision: the GUI is an OS-native Rust app, not a web app ("sleak, modern, and polished").** The in-progress web dashboard (app.html, never shipped) was deleted; the API server stays (it is the contract the native clients consume). **Framework: egui/eframe** — chosen over Tauri (webview — the exact thing the owner rejected), Iced (no usable accessibility tree, which would make the mandated `interceptor macos` AX-driven e2e impossible), Slint (GPL/commercial licensing friction in an MIT repo), and raw objc2/AppKit (weeks of widget work for one screen). egui is pure Rust, MIT/Apache, mature, and integrates **AccessKit**, giving the app a real macOS AX tree — testability is a first-class reason, per the Pulse retrospective where missing AX identifiers permanently blocked pixel verification. **The domain layer stays TypeScript**: modules/verify/apply/inventory are the tested core; the Rust layer is presentation only ("Rust as much as possible" = the entire GUI + tray). Two binaries + one shared client crate (`ade-gui-core`) in `gui/native/`; polish is a falsifiable appearance claim (ISC-182.1) closed on viewed pixels in both light and dark mode. Rust gates: fmt/clippy -D warnings/test locally (CI stays TS-only until a macOS runner exists; no remote exists anyway); coverage for the UI loop is structurally exempt per the owner's global coverage rule (documented ignore), while `ade-gui-core` logic is unit-tested.
 - 2026-07-25T14:10Z — **v0.2 Control Center architecture (owner /goal: GUI + task-bar helper, e2e via Interceptor macOS bridge).** (1) **Three thin layers over the existing core**: a zero-dep Bun HTTP server (`ade gui`) exposing a JSON API + one self-contained dashboard page; a Swift WKWebView shell app ("ADE Control Center"); a Swift NSStatusItem helper ("ADE Status") — all logic stays in tested TypeScript, Swift is presentation only (Pulse MenuBar pattern, proven on this machine since 2026-07-20). (2) **Localhost-only, defense-in-depth**: bind 127.0.0.1, Host/Origin validation + custom-header CSRF gate on mutations, action ids matched against a static inventory so request input never reaches argv. (3) **Network honesty**: v0.1's no-network constraint stays intact for init/apply/verify; the GUI's install/update actions are explicit user-initiated package-manager subprocesses (brew/npm), and latest-version checks run only on demand — never at startup, never scheduled. (4) **Enable/disable honesty**: machine-level disable is a GUI/menubar preference persisted in `~/.ade/gui.json` (suppresses warnings, greys the row); the real policy lever remains per-project `ade.json` module toggles, which the GUI edits through the validated loader followed by re-apply + re-lock. UI copy states this. (5) **Recipes are verified, not guessed**: live-probed on this machine — brew formulae exist for trufflehog/gitleaks/pre-commit/osv-scanner/rtk/opencode, casks for codex/cursor/antigravity, npm for openwiki/pi/claude-code; ocean/nono/cocoindex/ccc/hermes are `manual` with guidance (no invented package names). (6) **AXIdentifiers from day one** on both Swift apps + aria/ids in the dashboard — the Pulse retrospective showed their absence is what turns pixel-verification into a dead end. (7) Machine state lives in `$ADE_HOME` (`~/.ade/`), never inside a project's lockfile-enumerated `.ade/` tree.
+
+- 2026-08-22 — **research: SSCS audit ran `Skill("SupplyChainSecurity", "AuditProject")` live against `Sources.md`**, not the skill's cached snapshot alone (ISC-332). Material delta found and applied: `slsa-framework/slsa-github-generator` — the mechanism ADEB's sibling `sscs-bootstrapper` uses for its own release provenance — is confirmed unmaintained upstream (fetched live from the project's own README); GitHub-native `actions/attest-build-provenance` is upstream's stated replacement, confirmed real and actively maintained (`gh api repos/actions/attest-build-provenance`, latest release v4.2.2, published 2026-08-06, 6 days before this session). ADEB's `release-slsa.yml` adopts the native path rather than porting sscsb's older one — a deliberate divergence between the two sibling projects, not an oversight. Every third-party Action SHA used in the new/changed workflows was resolved live this session (`gh api repos/<owner>/<repo>/commits/<tag>`), not copied from sscsb's pins verbatim where a newer release existed — `step-security/harden-runner` v2.20.0→v2.21.0, `actions/checkout` v7.0.0→v7.0.1, `github/codeql-action` v4.37.0→v4.37.8, `ossf/scorecard-action` v2.4.3→v2.4.4, `trufflesecurity/trufflehog` v3.95.9→v3.97.0, `google/osv-scanner-action` v2.3.8→v2.5.1; `anchore/sbom-action`, `gitleaks/gitleaks-action`, `aquasecurity/trivy-action`, `sigstore/cosign-installer`, `actions/upload-artifact`, `actions/download-artifact` were already current and share sscsb's exact pins by coincidence, not by copying without checking.
+- 2026-08-22 — **deviation: coverage gate stays at 95%/95%, not this skill's stated 100% baseline (ISC-333).** Source: the principal's own standing global operational rule ("Code coverage: 95% floor, meaningful tests only... 100% is explicitly NOT a goal... chasing it wastes time and incentivises deleting graceful error handling"), which predates and outranks this skill's generic baseline text for every project this principal runs, not a per-project shortcut invented here. No expiry condition — this is a standing preference, re-surface only if the principal changes the global rule itself.
+- 2026-08-22 — **`zizmor --persona=pedantic` ran clean modulo three understood, deliberate classes, not silently accepted:** (1) `dtolnay/rust-toolchain@<sha>` flagged `stale-action-refs`/`superfluous-actions` — this action publishes no semver tags by design (`stable`/`beta`/`nightly`/`<version>` are moving branch heads), so the SHA is pinned to the branch's current commit rather than left floating. **Correction (Max's second-look review, same day):** the ISA originally asserted Dependabot's `github-actions` ecosystem (ISC-330) would auto-bump this pin — that claim was made without verifying Dependabot can resolve a bump for a SHA with no semver release to map it to, which it very plausibly cannot. Downgraded to UNVERIFIED in both this entry and the `ci.yml` comment; the honest fallback (manual quarterly refresh, or a scheduled diff-against-`stable`-head workflow) replaces the confident claim until a real weekly Dependabot run either produces a bump PR or doesn't. The "use rustup directly" suggestion was weighed and declined — the action's toolchain-component management (rustfmt/clippy) is worth keeping. (2) `ossf/scorecard-action`'s top-level `permissions: read-all` flagged `excessive-permissions` — this is upstream Scorecard's own documented/recommended shape (Scorecard reads broad repo metadata: branch protection, issues, PRs, releases; the job-level block already scopes the actual WRITE grants to `security-events`+`id-token`), and matches sscsb's own already-shipped, previously-cleared Scorecard workflow verbatim. (3) 11 `anonymous-definition` (job `name:` fields) — cosmetic, left implicit, matching sscsb's own established convention throughout its workflow set. Concurrency-limit and undocumented-permissions findings (the two large, cheap, real categories the first pedantic pass surfaced) were fixed, not accepted — 30 findings → 18, all three remaining classes above.
+- 2026-08-22 — **Max's second-look review (non-forked, fresh-context, in-family — Forge/Cato unavailable, codex unauthenticated, same gap this ISA already logged 2026-07-12) found 10 real findings, not cosmetic.** Verdict: "concerns." All fixed except one accepted-as-is, disposed here per Algorithm claim 11: **F1 (critical/warning) FIXED** — `sast-opengrep.yml` ran `--error` with no `--severity ERROR`, so the first real run would fail on ANY finding at any severity from three never-before-run registry rulesets while ISC-323 was already checked `[x]` claiming the gate was severity-scoped; added the missing flag. **F2 (warning-high) FIXED** — `dependabot.yml` used `package-ecosystem: npm`, which does not regenerate `bun.lock`; every JS-ecosystem Dependabot PR would have failed `bun install --frozen-lockfile` in `ci.yml` on arrival. Verified live (WebSearch, GitHub Changelog 2025-02-13): `bun` is its own `package-ecosystem` value, GA since Feb 2025 — corrected. **F3 (warning-high) FIXED** — `trivy-action` defaults `exit-code: 0`, so the scan reported but never gated; added `exit-code: "1"` + `severity: "HIGH,CRITICAL"` and `if: always()` on the SARIF upload so it still lands on a failing run. **F4 (warning) FIXED** — the cosign `--certificate-identity-regexp` for OpenGrep's binary was an unanchored substring (`https://github.com/opengrep/opengrep`), which a sibling repo's identity (e.g. `opengrep/opengrep-rules`) would also match; anchored + escaped to `^https://github\.com/opengrep/opengrep/`. **F5 (warning) CORRECTED, not fixed** — see the entry immediately above; the Dependabot-auto-bumps-dtolnay claim was asserted without verification and is now honestly marked UNVERIFIED in both `ci.yml` and this ISA. **F6 (warning) FIXED** — no `LICENSE` file existed despite `Cargo.toml`/`package.json` both declaring MIT, meaning the repo was legally all-rights-reserved regardless of metadata, AND `ISC-327`'s own new Scorecard workflow would have scored the License check 0 on its first run — added `/LICENSE` (standard MIT text, copyright Justin Pagano 2026, matching the repo's first-commit year). **F7 (warning-low) FIXED** — `.ade/manifest.json` and `ade.lock.json` disagreed on `ccc`/`openwiki` presence (`null` vs `"present"`) because `ade apply`/`ade lock` do not regenerate `manifest.json`'s tool inventory (a real gap in `ade-core` itself, confirmed by trying both commands — OUT OF SCOPE to fix here, that is Rust source work on the product, not a repo SSCS-posture change); `ade doctor` confirmed both tools ARE present on this machine, so `manifest.json` was hand-corrected to match observed reality and `ade lock`/`ade verify` re-run clean. The broader question F7 raised — should volatile machine-state snapshots (`environment`/`harnesses` blocks) be committed at all, given they're recon-value and churn on every `ade apply` — is answered explicitly, not left implicit: YES for this run, because `ade verify`'s `reproducibility` module treats `manifest.json`'s presence as part of its own correctness contract (removing it breaks verification on a fresh clone), and that is the tool's own foundational design from the 2026-07-12 ISA, not something to unilaterally reverse inside an SSCS-posture pass. Recon-value tradeoff accepted as a pre-existing design decision, re-surfaced honestly rather than silently perpetuated. **F8 (info) FIXED, with a correction mid-fix** — SBOM was generated but not attested; added SBOM attestation to `sbom.yml` gated `if: github.event_name == 'release'`. First attempt used `actions/attest-sbom`, which its own live `action.yml` (fetched this session) emits `::warning::actions/attest-sbom has been deprecated, please use actions/attest instead` — corrected to call `actions/attest` directly with `sbom-path` before this ever shipped, the same research-currency discipline ISC-328/332 already applied to the SLSA-provenance choice. **F9 (info) ACCEPTED, no change** — harden-runner is `egress-policy: audit` (telemetry, not enforcement) everywhere; Max's own assessment called this a reasonable phase-1 posture, and `block` mode isn't available on the macOS runners `rust`/`parity` use regardless (GitHub-hosted macOS = audit-only, verified live earlier this session). **F10 (info) FIXED** — (a) `ci.yml`'s `brew install ripgrep` fallback was unpinned; macOS runners do not ship `rg` (verified against the live `actions/runner-images` macOS-15 readme), so the fallback runs on every invocation, not rarely — replaced with a pinned, sha256-verified direct download of ripgrep 15.2.0, matching the same discipline already used for the OpenGrep binary. (b) `secrets-scan.yml` had no schedule trigger, so newly-written history between pushes never got a retroactive TruffleHog/Gitleaks pass; added a weekly cron (fetch-depth 0 already configured). **What Max confirmed clean under attack, not merely unaudited:** all 13 SHA→tag mappings independently re-resolved live and matched exactly; the dtolnay pin is byte-identical to the actual `stable` branch head; private-vulnerability-reporting confirmed live-enabled; `webbrowser` 1.2.2 correctly locked; the CodeQL config faithfully mirrors sscsb's own proven shape; both coverage gates are real hard gates, not decorative; `sh .ade/hooks/audit-log.ts` is a correct POSIX-sh polyglot despite the `.ts` extension, not a broken hook; no personal-path leakage in any staged file; the planned Ruleset's rule *semantics* (deletion/non-fast-forward/required_signatures/pull_request/bypass_actors:[]) contain no inert or self-contradictory rule.
 
 ## Changelog
 
