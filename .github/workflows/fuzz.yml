@@ -48,13 +48,18 @@ jobs:
       # API changes in seconds. Scheduled run: actually fuzz for a minute —
       # short by cargo-fuzz standards, but real, and cheap enough to run
       # weekly without burning meaningful CI budget.
+      # --target pinned explicitly: cargo-fuzz's own host-triple detection
+      # picked x86_64-apple-darwin on a macos-latest (arm64) runner and that
+      # target's std lib wasn't installed (E0463) — reproduced in CI, not
+      # hypothesized. aarch64-apple-darwin matches deny.toml's own shipped-
+      # target list and this runner's actual architecture.
       - name: Build fuzz target
         working-directory: crates/ade-core
-        run: cargo fuzz build hook_append
+        run: cargo fuzz build --target aarch64-apple-darwin hook_append
       - name: Run fuzzer (scheduled only)
         if: github.event_name == 'schedule'
         working-directory: crates/ade-core
-        run: cargo fuzz run hook_append -- -max_total_time=60
+        run: cargo fuzz run --target aarch64-apple-darwin hook_append -- -max_total_time=60
       - name: Upload crash artifacts (if any)
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
