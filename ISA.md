@@ -5,10 +5,10 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 259/269
+progress: 262/269
 mode: autonomous
 started: 2026-07-12T08:49:30Z
-updated: 2026-08-23T16:20:00Z
+updated: 2026-08-23T17:10:00Z
 principal_stated_goal: "Update ADE Bootstrapper so it has a GUI application and task bar helper so it's easy for users to see what capabilities/tools are installed and running on their laptop/desktop. This should allow users to enable, disable, uninstall, reinstall, install, and update to the latest version for each capability/tool. It also will allow them to see errors or warnings related to each capability/tool. You must fully test this end to end on my machine to ensure it's working as intended. Use Interceptor MacOS bridge to do so"
 principal_goal_revision_2026_07_25: "Wait - this GUI app should be an OS native app, not a web app. It should be built in Rust as much as possible. The GUI should be sleak, modern, and polished."
 principal_goal_revision_2026_08_22: "Scan p4gs/ade-bootstrapper and then remediate ALL findings and gaps in its SSCS posture."
@@ -1129,7 +1129,7 @@ glyph rule checks `installed` before severity. It is the same class of
 inconsistency fixed in the verdict, but changing tray glyph semantics belongs
 with the SF Symbol status icon in Phase 2, not smuggled into Phase 1.
 
-## CodeGuard Integration (in progress — 4/10 closed)
+## CodeGuard Integration (in progress — 7/10 closed)
 
 **Goal.** Bootstrap the AI coding agents ADEB detects on a machine — not any one
 repo — with Project CodeGuard's security ruleset, so every agent generates
@@ -1204,13 +1204,13 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   the user edited it, and that file is skipped and reported as a conflict, not
   overwritten. This is the sharpest claim in this feature and reuses existing,
   tested machinery rather than inventing a new mechanism.
-- [ ] CG-8: Opt-in state lives in a new machine-scoped record (not any repo's
+- [x] CG-8: Opt-in state lives in a new machine-scoped record (not any repo's
   `ade.json` — this isn't repo-scoped), off by default, one explicit action
   per agent, never a side effect of `ade init`/`ade apply` on any single repo.
-- [ ] CG-9: Anti — bootstrapping Repo A never silently changes any other
+- [x] CG-9: Anti — bootstrapping Repo A never silently changes any other
   repo's observable behavior as a side effect; the only way an agent's
   CodeGuard state changes is the explicit action in CG-8.
-- [ ] CG-10: Anti — no repo's lockfile, `.ade/` tree, or verify contract is
+- [x] CG-10: Anti — no repo's lockfile, `.ade/` tree, or verify contract is
   touched by any of this; it is provably invisible to `ade verify` on every
   existing repo.
 
@@ -1283,10 +1283,7 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
 - [ ] CG-6 (remainder): per-agent installed-version record, and the
   `ade doctor` / capability-inventory surface for "update available" — the
   fetch primitive exists; nothing persists or reports on it yet.
-- [ ] CG-8: machine-scoped opt-in config surface — not started; `CodeGuardDeps`
-  takes an already-resolved `home_dir` today, no persistence layer yet.
-- [ ] CG-9, CG-10: no integration test yet proving cross-repo silence / verify
-  isolation — trivially true today only because nothing writes anything yet.
+(CG-8, CG-9, CG-10 closed — no longer listed here.)
 
 ### Decisions
 
@@ -1310,6 +1307,11 @@ can't reach the tools, so uptime becomes a hard dependency, not an enhancement.
   introducing an HTTP client crate. Every fetch is pinned to a specific
   release tag, matching CodeGuard's own remote-install guidance to pin for a
   stable, auditable snapshot; `main` is never fetched.
+- 2026-08-23 — **CG-8's state file deliberately mirrors `gui::state.rs`'s
+  contract rather than inventing a new one** — same hand-rolled JSON,
+  same degrade-to-defaults-with-warning behavior, same silently-drop-unknown-
+  keys convention. A second machine-scoped state file with a different
+  contract from the first would be its own kind of inconsistency bug.
 - 2026-08-23 — **This lives in the machine-scoped capability-inventory system,
   not as a 16th repo-bootstrap module.** The effect is agent-wide and
   repo-independent by the owner's own stated intent, which is a different

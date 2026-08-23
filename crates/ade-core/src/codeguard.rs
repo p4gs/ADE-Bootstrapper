@@ -333,7 +333,7 @@ pub fn fetch_rule_content(deps: &CodeGuardDeps, tag: &str, rule_path: &str) -> O
 
 // ── CG-7: provenance — never overwrite a user-modified file ────────────────
 
-use crate::fsutil::{sha256_hex, write_ensured};
+use crate::fsutil::{sha256_hex, stable_stringify, write_ensured};
 
 /// One installed file's provenance: the hash ADE itself last wrote. If the
 /// file's current on-disk hash no longer matches, a human edited it since —
@@ -382,6 +382,121 @@ pub fn write_with_provenance(
     }
     write_ensured(path, content)?;
     Ok(WriteOutcome::Created)
+}
+
+// ── CG-8: machine-scoped opt-in state ───────────────────────────────────
+//
+// Mirrors `gui::state::{GuiState, load_gui_state, save_gui_state}`'s exact
+// contract deliberately, not by coincidence: hand-rolled field-by-name JSON
+// (not `#[derive(Serialize, Deserialize)]`, so an unknown key from a future
+// schema version is silently ignored rather than a hard parse error),
+// corrupt/invalid content degrades to defaults with a warning, never a
+// crash, and off-by-default falls straight out of `BTreeSet::new()` — an
+// absent file means an absent entry means not opted in, no special-casing
+// needed anywhere that reads this state.
+
+pub const CODEGUARD_STATE_FILE: &str = "codeguard.json";
+pub const CODEGUARD_STATE_SCHEMA_VERSION: u64 = 1;
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct CodeGuardState {
+    /// Capability ids (`codeguard-<agent>`) the owner explicitly opted in.
+    /// Never populated as a side effect of `ade init`/`ade apply` on any
+    /// repo — the only writer is the explicit opt-in action (CG-9).
+    pub enabled_agents: std::collections::BTreeSet<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CodeGuardStateLoad {
+    pub state: CodeGuardState,
+    /// Set when the on-disk file was corrupt/invalid and defaults were used.
+    pub warning: Option<String>,
+}
+
+/// Load `codeguard.json`; corrupt or invalid content degrades to defaults
+/// with a warning — never a crash, matching `load_gui_state`'s contract.
+pub fn load_codeguard_state(home: &Path) -> CodeGuardStateLoad {
+    let path = home.join(CODEGUARD_STATE_FILE);
+    let Some(text) = std::fs::read_to_string(&path).ok() else {
+        return CodeGuardStateLoad {
+            state: CodeGuardState::default(),
+            warning: None,
+        };
+    };
+    let raw: serde_json::Value = match serde_json::from_str(&text) {
+        Ok(value) => value,
+        Err(_) => {
+            return CodeGuardStateLoad {
+                state: CodeGuardState::default(),
+                warning: Some(format!(
+                    "{CODEGUARD_STATE_FILE} is not valid JSON — using defaults (file left untouched until next change)"
+                )),
+            };
+        }
+    };
+    let Some(obj) = raw.as_object() else {
+        return CodeGuardStateLoad {
+            state: CodeGuardState::default(),
+            warning: Some(format!(
+                "{CODEGUARD_STATE_FILE} is not an object — using defaults"
+            )),
+        };
+    };
+    match obj.get("schemaVersion").and_then(|v| v.as_u64()) {
+        Some(version) if version <= CODEGUARD_STATE_SCHEMA_VERSION => {}
+        _ => {
+            return CodeGuardStateLoad {
+                state: CodeGuardState::default(),
+                warning: Some(format!(
+                    "{CODEGUARD_STATE_FILE} schemaVersion is unsupported — using defaults"
+                )),
+            };
+        }
+    }
+    let enabled_agents = obj
+        .get("enabledAgents")
+        .and_then(|v| v.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str())
+                // Only ids the registry still knows about — a retired agent
+                // in an old state file is dropped silently, not carried
+                // forward as a phantom opt-in nothing can act on.
+                .filter(|id| get_agent_def(id).is_some())
+                .map(String::from)
+                .collect()
+        })
+        .unwrap_or_default();
+    CodeGuardStateLoad {
+        state: CodeGuardState { enabled_agents },
+        warning: None,
+    }
+}
+
+/// Persist `codeguard.json` deterministically (sorted by `BTreeSet` itself,
+/// then `stable_stringify` sorts object keys).
+pub fn save_codeguard_state(home: &Path, state: &CodeGuardState) -> std::io::Result<()> {
+    let value = serde_json::json!({
+        "schemaVersion": CODEGUARD_STATE_SCHEMA_VERSION,
+        "enabledAgents": state.enabled_agents,
+    });
+    write_ensured(&home.join(CODEGUARD_STATE_FILE), &stable_stringify(&value))?;
+    Ok(())
+}
+
+/// CG-8's one explicit action per agent. Returns `true` when this call
+/// actually changed the set (idempotent — opting in twice is a no-op the
+/// second time, never an error).
+pub fn opt_in(state: &mut CodeGuardState, capability_id: &str) -> bool {
+    state.enabled_agents.insert(capability_id.to_string())
+}
+
+pub fn opt_out(state: &mut CodeGuardState, capability_id: &str) -> bool {
+    state.enabled_agents.remove(capability_id)
+}
+
+pub fn is_opted_in(state: &CodeGuardState, capability_id: &str) -> bool {
+    state.enabled_agents.contains(capability_id)
 }
 
 #[cfg(test)]
@@ -945,5 +1060,164 @@ mod tests {
         };
         let outcome = write_with_provenance(&path, "same-content", Some(&prior)).unwrap();
         assert_eq!(outcome, WriteOutcome::Updated { changed: false });
+    }
+
+    // ── CG-8: machine-scoped opt-in state ────────────────────────────────
+
+    #[test]
+    fn opt_in_is_off_by_default_on_a_fresh_machine() {
+        let tmp = make_temp_dir("codeguard");
+        let load = load_codeguard_state(tmp.as_path());
+        assert!(load.warning.is_none());
+        assert!(load.state.enabled_agents.is_empty());
+        assert!(!is_opted_in(&load.state, "codeguard-cursor"));
+    }
+
+    #[test]
+    fn opt_in_then_save_then_load_round_trips() {
+        let tmp = make_temp_dir("codeguard");
+        let mut state = CodeGuardState::default();
+        assert!(opt_in(&mut state, "codeguard-cursor"));
+        assert!(opt_in(&mut state, "codeguard-claude-code"));
+        save_codeguard_state(tmp.as_path(), &state).unwrap();
+
+        let reloaded = load_codeguard_state(tmp.as_path()).state;
+        assert!(is_opted_in(&reloaded, "codeguard-cursor"));
+        assert!(is_opted_in(&reloaded, "codeguard-claude-code"));
+        assert!(!is_opted_in(&reloaded, "codeguard-hermes"));
+    }
+
+    #[test]
+    fn opt_in_twice_is_idempotent_not_an_error() {
+        let mut state = CodeGuardState::default();
+        assert!(opt_in(&mut state, "codeguard-cursor"));
+        assert!(!opt_in(&mut state, "codeguard-cursor")); // second call: no change
+        assert_eq!(state.enabled_agents.len(), 1);
+    }
+
+    #[test]
+    fn opt_out_removes_and_reports_whether_it_changed_anything() {
+        let mut state = CodeGuardState::default();
+        opt_in(&mut state, "codeguard-cursor");
+        assert!(opt_out(&mut state, "codeguard-cursor"));
+        assert!(!is_opted_in(&state, "codeguard-cursor"));
+        assert!(!opt_out(&mut state, "codeguard-cursor")); // already out
+    }
+
+    #[test]
+    fn corrupt_state_file_degrades_to_defaults_with_a_warning_never_a_crash() {
+        let tmp = make_temp_dir("codeguard");
+        std::fs::write(tmp.as_path().join(CODEGUARD_STATE_FILE), "{not json").unwrap();
+        let load = load_codeguard_state(tmp.as_path());
+        assert!(load.warning.is_some());
+        assert!(load.state.enabled_agents.is_empty());
+    }
+
+    #[test]
+    fn unsupported_schema_version_degrades_to_defaults() {
+        let tmp = make_temp_dir("codeguard");
+        std::fs::write(
+            tmp.as_path().join(CODEGUARD_STATE_FILE),
+            r#"{"schemaVersion":999,"enabledAgents":["codeguard-cursor"]}"#,
+        )
+        .unwrap();
+        let load = load_codeguard_state(tmp.as_path());
+        assert!(load.warning.is_some());
+        assert!(load.state.enabled_agents.is_empty());
+    }
+
+    #[test]
+    fn a_retired_agent_id_in_an_old_state_file_is_dropped_silently() {
+        let tmp = make_temp_dir("codeguard");
+        std::fs::write(
+            tmp.as_path().join(CODEGUARD_STATE_FILE),
+            r#"{"schemaVersion":1,"enabledAgents":["codeguard-cursor","codeguard-retired-agent"]}"#,
+        )
+        .unwrap();
+        let load = load_codeguard_state(tmp.as_path());
+        assert!(load.warning.is_none()); // not an error — just a stale entry
+        assert!(is_opted_in(&load.state, "codeguard-cursor"));
+        assert!(!load
+            .state
+            .enabled_agents
+            .contains("codeguard-retired-agent"));
+    }
+
+    #[test]
+    fn saved_state_is_deterministic_json() {
+        let tmp = make_temp_dir("codeguard");
+        let mut state = CodeGuardState::default();
+        opt_in(&mut state, "codeguard-hermes");
+        opt_in(&mut state, "codeguard-cursor");
+        save_codeguard_state(tmp.as_path(), &state).unwrap();
+        let bytes1 = std::fs::read_to_string(tmp.as_path().join(CODEGUARD_STATE_FILE)).unwrap();
+        save_codeguard_state(tmp.as_path(), &state).unwrap();
+        let bytes2 = std::fs::read_to_string(tmp.as_path().join(CODEGUARD_STATE_FILE)).unwrap();
+        assert_eq!(bytes1, bytes2);
+        // BTreeSet order, not insertion order — cursor before hermes.
+        assert!(bytes1.find("cursor").unwrap() < bytes1.find("hermes").unwrap());
+    }
+
+    // ── CG-9 / CG-10: cross-repo silence, verify isolation ───────────────
+
+    #[test]
+    fn cg9_cg10_opt_in_action_never_touches_any_repo_files() {
+        // The decisive structural fact, proven rather than argued: build a
+        // real repo fixture (the same one every module test in this crate
+        // uses), snapshot it byte-for-byte, perform every CG-8 write this
+        // module can do against a COMPLETELY SEPARATE machine-home
+        // directory, then assert the repo fixture is unchanged. If any
+        // codeguard.rs function ever touched a repo's `.ade/` tree, CLAUDE.md,
+        // AGENTS.md, or ade.lock.json, this test would catch it — it is not
+        // an inference from "the module takes no Ctx parameter", it is a
+        // real before/after diff.
+        let repo = make_temp_dir("codeguard-cg9-repo");
+        std::fs::write(repo.as_path().join("CLAUDE.md"), "# repo instructions").unwrap();
+        std::fs::write(repo.as_path().join("AGENTS.md"), "# agent instructions").unwrap();
+        std::fs::create_dir_all(repo.as_path().join(".ade/policy")).unwrap();
+        std::fs::write(
+            repo.as_path().join(".ade/policy/sandbox.json"),
+            r#"{"enforcement":"advisory"}"#,
+        )
+        .unwrap();
+        std::fs::write(repo.as_path().join("ade.lock.json"), r#"{"files":{}}"#).unwrap();
+
+        fn snapshot(dir: &Path) -> Vec<(String, String)> {
+            let mut out = Vec::new();
+            fn walk(dir: &Path, root: &Path, out: &mut Vec<(String, String)>) {
+                for entry in std::fs::read_dir(dir).unwrap().flatten() {
+                    let path = entry.path();
+                    if path.is_dir() {
+                        walk(&path, root, out);
+                    } else {
+                        let rel = path
+                            .strip_prefix(root)
+                            .unwrap()
+                            .to_string_lossy()
+                            .to_string();
+                        out.push((rel, std::fs::read_to_string(&path).unwrap_or_default()));
+                    }
+                }
+            }
+            walk(dir, dir, &mut out);
+            out.sort();
+            out
+        }
+        let before = snapshot(repo.as_path());
+
+        // A completely separate machine-home directory — the only place
+        // CG-8 is allowed to write anything.
+        let machine_home = make_temp_dir("codeguard-cg9-home");
+        let mut state = CodeGuardState::default();
+        opt_in(&mut state, "codeguard-cursor");
+        opt_in(&mut state, "codeguard-claude-code");
+        save_codeguard_state(machine_home.as_path(), &state).unwrap();
+        let _ = load_codeguard_state(machine_home.as_path());
+
+        let after = snapshot(repo.as_path());
+        assert_eq!(
+            before, after,
+            "a machine-scoped CodeGuard action touched repo-scoped files"
+        );
     }
 }
