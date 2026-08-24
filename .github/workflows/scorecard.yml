@@ -7,6 +7,12 @@ on:
     - cron: "30 2 * * 1"
   push:
     branches: ["main"]
+  # Signed-Releases specifically depends on release-asset state, which only
+  # changes on a release event — without this trigger a new release's real
+  # score would sit stale until the next Monday cron (caught live: v0.2.0's
+  # release-slsa.yml assets landed correctly but Scorecard hadn't re-run).
+  release:
+    types: [published]
 
 permissions: read-all
 

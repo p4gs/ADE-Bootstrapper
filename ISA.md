@@ -5,7 +5,7 @@ project: ADE-Bootstrapper
 effort: E4
 effort_source: ultracode
 phase: build
-progress: 269/269
+progress: 269/270
 mode: autonomous
 started: 2026-07-12T08:49:30Z
 updated: 2026-08-23T18:05:00Z
@@ -643,6 +643,34 @@ each on its own evidence — not by chasing a score, by fixing or explaining wha
       be an unverified claim the moment it was added, the exact class of thing this whole
       phase has been careful not to do. A one-line note in the README says so explicitly
       rather than silently omitting it with no explanation
+- [ ] ISC-344: `release-slsa.yml` closes the concrete gap between ADEB's and sscsb's live
+      Signed-Releases scores (sscsb 8/10, ADEB previously `-1`/not-applicable for lack of
+      any release) — read directly from Scorecard's own probe source, not assumed:
+      `releasesAreSigned` (`probes/releasesAreSigned/impl.go`) only recognizes a release
+      asset suffixed `.asc`/`.minisig`/`.sig`/`.sign`/`.sigstore`/`.sigstore.json`
+      (`releaseMap[name] = 8` alone); `releasesHaveProvenance`
+      (`probes/releasesHaveProvenance/impl.go`) only recognizes one suffixed EXACTLY
+      `.intoto.jsonl` (`= 10` when both present). GitHub's native Attestations API record
+      — what ISC-328's `actions/attest-build-provenance` step already produces — satisfies
+      NEITHER probe on its own, since both only inspect release-asset filenames, never the
+      Attestations API; this is why sscsb's own release currently sits at 8/10 despite
+      being signed (it never attaches a `.intoto.jsonl` asset). Added, matching sscsb's own
+      proven `release-sign.yml` cosign pattern where it overlaps: a `cosign sign-blob
+      --bundle` step producing `.sigstore.json`, plus copying `attest-build-provenance`'s
+      own `bundle-path` output to a `.intoto.jsonl`-suffixed release asset (env-var
+      indirection, not `${{ }}` interpolation into the script body — a real
+      `template-injection` finding zizmor caught on the first draft, fixed before this was
+      ever committed). Cosign verify-blob identity format researched live, not assumed:
+      Fulcio's SAN URI is `job_workflow_ref` (`https://github.com/{owner}/{repo}/.github/
+      workflows/{file}@{ref}`); for `release: published` that ref resolves to the TAG ref
+      (GitHub's own docs), not a commit SHA — regex anchored to this exact repo + workflow
+      file, open only on the tag so it verifies every future release without editing.
+      `actionlint` clean, `zizmor --persona=pedantic` clean modulo the same 3 already-
+      documented exception classes. **`[DEFERRED-VERIFY]`, honestly**: this is a
+      `release:`-triggered workflow — it cannot execute for real until an actual release
+      exists, which is ISC-328's own open item and the owner's call, not mine to force. The
+      design is complete and reasoned through; live proof waits on the same event ISC-328
+      already names
 
 ## Test Strategy
 
