@@ -39,7 +39,7 @@ jobs:
           persist-credentials: false
       # cargo-fuzz requires nightly (sanitizer flags are unstable). Same
       # pinned-branch-head convention as ci.yml's stable pin, same comment.
-      - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb # nightly (2026-08-05)
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # nightly (2026-08-05)
       - name: Install cargo-fuzz
         uses: taiki-e/install-action@ba47c86ac325773530516bb756137ac718732518 # v2
         with:
