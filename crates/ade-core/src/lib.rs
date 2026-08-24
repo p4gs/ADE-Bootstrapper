@@ -26,6 +26,7 @@ pub mod lockfile;
 pub mod modules;
 pub mod translate;
 
+pub mod codeguard;
 pub mod gui;
 pub mod hook;
 pub mod registry;
