@@ -42,7 +42,7 @@ jobs:
       - name: Tests
         run: cargo test --workspace --locked
       - name: Install cargo-deny + cargo-llvm-cov
-        uses: taiki-e/install-action@ba47c86ac325773530516bb756137ac718732518 # v2
+        uses: taiki-e/install-action@37f7c5781271959fb65b6b35224e28652ff2b63d # v2
         with:
           tool: cargo-deny,cargo-llvm-cov
       - name: Supply chain (licenses, advisories, sources, bans)
