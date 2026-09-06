@@ -41,7 +41,7 @@ jobs:
       # pinned-branch-head convention as ci.yml's stable pin, same comment.
       - uses: dtolnay/rust-toolchain@7c8d7d138f5c09cef361f8214cf96882cd029cdb # nightly (2026-08-05)
       - name: Install cargo-fuzz
-        uses: taiki-e/install-action@ba47c86ac325773530516bb756137ac718732518 # v2
+        uses: taiki-e/install-action@e67fa11c4b9316fa714ddf0abed07a0c3143b95b # v2
         with:
           tool: cargo-fuzz
       # Every push/PR: build only, catches the target bit-rotting against
