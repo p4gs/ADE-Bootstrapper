@@ -1,5 +1,26 @@
 title = "ADE Bootstrapper gitleaks configuration"
 
+# STATUS: gitleaks is NOT part of this repo's secret-scanning policy.
+# TruffleHog is the single credential-detection engine — `[controls.secrets]
+# gitleaks = false` in .sscsb/config.toml, and the gitleaks job is gone from
+# .github/workflows/secrets-scan.yml.
+#
+# This file survives ONLY because sscsb 0.4.0 does not honour that toggle on one
+# path. `sscsb verify secrets` correctly reports "gitleaks: disabled in config",
+# but `sscsb hook pre-push` still invokes gitleaks when the pushed range has no
+# remote counterpart (a NEW branch, remote sha 000...0), which scans the whole
+# tree. Reproduced deterministically:
+#
+#   printf "refs/heads/b %s refs/heads/b %s\n" "$(git rev-parse HEAD)" \
+#     "0000000000000000000000000000000000000000" \
+#     | sscsb hook pre-push origin <url>
+#
+# -> blocks on the four ade.lock.json entries below; the same invocation with a
+# real remote sha passes. Without this allowlist the hook fail-closes on a
+# verified false positive and no new branch can be pushed at all. The gate is
+# deliberately NOT bypassed with --no-verify. Delete this file once sscsb
+# honours `gitleaks = false` on the pre-push path.
+
 [extend]
 useDefault = true
 
