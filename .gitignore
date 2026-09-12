@@ -21,3 +21,6 @@ id_ed25519
 .ade/logs/
 # CocoIndex Code (ccc)
 /.cocoindex_code/
+
+# sscsb: generated output (SBOMs, receipts, VEX), not policy
+.sscsb/out/
