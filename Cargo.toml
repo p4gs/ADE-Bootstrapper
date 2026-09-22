@@ -6,11 +6,6 @@ members = [
   "crates/ade-control-center",
   "crates/ade-status",
 ]
-# The Dioxus bake-off contender is its own workspace with its own lockfile:
-# its dependency tree carries an MPL-2.0 crate and an unmaintained-crate
-# advisory that `deny.toml` rejects, and a contender is scored on its own
-# graph rather than allowed to turn the shipping workspace's gates red.
-exclude = ["crates/ade-control-center-dx"]
 
 [workspace.package]
 version = "0.2.0"
