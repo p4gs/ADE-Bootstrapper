@@ -29,3 +29,4 @@ id_ed25519
 # egui_kittest writes these beside a failing snapshot; goldens are the bare .png only
 crates/*/tests/snapshots/*.new.png
 crates/*/tests/snapshots/*.diff.png
+crates/*/tests/snapshots/*.old.png

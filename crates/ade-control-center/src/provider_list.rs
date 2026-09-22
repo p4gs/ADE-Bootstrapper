@@ -125,7 +125,10 @@ fn segmented_filter(
                 .x
         })
         .fold(0.0_f32, f32::max);
-    let seg_w = widest + 2.0 * pad;
+    // …but never wider than the pane: below ~330pt the control used to run
+    // past the list's right edge (screen_900). Each segment then elides.
+    let fit = ((ui.available_width() - 4.0) / labels.len() as f32).max(0.0);
+    let seg_w = (widest + 2.0 * pad).min(fit);
     let total = egui::vec2(seg_w * labels.len() as f32 + 4.0, height + 4.0);
     let (outer, _) = ui.allocate_exact_size(total, Sense::hover());
     let ppp = ui.pixels_per_point();
@@ -164,9 +167,7 @@ fn segmented_filter(
             );
         }
         let color = if active { p.text } else { p.muted };
-        let galley = ui
-            .painter()
-            .layout_no_wrap(label.clone(), font.clone(), color);
+        let galley = elided(ui, label, color, font.clone(), (seg_w - pad).max(0.0));
         ui.painter()
             .galley(rect.center() - galley.size() * 0.5, galley, color);
         if response.clicked() && !active {
@@ -234,13 +235,19 @@ fn provider_row(ui: &mut egui::Ui, p: &theme::Palette, row: &ProviderRow) -> egu
     ui.painter()
         .galley(tile.center() - glyph.size() * 0.5, glyph, tile_ink);
 
-    // Right column: the version, muted, monospaced like the reference.
+    // Right column: the version, muted, monospaced like the reference. It is
+    // elided past a third of the row: a long version string ("2.1.278 (Claude
+    // Code, build …)") used to paint leftwards over the tile and the name.
+    let text_left = tile.right() + pad;
     let mut right_edge = rect.right() - pad;
     if let Some(version) = &row.version {
-        let galley = ui.painter().layout_no_wrap(
-            version.clone(),
-            FontId::monospace(theme::SIZE_CAPTION),
+        let max_version = ((rect.right() - text_left) * 0.34).max(0.0);
+        let galley = elided(
+            ui,
+            version,
             p.muted,
+            FontId::monospace(theme::SIZE_CAPTION),
+            max_version,
         );
         let width = galley.size().x;
         let pos = egui::pos2(right_edge - width, rect.center().y - galley.size().y * 0.5);
@@ -249,11 +256,14 @@ fn provider_row(ui: &mut egui::Ui, p: &theme::Palette, row: &ProviderRow) -> egu
     }
 
     // Left column: name + tags on the first line, description on the second.
-    let text_left = tile.right() + pad;
     let line1_y = rect.top() + theme::Space::S8.px();
-    let name =
-        ui.painter()
-            .layout_no_wrap(row.name.clone(), theme::semibold(theme::SIZE_BODY), p.text);
+    let name = elided(
+        ui,
+        &row.name,
+        p.text,
+        theme::semibold(theme::SIZE_BODY),
+        (right_edge - text_left).max(0.0),
+    );
     let name_h = name.size().y;
     ui.painter()
         .galley(egui::pos2(text_left, line1_y), name.clone(), p.text);

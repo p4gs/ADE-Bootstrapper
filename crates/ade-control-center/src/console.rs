@@ -25,14 +25,14 @@ pub(crate) fn console(
     model: &ConsoleModel,
 ) -> Option<ConsoleEvent> {
     let mut event = None;
+    // The right cluster (status, Copy, hide) is placed FIRST, from the right
+    // edge, and the tabs get whatever width remains in a clipped horizontal
+    // scroll. Laid out the other way round, eight tabs pushed Copy and the
+    // chevron clean off the window (found by the stress harness, ISC-28).
     ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = theme::Space::S6.px();
-        for tab in &model.tabs {
-            if console_tab(ui, p, tab).clicked() && !tab.active {
-                event = Some(ConsoleEvent::SelectTab(tab.job_id.clone()));
-            }
-        }
+        ui.set_width(ui.available_width());
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            ui.spacing_mut().item_spacing.x = theme::Space::S6.px();
             if icon_button(ui, p, Icon::ChevronRight, "Hide console").clicked() {
                 event = Some(ConsoleEvent::Collapse);
             }
@@ -45,6 +45,39 @@ pub(crate) fn console(
                     .color(ink)
                     .size(theme::SIZE_CAPTION),
             );
+            ui.add_space(theme::Space::S8.px());
+            let tabs_width = ui.available_width().max(0.0);
+            ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
+                ui.spacing_mut().item_spacing.x = theme::Space::S6.px();
+                let (shown, hidden) = tabs_that_fit(ui, &model.tabs, tabs_width);
+                for tab in shown {
+                    if console_tab(ui, p, tab).clicked() && !tab.active {
+                        event = Some(ConsoleEvent::SelectTab(tab.job_id.clone()));
+                    }
+                }
+                if !hidden.is_empty() {
+                    let more = ax_ghost_button(
+                        ui,
+                        &format!("+{}", hidden.len()),
+                        "More console tabs",
+                        p.muted,
+                    );
+                    egui::Popup::menu(&more).show(|ui| {
+                        for tab in hidden {
+                            if ui
+                                .selectable_label(
+                                    tab.active,
+                                    RichText::new(&tab.label)
+                                        .font(FontId::monospace(theme::SIZE_CAPTION)),
+                                )
+                                .clicked()
+                            {
+                                event = Some(ConsoleEvent::SelectTab(tab.job_id.clone()));
+                            }
+                        }
+                    });
+                }
+            });
         });
     });
     ui.add_space(theme::Space::S6.px());
@@ -76,6 +109,56 @@ pub(crate) fn console(
                 });
         });
     event
+}
+
+/// Which tabs fit in `width` (newest first, in order), and which fold into
+/// the "+N" menu. The active tab always stays on the strip: when it would
+/// fold, it takes the last visible slot instead. Nothing here scrolls —
+/// a hidden-scrollbar strip has no affordance, and its off-screen tabs are
+/// exactly the overflow the sweep's invariant flags.
+fn tabs_that_fit<'a>(
+    ui: &egui::Ui,
+    tabs: &'a [ConsoleTab],
+    width: f32,
+) -> (Vec<&'a ConsoleTab>, Vec<&'a ConsoleTab>) {
+    let gap = theme::Space::S6.px();
+    let more_reserve = 40.0;
+    let widths: Vec<f32> = tabs.iter().map(|t| tab_width(ui, t)).collect();
+    let mut used = 0.0;
+    let mut cut = tabs.len();
+    for (i, w) in widths.iter().enumerate() {
+        let need = used
+            + w
+            + if i + 1 < tabs.len() {
+                gap + more_reserve
+            } else {
+                0.0
+            };
+        if need > width && i > 0 {
+            cut = i;
+            break;
+        }
+        used += w + gap;
+    }
+    let mut shown: Vec<&ConsoleTab> = tabs[..cut].iter().collect();
+    let mut hidden: Vec<&ConsoleTab> = tabs[cut..].iter().collect();
+    if let Some(pos) = hidden.iter().position(|t| t.active) {
+        let active = hidden.remove(pos);
+        if let Some(last) = shown.pop() {
+            hidden.insert(0, last);
+        }
+        shown.push(active);
+    }
+    (shown, hidden)
+}
+
+fn tab_width(ui: &egui::Ui, tab: &ConsoleTab) -> f32 {
+    let galley = ui.painter().layout_no_wrap(
+        tab.label.clone(),
+        FontId::monospace(theme::SIZE_CAPTION),
+        egui::Color32::WHITE,
+    );
+    galley.size().x + 6.0 + theme::Space::S8.px() * 2.0 + theme::Space::S6.px()
 }
 
 /// A tab: status dot + monospace label in a pill; the active tab is filled.

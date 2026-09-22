@@ -65,6 +65,8 @@ pub(crate) struct LocalState {
     pub sidebar_hidden: bool,
     /// The toolbar search text; narrows the provider list.
     pub query: String,
+    /// The Overview attention item whose fix panel is open.
+    pub selected_attention: Option<String>,
 }
 
 /// Everything the views can ask the engine to do. The frame is pure — it
@@ -369,23 +371,39 @@ pub(crate) fn frame(
                     .corner_radius(CornerRadius::same(theme::RADIUS_CONTROL))
                     .inner_margin(theme::margin(theme::Space::S12, theme::Space::S8))
                     .show(ui, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.label(RichText::new(toast).size(theme::SIZE_BODY));
-                            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        // The button is placed first, from the right, so the
+                        // notice wraps into what is left. An unwrapped label
+                        // here once widened this Ui's max_rect (egui unions an
+                        // oversized widget into it), and every pane below then
+                        // laid out for a window ~150pt wider than the real one
+                        // — the cascade behind the 2026-09-22 collision report.
+                        ui.set_width(ui.available_width());
+                        egui::containers::Sides::new().shrink_left().show(
+                            ui,
+                            |ui| {
+                                ui.add(
+                                    egui::Label::new(RichText::new(toast).size(theme::SIZE_BODY))
+                                        .wrap(),
+                                );
+                            },
+                            |ui| {
                                 if ax_button(ui, "Dismiss", "Dismiss notice", None, true).clicked()
                                 {
                                     cmds.push(EngineCmd::DismissToast);
                                 }
-                            });
-                        });
+                            },
+                        );
                     });
                 ui.add_space(theme::Space::S8.px());
             }
             if let Some(warning) = &snapshot.state_warning {
-                ui.label(
-                    RichText::new(warning)
-                        .color(p.warn)
-                        .size(theme::SIZE_CAPTION),
+                ui.add(
+                    egui::Label::new(
+                        RichText::new(warning)
+                            .color(p.warn)
+                            .size(theme::SIZE_CAPTION),
+                    )
+                    .wrap(),
                 );
                 ui.add_space(theme::Space::S6.px());
             }
@@ -460,6 +478,8 @@ pub(crate) fn frame(
                             busy: &busy,
                             insights: &snapshot.insights,
                             dismissed: &snapshot.dismissed_insights,
+                            selected_attention: local.selected_attention.as_deref(),
+                            running_jobs,
                         };
                         match overview(ui, p, &state) {
                             Some(OverviewEvent::Start {
@@ -481,6 +501,9 @@ pub(crate) fn frame(
                             }
                             Some(OverviewEvent::ExportReport) => {
                                 cmds.push(EngineCmd::ExportPosture);
+                            }
+                            Some(OverviewEvent::SelectAttention(key)) => {
+                                local.selected_attention = Some(key);
                             }
                             None => {}
                         }
@@ -958,7 +981,12 @@ pub(crate) fn ax_button(
         None => RichText::new(text),
     };
     let backdrop = ui.painter().add(egui::Shape::Noop);
-    let button = egui::Button::new(rich).fill(theme::NO_FILL);
+    // Never wrap inside the pill: in a `horizontal_wrapped` row the last
+    // button used to be squeezed into the remaining sliver and break its own
+    // label ("Uninst / all") instead of moving to the next line.
+    let button = egui::Button::new(rich)
+        .fill(theme::NO_FILL)
+        .wrap_mode(egui::TextWrapMode::Extend);
     let response = ui.add_enabled(enabled, button);
     let label = ax_label.to_string();
     response.widget_info(move || {
@@ -1222,7 +1250,7 @@ mod tests {
         let seen: std::sync::Arc<std::sync::Mutex<Vec<EngineCmd>>> = Default::default();
         let sink = std::sync::Arc::clone(&seen);
         let mut h = harness_themed(
-            egui::vec2(900.0, 720.0),
+            egui::vec2(900.0, 1400.0),
             true,
             paint("overview", true, sink),
         );

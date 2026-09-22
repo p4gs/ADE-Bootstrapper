@@ -925,6 +925,101 @@ pub fn shell_display(argv: &[String]) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Overview stat tiles (Taphouse Health)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StatTile {
+    pub icon: Icon,
+    /// The big number or short value.
+    pub value: String,
+    /// One-word label under the value.
+    pub label: String,
+    /// Small caption under the label.
+    pub caption: String,
+    /// Tints the tile; `Neutral` for a quiet fact.
+    pub tone: Tone,
+}
+
+/// The four tiles across the top of the Overview, in a fixed order so the eye
+/// learns where each fact lives: needs attention, coverage, updates, jobs.
+/// A zero renders as a quiet neutral tile, never as a hidden one.
+pub fn overview_tiles(verdict: &HealthVerdict, running_jobs: usize) -> Vec<StatTile> {
+    let attention = verdict.action_items().count();
+    let errors = verdict
+        .action_items()
+        .any(|item| item.level == FindingLevel::Error);
+    let updates = verdict.updates().count();
+    let counts = &verdict.counts;
+    vec![
+        StatTile {
+            icon: Icon::TriangleAlert,
+            value: attention.to_string(),
+            label: if attention == 1 {
+                "needs attention".to_string()
+            } else {
+                "need attention".to_string()
+            },
+            caption: if attention == 0 {
+                "nothing to fix".to_string()
+            } else if errors {
+                "including a broken guardrail".to_string()
+            } else {
+                "gaps in coverage".to_string()
+            },
+            tone: if attention == 0 {
+                Tone::Ok
+            } else if errors {
+                Tone::Err
+            } else {
+                Tone::Warn
+            },
+        },
+        StatTile {
+            icon: Icon::ShieldCheck,
+            value: format!("{} of {}", counts.groups_covered, counts.groups_total),
+            label: "covered".to_string(),
+            caption: "capabilities with a working provider".to_string(),
+            tone: if counts.groups_covered == counts.groups_total {
+                Tone::Ok
+            } else {
+                Tone::Neutral
+            },
+        },
+        StatTile {
+            icon: Icon::CircleArrowUp,
+            value: updates.to_string(),
+            label: if updates == 1 {
+                "update".to_string()
+            } else {
+                "updates".to_string()
+            },
+            caption: "available to install".to_string(),
+            tone: if updates > 0 {
+                Tone::Accent
+            } else {
+                Tone::Neutral
+            },
+        },
+        StatTile {
+            icon: Icon::Activity,
+            value: running_jobs.to_string(),
+            label: if running_jobs == 1 {
+                "job running".to_string()
+            } else {
+                "jobs running".to_string()
+            },
+            caption: "install and update work in flight".to_string(),
+            tone: if running_jobs > 0 {
+                Tone::Accent
+            } else {
+                Tone::Neutral
+            },
+        },
+    ]
+}
+
+// ---------------------------------------------------------------------------
 // Console drawer (Homebrew bottom console)
 // ---------------------------------------------------------------------------
 
@@ -1605,6 +1700,54 @@ mod tests {
         let overview = toolbar_model("no-such-scope", &CAPABILITY_GROUPS, &verdict);
         assert_eq!(overview.title, "Overview");
         assert_eq!(overview.subtitle, verdict.headline);
+    }
+
+    #[test]
+    fn overview_tiles_keep_their_order_and_tone_by_state() {
+        let mut caps = all_healthy();
+        let verdict = build_verdict(&caps);
+        let tiles = overview_tiles(&verdict, 0);
+        assert_eq!(tiles.len(), 4);
+        assert_eq!(tiles[0].value, "0");
+        assert_eq!(tiles[0].tone, Tone::Ok);
+        assert_eq!(tiles[0].label, "need attention");
+        assert_eq!(
+            tiles[1].value,
+            format!(
+                "{} of {}",
+                verdict.counts.groups_covered, verdict.counts.groups_total
+            )
+        );
+        assert_eq!(tiles[1].tone, Tone::Ok);
+        assert_eq!(tiles[2].value, "0");
+        assert_eq!(tiles[2].tone, Tone::Neutral);
+        assert_eq!(tiles[3].label, "jobs running");
+
+        let hole = find(&mut caps, "nono");
+        hole.installed = false;
+        hole.version = None;
+        let upd = find(&mut caps, "rtk");
+        upd.update_available = true;
+        upd.latest_version = Some("9.9.9".into());
+        let verdict = build_verdict(&caps);
+        let tiles = overview_tiles(&verdict, 1);
+        assert_eq!(tiles[0].value, "1");
+        assert_eq!(tiles[0].label, "needs attention");
+        assert_eq!(tiles[0].tone, Tone::Warn);
+        assert_eq!(tiles[1].tone, Tone::Neutral);
+        assert_eq!(tiles[2].value, verdict.updates().count().to_string());
+        assert_eq!(tiles[3].value, "1");
+        assert_eq!(tiles[3].label, "job running");
+        assert_eq!(tiles[3].tone, Tone::Accent);
+
+        let broken = find(&mut caps, "openwiki");
+        broken.issues.push(Finding {
+            level: FindingLevel::Error,
+            message: "probe failed".into(),
+            remediation: None,
+        });
+        let verdict = build_verdict(&caps);
+        assert_eq!(overview_tiles(&verdict, 0)[0].tone, Tone::Err);
     }
 
     #[test]

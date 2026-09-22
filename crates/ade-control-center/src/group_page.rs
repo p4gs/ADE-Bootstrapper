@@ -33,6 +33,13 @@ pub(crate) fn inspector_width(content_width: f32) -> f32 {
     (content_width * INSPECTOR_SHARE).clamp(INSPECTOR_MIN_WIDTH, INSPECTOR_MAX_WIDTH)
 }
 
+/// The drawer's full height on a tall page, but never more than ~38% of
+/// the page: at the 560pt minimum window a fixed 200pt drawer left the
+/// list one half-clipped row and the inspector its title alone.
+pub(crate) fn console_height(page_height: f32) -> f32 {
+    CONSOLE_HEIGHT.min(page_height * 0.38).max(120.0)
+}
+
 pub(crate) fn group_page(
     ui: &mut egui::Ui,
     p: &theme::Palette,
@@ -72,7 +79,7 @@ pub(crate) fn group_page(
     let full = ui.available_rect_before_wrap();
     let console_visible = !local.console_hidden && !snapshot.jobs.is_empty();
     let content_bottom = if console_visible {
-        full.bottom() - CONSOLE_HEIGHT
+        full.bottom() - console_height(full.height())
     } else {
         full.bottom()
     };

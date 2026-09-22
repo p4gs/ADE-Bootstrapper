@@ -21,6 +21,8 @@ mod projects;
 mod provider_list;
 mod sidebar;
 #[cfg(test)]
+mod stress;
+#[cfg(test)]
 mod testkit;
 mod theme;
 

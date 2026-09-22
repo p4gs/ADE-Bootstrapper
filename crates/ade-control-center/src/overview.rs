@@ -12,13 +12,17 @@
 //! recomputes health.
 
 use crate::app::{ax_button, ax_ghost_button, content_column, row_hairline, status_dot_at, Dot};
+use crate::icons;
+use crate::provider_list::tone_pair;
 use crate::theme;
 use ade_core::gui::insights::Insight;
 use ade_core::gui::inventory::LifecycleAction;
 use ade_core::gui::verdict::{
     AttentionItem, CoverageRow, CoverageState, HealthCounts, HealthVerdict, Verdict,
 };
+use ade_core::gui::views::{fix_panel_model, overview_tiles, StatTile, Tone};
 use ade_core::types::FindingLevel;
+use egui::emath::GuiRounding;
 use egui::RichText;
 use std::collections::HashSet;
 
@@ -40,6 +44,8 @@ pub(crate) enum OverviewEvent {
     DismissInsight(String),
     /// Phase I: write the posture evidence report to disk.
     ExportReport,
+    /// Open this attention item's fix panel (by `attention_key`).
+    SelectAttention(String),
 }
 
 /// Everything the Overview needs to draw itself.
@@ -72,6 +78,21 @@ pub(crate) struct OverviewState<'a> {
     pub insights: &'a [Insight],
     /// Phase H — dismissed `Insight::id`s.
     pub dismissed: &'a HashSet<String>,
+    /// The attention item whose fix panel is open, by `attention_key`;
+    /// `None` or a stale key selects the first item.
+    pub selected_attention: Option<&'a str>,
+    /// Jobs in flight, for the stat tiles.
+    pub running_jobs: usize,
+}
+
+/// The stable key an attention item is selected by: the capability for a
+/// provider-level item, the group for a group-level gap.
+pub(crate) fn attention_key(item: &AttentionItem) -> &str {
+    if item.capability_id.is_empty() {
+        &item.group_id
+    } else {
+        &item.capability_id
+    }
 }
 
 /// Which of the four designed states the attention box is in.
@@ -150,6 +171,8 @@ pub(crate) fn overview(
                     .size(theme::SIZE_BODY),
             );
         }
+        ui.add_space(theme::Space::S12.px());
+        stat_tiles(ui, p, &overview_tiles(state.verdict, state.running_jobs));
         ui.add_space(theme::Space::S16.px());
 
         let box_state = attention_box(state);
@@ -217,7 +240,7 @@ pub(crate) fn overview(
                         });
                     }
                 }
-                AttentionBox::Items(items) => attention_rows(ui, p, &items, state.busy, &mut event),
+                AttentionBox::Items(items) => attention_split(ui, p, &items, state, &mut event),
                 AttentionBox::AllClear => all_clear(ui, p, &state.verdict.counts, just_cleared),
                 AttentionBox::CheckFailed(error) => check_failed(ui, p, error, &mut event),
             }
@@ -363,6 +386,259 @@ fn welcome_banner(
     );
 }
 
+/// The four stat tiles across the top (Taphouse Health): equal widths, a
+/// status tint, the icon in the tone's ink, a big value, a label, a caption.
+fn stat_tiles(ui: &mut egui::Ui, p: &theme::Palette, tiles: &[StatTile]) {
+    let gap = theme::Space::S12.px();
+    // Four across when each tile gets a readable width, otherwise two rows
+    // of two — a 130pt tile elides every caption to nothing useful.
+    const MIN_TILE: f32 = 150.0;
+    let per_row = if ui.available_width() >= tiles.len() as f32 * MIN_TILE + gap * 3.0 {
+        tiles.len().max(1)
+    } else {
+        2
+    };
+    let count = per_row as f32;
+    let width = ((ui.available_width() - gap * (count - 1.0)) / count).max(120.0);
+    let height = 96.0;
+    ui.spacing_mut().item_spacing.y = gap;
+    for row in tiles.chunks(per_row) {
+        ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = gap;
+            for tile in row {
+                let (rect, _) =
+                    ui.allocate_exact_size(egui::vec2(width, height), egui::Sense::hover());
+                let (tint, ink) = tone_pair(p, tile.tone);
+                let fill = if tile.tone == Tone::Neutral {
+                    p.panel
+                } else {
+                    theme::blend_over(p.panel, tint)
+                };
+                let ppp = ui.pixels_per_point();
+                let rect = rect.round_to_pixels(ppp);
+                ui.painter().rect(
+                    rect,
+                    egui::CornerRadius::same(theme::RADIUS_CONTAINER),
+                    fill,
+                    egui::Stroke::new(1.0, p.line),
+                    egui::StrokeKind::Inside,
+                );
+                let pad = theme::Space::S16.px();
+                let icon_ink = if tile.tone == Tone::Neutral {
+                    p.muted
+                } else {
+                    ink
+                };
+                let glyph = ui.painter().layout_no_wrap(
+                    icons::glyph(tile.icon).to_string(),
+                    theme::icon_font(16.0),
+                    icon_ink,
+                );
+                ui.painter().galley(
+                    egui::pos2(rect.left() + pad, rect.top() + pad - 2.0),
+                    glyph,
+                    icon_ink,
+                );
+                let value = ui.painter().layout_no_wrap(
+                    tile.value.clone(),
+                    theme::semibold(theme::SIZE_DISPLAY),
+                    p.text,
+                );
+                let value_y = rect.top() + pad + 18.0;
+                ui.painter().galley(
+                    egui::pos2(rect.left() + pad, value_y),
+                    value.clone(),
+                    p.text,
+                );
+                let label = ui.painter().layout_no_wrap(
+                    tile.label.clone(),
+                    theme::medium(theme::SIZE_BODY),
+                    p.text,
+                );
+                let label_y = value_y + value.size().y + theme::Space::S2.px();
+                ui.painter().galley(
+                    egui::pos2(rect.left() + pad, label_y),
+                    label.clone(),
+                    p.text,
+                );
+                let caption = crate::nav::elided(
+                    ui,
+                    &tile.caption,
+                    p.muted,
+                    egui::FontId::proportional(theme::SIZE_CAPTION),
+                    width - 2.0 * pad,
+                );
+                ui.painter().galley(
+                    egui::pos2(rect.left() + pad, label_y + label.size().y),
+                    caption,
+                    p.muted,
+                );
+            }
+        });
+    }
+}
+
+/// The attention list beside its fix panel (Homebrew Doctor): a selectable
+/// list on the left, the selected item's explanation, exact command and Run
+/// button on the right.
+fn attention_split(
+    ui: &mut egui::Ui,
+    p: &theme::Palette,
+    items: &[&AttentionItem],
+    state: &OverviewState<'_>,
+    event: &mut Option<OverviewEvent>,
+) {
+    let selected: &AttentionItem = state
+        .selected_attention
+        .and_then(|key| items.iter().find(|i| attention_key(i) == key).copied())
+        .unwrap_or(items[0]);
+    let full = ui.available_rect_before_wrap();
+    let panel_width = (full.width() * 0.42).clamp(260.0, 360.0);
+    let gap = theme::Space::S16.px();
+    let list_rect = egui::Rect::from_min_size(
+        full.min,
+        egui::vec2(full.width() - panel_width - gap, f32::INFINITY),
+    );
+    let panel_x = full.right() - panel_width;
+    let mut list_bottom = full.top();
+    ui.scope_builder(egui::UiBuilder::new().max_rect(list_rect), |ui| {
+        for (index, item) in items.iter().enumerate() {
+            if index > 0 {
+                row_hairline(ui, p);
+            }
+            let is_selected = std::ptr::eq(*item, selected);
+            if attention_row(ui, p, item, is_selected).clicked() {
+                *event = Some(OverviewEvent::SelectAttention(
+                    attention_key(item).to_string(),
+                ));
+            }
+        }
+        list_bottom = ui.min_rect().bottom();
+    });
+    let panel_rect = egui::Rect::from_min_max(
+        egui::pos2(panel_x, full.top()),
+        egui::pos2(full.right(), f32::INFINITY),
+    );
+    let mut panel_bottom = full.top();
+    ui.scope_builder(egui::UiBuilder::new().max_rect(panel_rect), |ui| {
+        fix_panel(ui, p, selected, state.busy, event);
+        panel_bottom = ui.min_rect().bottom();
+    });
+    let bottom = list_bottom.max(panel_bottom);
+    // Vertical hairline between the panes, and claim the used height.
+    let ppp = ui.pixels_per_point();
+    ui.painter().vline(
+        theme::snap_y(panel_x - gap * 0.5, ppp),
+        full.top()..=bottom,
+        egui::Stroke::new(1.0 / ppp, p.hairline),
+    );
+    ui.allocate_rect(
+        egui::Rect::from_min_max(full.min, egui::pos2(full.right(), bottom)),
+        egui::Sense::hover(),
+    );
+}
+
+/// The right pane: eyebrow pill, headline, why, note, then the exact
+/// command the Run button executes (with Copy), or the manual guidance.
+fn fix_panel(
+    ui: &mut egui::Ui,
+    p: &theme::Palette,
+    item: &AttentionItem,
+    busy: &HashSet<String>,
+    event: &mut Option<OverviewEvent>,
+) {
+    let model = fix_panel_model(item);
+    let (tint, ink) = tone_pair(p, model.tone);
+    ui.spacing_mut().item_spacing.y = theme::Space::S6.px();
+    let eyebrow =
+        ui.painter()
+            .layout_no_wrap(model.eyebrow.to_uppercase(), theme::semibold(9.0), ink);
+    let pill = egui::vec2(
+        eyebrow.size().x + theme::Space::S8.px(),
+        eyebrow.size().y + 4.0,
+    );
+    let (rect, _) = ui.allocate_exact_size(pill, egui::Sense::hover());
+    ui.painter()
+        .rect_filled(rect, egui::CornerRadius::same((pill.y * 0.5) as u8), tint);
+    ui.painter()
+        .galley(rect.center() - eyebrow.size() * 0.5, eyebrow, ink);
+    ui.label(
+        RichText::new(&model.headline)
+            .font(theme::semibold(theme::SIZE_SECTION))
+            .color(p.text),
+    );
+    ui.label(
+        RichText::new(&model.why)
+            .color(p.muted)
+            .size(theme::SIZE_BODY),
+    );
+    if let Some(note) = &model.note {
+        ui.label(RichText::new(note).color(p.muted).size(theme::SIZE_CAPTION));
+    }
+    ui.add_space(theme::Space::S4.px());
+    if let Some(command) = &model.command {
+        ui.label(
+            RichText::new("To fix this, run:")
+                .color(p.muted)
+                .size(theme::SIZE_CAPTION),
+        );
+        egui::Frame::new()
+            .fill(p.inset)
+            .stroke(egui::Stroke::new(1.0, p.line))
+            .corner_radius(egui::CornerRadius::same(theme::RADIUS_CONTROL))
+            .inner_margin(theme::margin(theme::Space::S12, theme::Space::S8))
+            .show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                // The argv wraps inside the box. Unwrapped, a long install
+                // command widened the panel, and with it every Ui below —
+                // the same cascade the toast caused (fresh-machine fixture,
+                // caught by the Export test's click landing at x=1260 in a
+                // 760pt harness).
+                egui::containers::Sides::new().shrink_left().show(
+                    ui,
+                    |ui| {
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new(command)
+                                    .font(egui::FontId::monospace(theme::SIZE_CAPTION))
+                                    .color(p.text),
+                            )
+                            .wrap(),
+                        );
+                    },
+                    |ui| {
+                        if ax_ghost_button(ui, "Copy", "Copy fix command", p.muted).clicked() {
+                            ui.ctx().copy_text(command.clone());
+                        }
+                    },
+                );
+            });
+    }
+    if let Some(guidance) = &model.guidance {
+        ui.label(RichText::new(guidance).color(p.text).size(theme::SIZE_BODY));
+    }
+    ui.add_space(theme::Space::S4.px());
+    if let (Some(label), Some(capability_id), Some(lifecycle)) =
+        (&model.run_label, &model.capability_id, model.lifecycle)
+    {
+        if busy.contains(capability_id) {
+            ui.horizontal(|ui| {
+                ui.add(egui::Spinner::new().size(14.0).color(p.muted));
+                ui.label(
+                    RichText::new("working…")
+                        .color(p.muted)
+                        .size(theme::SIZE_CAPTION),
+                );
+            });
+        } else if ax_button(ui, label, label, Some(p.accent), true).clicked() {
+            *event = Some(OverviewEvent::Start {
+                capability_id: capability_id.clone(),
+                action: lifecycle,
+            });
+        }
+    }
+}
+
 fn attention_rows(
     ui: &mut egui::Ui,
     p: &theme::Palette,
@@ -370,86 +646,99 @@ fn attention_rows(
     busy: &HashSet<String>,
     event: &mut Option<OverviewEvent>,
 ) {
+    let _ = busy;
     for (index, item) in items.iter().enumerate() {
         if index > 0 {
             row_hairline(ui, p);
         }
-        attention_row(ui, p, item, busy, event);
+        if attention_row(ui, p, item, false).clicked() {
+            *event = Some(OverviewEvent::SelectAttention(
+                attention_key(item).to_string(),
+            ));
+        }
     }
 }
 
-/// One attention row: painted status mark, the computed sentence, its context,
-/// and the ONE action the verdict derived for it.
+/// One attention row: painted status mark, the computed sentence and its
+/// context; selectable, with the selected row washed (Homebrew Doctor's
+/// highlighted warning). The action lives in the fix panel.
 fn attention_row(
     ui: &mut egui::Ui,
     p: &theme::Palette,
     item: &AttentionItem,
-    busy: &HashSet<String>,
-    event: &mut Option<OverviewEvent>,
-) {
-    egui::containers::Sides::new()
-        .height(theme::ROW_HEIGHT)
-        .shrink_left()
-        .show(
-            ui,
-            |ui| {
-                // Only items at warning level or worse reach this list, so the
-                // mark is a two-way split: red for an error, amber otherwise.
-                let dot = if item.level == FindingLevel::Error {
-                    Dot::Err
-                } else {
-                    Dot::Warn
-                };
-                let caption = item.note.as_deref().unwrap_or(&item.why);
-                crate::app::mark_beside_block(
-                    ui,
-                    p,
-                    Some(dot),
-                    RichText::new(&item.title),
-                    theme::semibold(theme::SIZE_BODY),
-                    (!caption.is_empty()).then(|| {
-                        RichText::new(caption)
-                            .color(p.muted)
-                            .size(theme::SIZE_CAPTION)
-                    }),
-                    (!caption.is_empty()).then_some(caption),
-                );
-            },
-            |ui| {
-                let Some(action) = &item.action else { return };
-                // The first click a user can make in the app used to give
-                // zero feedback while its job ran — this is `row.rs`'s
-                // `primary_action` busy slot, ported verbatim.
-                if busy.contains(&action.capability_id) {
-                    ui.add(egui::Spinner::new().size(14.0).color(p.muted));
-                    ui.label(
-                        RichText::new("working…")
-                            .color(p.muted)
-                            .size(theme::SIZE_CAPTION),
-                    );
-                    return;
-                }
-                match &action.guidance {
-                    // No automated recipe exists, so the honest offer is the
-                    // instructions — a ghost button, not a primary that
-                    // cannot work. Clicking runs nothing.
-                    Some(guidance) => {
-                        ax_ghost_button(ui, &action.label, &action.label, p.info)
-                            .on_hover_text(guidance);
-                    }
-                    None => {
-                        if ax_button(ui, &action.label, &action.label, Some(p.accent), true)
-                            .clicked()
-                        {
-                            *event = Some(OverviewEvent::Start {
-                                capability_id: action.capability_id.clone(),
-                                action: action.lifecycle,
-                            });
-                        }
-                    }
-                }
+    selected: bool,
+) -> egui::Response {
+    let size = egui::vec2(ui.available_width(), theme::ROW_HEIGHT);
+    let (rect, response) = ui.allocate_exact_size(size, egui::Sense::click());
+    let ax = format!("Attention {}", item.title);
+    response.widget_info(move || {
+        egui::WidgetInfo::selected(
+            egui::WidgetType::SelectableLabel,
+            true,
+            selected,
+            ax.clone(),
+        )
+    });
+    let ppp = ui.pixels_per_point();
+    let radius = egui::CornerRadius::same(theme::RADIUS_CONTROL);
+    if selected {
+        let (tint, _) = tone_pair(
+            p,
+            if item.level == FindingLevel::Error {
+                Tone::Err
+            } else {
+                Tone::Warn
             },
         );
+        ui.painter()
+            .rect_filled(rect.round_to_pixels(ppp), radius, tint);
+    } else if response.hovered() {
+        ui.painter()
+            .rect_filled(rect.round_to_pixels(ppp), radius, p.row_hover);
+    }
+    // Only items at warning level or worse reach this list, so the mark is a
+    // two-way split: red for an error, amber otherwise.
+    let dot = if item.level == FindingLevel::Error {
+        Dot::Err
+    } else {
+        Dot::Warn
+    };
+    let pad = theme::Space::S12.px();
+    let mark = egui::Rect::from_center_size(
+        egui::pos2(rect.left() + pad + 5.0, rect.center().y),
+        egui::vec2(10.0, 10.0),
+    );
+    status_dot_at(ui, mark, dot, p);
+    let text_left = mark.right() + theme::Space::S8.px();
+    let caption = item.note.as_deref().unwrap_or(&item.why);
+    let title = crate::nav::elided(
+        ui,
+        &item.title,
+        p.text,
+        theme::semibold(theme::SIZE_BODY),
+        rect.right() - pad - text_left,
+    );
+    let title_h = title.size().y;
+    let has_caption = !caption.is_empty();
+    let top = if has_caption {
+        rect.center().y - (title_h + theme::SIZE_CAPTION + 4.0) * 0.5
+    } else {
+        rect.center().y - title_h * 0.5
+    };
+    ui.painter()
+        .galley(egui::pos2(text_left, top), title, p.text);
+    if has_caption {
+        let cap = crate::nav::elided(
+            ui,
+            caption,
+            p.muted,
+            egui::FontId::proportional(theme::SIZE_CAPTION),
+            rect.right() - pad - text_left,
+        );
+        ui.painter()
+            .galley(egui::pos2(text_left, top + title_h + 2.0), cap, p.muted);
+    }
+    response
 }
 
 // ───────────────────────── Phase H — insights ─────────────────────────
@@ -845,6 +1134,11 @@ mod tests {
         dismissed: HashSet<String>,
         sink: Arc<Mutex<Vec<OverviewEvent>>>,
     ) -> impl FnMut(&mut egui::Ui) + 'static {
+        // The fix panel shows the SELECTED item's action, so the painter
+        // keeps the selection the same way the shell does: a
+        // `SelectAttention` event changes what the next frame shows and is
+        // not forwarded to the sink (the shell never sends it anywhere).
+        let mut selected: Option<String> = None;
         move |ui| {
             let p = crate::theme::palette(dark);
             let verdict = build_verdict(&caps);
@@ -861,9 +1155,13 @@ mod tests {
                 busy: &busy,
                 insights: &insights,
                 dismissed: &dismissed,
+                selected_attention: selected.as_deref(),
+                running_jobs: 0,
             };
-            if let Some(event) = overview(ui, &p, &state) {
-                sink.lock().expect("sink").push(event);
+            match overview(ui, &p, &state) {
+                Some(OverviewEvent::SelectAttention(key)) => selected = Some(key),
+                Some(event) => sink.lock().expect("sink").push(event),
+                None => {}
             }
         }
     }
@@ -892,7 +1190,9 @@ mod tests {
             paint(mixed(), true, true, None, sink),
         );
         // The prior items stay in the tree while dimmed.
-        assert!(h.query_by_label("Install nono").is_some());
+        assert!(h
+            .query_by_label("Attention Execution Sandboxing has no provider installed.")
+            .is_some());
         h.snapshot("overview_checking");
     }
 
@@ -946,6 +1246,8 @@ mod tests {
             busy: &busy,
             insights: &insights,
             dismissed: &dismissed,
+            selected_attention: None,
+            running_jobs: 0,
         };
         assert!(matches!(
             attention_box(&state(&healthy, false, None)),
@@ -983,7 +1285,11 @@ mod tests {
             true,
             paint(mixed(), true, false, None, sink),
         );
+        // The broken tool ranks first, so its panel is open by default.
         h.get_by_label("Reinstall RTK").click();
+        h.run_steps(2);
+        h.get_by_label("Attention Execution Sandboxing has no provider installed.")
+            .click();
         h.run_steps(2);
         h.get_by_label("Install nono").click();
         h.run_steps(2);
@@ -1016,11 +1322,14 @@ mod tests {
             true,
             paint_busy(mixed(), true, false, None, busy, sink),
         );
+        // The OTHER attention action (rtk's Reinstall, open by default) is
+        // untouched — busy is per-capability, not a blanket freeze.
+        assert!(h.query_by_label("Reinstall RTK").is_some());
+        h.get_by_label("Attention Execution Sandboxing has no provider installed.")
+            .click();
+        h.run_steps(2);
         assert!(h.query_by_label("Install nono").is_none());
         assert!(h.get_all_by_label("working…").next().is_some());
-        // The OTHER attention action (rtk's Reinstall) is untouched — busy is
-        // per-capability, not a blanket freeze of the whole list.
-        assert!(h.query_by_label("Reinstall RTK").is_some());
         h.snapshot("overview_attention_busy");
         assert!(seen.lock().expect("sink").is_empty());
     }
@@ -1036,8 +1345,12 @@ mod tests {
             true,
             paint(mixed(), true, false, None, sink),
         );
-        h.get_by_label("How to install CocoIndex").click();
+        h.get_by_label("Attention Semantic Code Search has no provider installed.")
+            .click();
         h.run_steps(2);
+        assert!(h.query_by_label_contains("Install from").is_some());
+        assert!(h.query_by_label("Install CocoIndex").is_none());
+        assert!(h.query_by_label_contains("To fix this, run").is_none());
         assert!(seen.lock().expect("sink").is_empty());
     }
 
@@ -1143,6 +1456,8 @@ mod tests {
                 busy: &busy,
                 insights: &insights,
                 dismissed: &dismissed,
+                selected_attention: None,
+                running_jobs: 0,
             };
             overview(ui, &p, &state);
         });
@@ -1430,7 +1745,7 @@ mod tests {
     /// "Export report" is present and reports its own event on every
     /// verdict shape — a rarely-used but always-available action.
     ///
-    /// Height 1400 (vs. the ~760-820 other Overview tests use): the button
+    /// Height 2000 (vs. the ~760-820 other Overview tests use): the button
     /// sits below Coverage's full 10-row list, and this harness paints
     /// `overview()` directly with no `ScrollArea` — the live app wraps the
     /// same content in `egui::ScrollArea::vertical()` (`app.rs`), which is
@@ -1439,15 +1754,16 @@ mod tests {
     /// harness's clip rect and a synthetic click on it silently hits
     /// nothing — `get_by_label` still finds the widget (accessibility
     /// nodes are clip-independent) but `.clicked()` never fires. Tall
-    /// enough for all three fixtures, including `all_healthy()`'s 10
-    /// silent-but-present coverage rows.
+    /// enough for all three fixtures, including `fresh_machine()`'s welcome
+    /// banner, its full attention list with the fix panel, and the 10
+    /// coverage rows.
     #[test]
     fn export_report_is_always_offered_and_reports_its_own_event() {
         for caps in [all_healthy(), mixed(), fresh_machine()] {
             let seen: Arc<Mutex<Vec<OverviewEvent>>> = Default::default();
             let sink = Arc::clone(&seen);
             let mut h = harness_themed(
-                egui::vec2(760.0, 1400.0),
+                egui::vec2(760.0, 2000.0),
                 true,
                 paint(caps, true, false, None, sink),
             );

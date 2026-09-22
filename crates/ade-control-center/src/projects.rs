@@ -18,6 +18,7 @@ use crate::data::{ProjectReport, ProjectSummary, Shared};
 use crate::theme;
 use ade_core::gui::inventory::{CapabilityGroup, CAPABILITY_GROUPS};
 use ade_core::gui::stats::{module_for_group, module_state_covers};
+use ade_core::gui::views::group_icon;
 use ade_core::report::StatusRow;
 use ade_core::types::{Finding, FindingLevel};
 use egui::{Align, Layout, RichText, Stroke};
@@ -171,7 +172,7 @@ pub(crate) fn projects_view(
 /// Wide enough for a realistic repo name ("nthpartyfinder", "grce-design-system")
 /// without truncating to a handful of letters — the full path is always a
 /// hover away regardless.
-const PROJECT_COLUMN_WIDTH: f32 = 160.0;
+const PROJECT_COLUMN_WIDTH: f32 = 128.0;
 
 fn coverage_matrix(
     ui: &mut egui::Ui,
@@ -188,7 +189,9 @@ fn coverage_matrix(
             .show(ui, |ui| {
                 egui::Grid::new("coverage-matrix")
                     .num_columns(CAPABILITY_GROUPS.len() + 1)
-                    .spacing(egui::vec2(theme::Space::S16.px(), theme::Space::S6.px()))
+                    // Grid's default minimum column is 40pt; the cells are 22.
+                    .min_col_width(22.0)
+                    .spacing(egui::vec2(theme::Space::S8.px(), theme::Space::S6.px()))
                     .show(ui, |ui| {
                         ui.label(
                             RichText::new("PROJECT")
@@ -196,13 +199,29 @@ fn coverage_matrix(
                                 .font(theme::medium(9.5))
                                 .extra_letter_spacing(0.8),
                         );
+                        // Column headers are the groups' icons, the name on
+                        // hover: eleven uppercase names at 160pt each could
+                        // never fit a window, and the horizontal scroll hid
+                        // most of the matrix at the 860pt minimum.
                         for group in CAPABILITY_GROUPS.iter() {
-                            ui.label(
-                                RichText::new(group.name.to_uppercase())
-                                    .color(p.faint_text)
-                                    .font(theme::medium(9.5))
-                                    .extra_letter_spacing(0.8),
+                            let (rect, response) = ui
+                                .allocate_exact_size(egui::vec2(22.0, 22.0), egui::Sense::hover());
+                            let glyph = ui.painter().layout_no_wrap(
+                                crate::icons::glyph(group_icon(group.id)).to_string(),
+                                theme::icon_font(14.0),
+                                p.muted,
                             );
+                            ui.painter()
+                                .galley(rect.center() - glyph.size() * 0.5, glyph, p.muted);
+                            let name = group.name.to_string();
+                            response.widget_info(move || {
+                                egui::WidgetInfo::labeled(
+                                    egui::WidgetType::Label,
+                                    true,
+                                    name.clone(),
+                                )
+                            });
+                            response.on_hover_text(group.name);
                         }
                         ui.end_row();
                         for project in &snapshot.projects {
