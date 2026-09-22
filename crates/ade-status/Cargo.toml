@@ -6,6 +6,16 @@ license.workspace = true
 
 [dependencies]
 ade-core = { version = "0.2.0", path = "../ade-core" }
+
+# AppKit is macOS-only by definition; gating the bindings here is what lets
+# `cargo build --workspace` succeed on Linux and Windows (main.rs exits 0
+# there with a one-line notice instead of a tray).
+[target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6.4"
 objc2-app-kit = "0.3.2"
 objc2-foundation = "0.3.2"
+# Already in the tree via objc2-app-kit's default "block2" feature; named
+# directly only to call the NON-deprecated, resolution-independent
+# `imageWithSize:flipped:drawingHandler:` (the deprecated lockFocus path
+# rasterizes at one scale and blurs on Retina menu bars).
+block2 = "0.6.1"

@@ -1,5 +1,5 @@
 [approved]
-cargo = ["ade-core", "eframe", "egui", "libfuzzer-sys", "objc2", "objc2-app-kit", "objc2-foundation", "regex", "serde", "serde_json", "sha2"]
+cargo = ["ade-core", "eframe", "egui", "libfuzzer-sys", "objc2", "objc2-app-kit", "objc2-foundation", "regex", "serde", "serde_json", "sha2", "egui_kittest", "raw-window-handle", "objc2-quartz-core", "block2", "dioxus", "dioxus-desktop", "dioxus-native"]
 npm = ["@types/bun", "typescript"]
 # sscsb approved-packages baseline.
 #

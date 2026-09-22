@@ -44,6 +44,16 @@ pub enum AttentionRank {
     Broken,
     /// A capability with no working provider — a genuine gap in coverage.
     Uncovered,
+    /// Phase H (`gui::insights`): a metrics-derived observation — a stale
+    /// database, an adoption gap, a value affirmation. Every `insights::Insight`
+    /// carries this exact variant as its own `rank`, so the ordinal below is a
+    /// real, load-bearing fact (`ordinal(Insight) > ordinal(Uncovered)`, held
+    /// by a test in `insights.rs`), not decoration: it is what lets the
+    /// Overview's "broken > uncovered > insight" placement be stated as a
+    /// comparison over one shared type instead of two independently-agreed
+    /// conventions that could drift apart the way the tray and the header
+    /// once did.
+    Insight,
     /// A provider is missing but its capability is already covered.
     Spare,
     /// A working provider has a newer version available.
@@ -51,12 +61,16 @@ pub enum AttentionRank {
 }
 
 impl AttentionRank {
-    fn ordinal(self) -> u8 {
+    /// `pub(crate)`, not private: `insights.rs` (a sibling module) reads this
+    /// directly in a test to hold the "broken > uncovered > insight" ordering
+    /// claim against the one real ordinal table, instead of re-deriving it.
+    pub(crate) fn ordinal(self) -> u8 {
         match self {
             AttentionRank::Broken => 0,
             AttentionRank::Uncovered => 1,
-            AttentionRank::Spare => 2,
-            AttentionRank::Update => 3,
+            AttentionRank::Insight => 2,
+            AttentionRank::Spare => 3,
+            AttentionRank::Update => 4,
         }
     }
     /// Ranks that represent something the owner should act on. `Spare` and
@@ -128,6 +142,13 @@ pub struct CoverageRow {
     pub enabled_total: usize,
     /// Right-hand status text, e.g. "TruffleHog · 1 of 2 providers".
     pub summary: String,
+    /// The provider fact a covered group leads with: the first working
+    /// provider's name. `None` whenever the group is not covered — an absent
+    /// fact renders as absent, never as a placeholder.
+    pub provider: Option<String>,
+    /// That provider's extracted version number, when the tool reports one.
+    /// A tool with no version command (a real case) leaves this `None`.
+    pub provider_version: Option<String>,
 }
 
 /// Per-capability rollup counts. `MenubarCounts` is built from this so the tray
@@ -136,6 +157,9 @@ pub struct CoverageRow {
 pub struct HealthCounts {
     pub groups_total: usize,
     pub groups_covered: usize,
+    /// Capabilities the owner has left enabled — the population every other
+    /// count is drawn from, and the number the all-clear caption reports.
+    pub enabled: u32,
     pub ok: u32,
     pub warnings: u32,
     pub errors: u32,
@@ -427,6 +451,18 @@ pub fn build_verdict(capabilities: &[CapabilityStatus]) -> HealthVerdict {
             CoverageState::Broken | CoverageState::Covered => {}
         }
 
+        // The provider fact a covered group leads with. Computed only for a
+        // covered group: a broken or absent provider has no fact to state.
+        let provider = (state == CoverageState::Covered)
+            .then(|| working.first().cloned())
+            .flatten();
+        let provider_version = provider.as_ref().and_then(|name| {
+            providers
+                .iter()
+                .find(|cap| &cap.name == name)
+                .and_then(|cap| cap.short_version())
+        });
+
         rows.push(CoverageRow {
             group_id: group.id.to_string(),
             group_name: group.name.to_string(),
@@ -434,6 +470,8 @@ pub fn build_verdict(capabilities: &[CapabilityStatus]) -> HealthVerdict {
             working,
             enabled_total: enabled_providers.len(),
             summary,
+            provider,
+            provider_version,
         });
     }
 
@@ -597,6 +635,7 @@ pub fn build_verdict(capabilities: &[CapabilityStatus]) -> HealthVerdict {
         counts: HealthCounts {
             groups_total: CAPABILITY_GROUPS.len(),
             groups_covered,
+            enabled: enabled.len() as u32,
             ok,
             warnings,
             errors,
@@ -605,15 +644,105 @@ pub fn build_verdict(capabilities: &[CapabilityStatus]) -> HealthVerdict {
     }
 }
 
+/// The coverage consequence of uninstalling one provider, as a sentence the
+/// confirm dialog can print verbatim. Derived from the same `GroupCoverage`
+/// the verdict uses, so the dialog and the Overview cannot disagree about what
+/// a removal costs. Pure: same statuses in, same sentence out. An id that
+/// resolves to nothing yields an empty string — the caller renders nothing
+/// rather than a guess.
+pub fn removal_consequence(capabilities: &[CapabilityStatus], id: &str) -> String {
+    let Some(cap) = capabilities.iter().find(|cap| cap.id == id) else {
+        return String::new();
+    };
+    let Some(group) = get_group(&cap.capability) else {
+        return String::new();
+    };
+    let coverage = GroupCoverage::from_statuses(capabilities);
+    let working = coverage.working(group.id);
+    let others: Vec<String> = working
+        .iter()
+        .filter(|name| *name != &cap.name)
+        .cloned()
+        .collect();
+    if working.iter().any(|name| name == &cap.name) {
+        // Removing a provider that is doing the covering.
+        if others.is_empty() {
+            format!("{} will have no working provider.", group.name)
+        } else {
+            format!(
+                "{} also {} {}, so coverage remains.",
+                join_human(&others),
+                if others.len() == 1 { "covers" } else { "cover" },
+                group.name
+            )
+        }
+    } else if others.is_empty() {
+        // The tool being removed was not covering anything, and nothing else
+        // is either — stated plainly so the dialog never implies the removal
+        // creates a gap that already exists.
+        format!("{} already has no working provider.", group.name)
+    } else {
+        format!("{} remains covered by {}.", group.name, join_human(&others))
+    }
+}
+
+/// One row of the bulk-install preview: a capability that is enabled but not
+/// installed machine-wide, with the REAL command its install job would run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BulkCandidate {
+    pub capability_id: String,
+    pub name: String,
+    /// What installing this fixes — the capability group's name.
+    pub group_name: String,
+    /// The exact install command, taken from the same recipe table the job
+    /// runner executes ("brew install nono") — never composed by hand. `None`
+    /// means no automated recipe exists (a manual-method capability), which
+    /// the preview shows as disabled rather than omitting.
+    pub command: Option<String>,
+}
+
+impl BulkCandidate {
+    pub fn automatable(&self) -> bool {
+        self.command.is_some()
+    }
+}
+
+/// Every enabled capability missing machine-wide, in taxonomy order. The
+/// command fact comes from `action_argvs` — the argv the job would actually
+/// execute — so the preview cannot drift from what confirming it runs. For a
+/// multi-step recipe the fact is the final (installing) command.
+pub fn bulk_install_candidates(capabilities: &[CapabilityStatus]) -> Vec<BulkCandidate> {
+    let mut missing: Vec<&CapabilityStatus> = capabilities
+        .iter()
+        .filter(|cap| cap.enabled && !cap.installed)
+        .collect();
+    missing.sort_by_key(|cap| provider_index(&cap.id));
+    missing
+        .iter()
+        .map(|cap| BulkCandidate {
+            capability_id: cap.id.clone(),
+            name: cap.name.clone(),
+            group_name: get_group(&cap.capability)
+                .map(|group| group.name.to_string())
+                .unwrap_or_default(),
+            command: crate::gui::inventory::get_capability(&cap.id)
+                .and_then(|def| crate::gui::inventory::action_argvs(def, LifecycleAction::Install))
+                .and_then(|argvs| argvs.last().map(|argv| argv.join(" "))),
+        })
+        .collect()
+}
+
 impl CoverageState {
-    /// Terminal glyph. The Control Center draws its own symbols; this is the
-    /// CLI's rendering of the same four states.
+    /// Terminal glyph — plain ASCII (Phase F). The Control Center paints its
+    /// own geometry; the CLI states the same four states in characters that
+    /// can never land on a terminal's emoji rendering path (macOS draws
+    /// U+26A0 as an orange emoji triangle).
     pub fn glyph(self) -> &'static str {
         match self {
-            CoverageState::Covered => "✓",
-            CoverageState::Broken => "✖",
-            CoverageState::Uncovered => "⚠",
-            CoverageState::Off => "○",
+            CoverageState::Covered => "ok",
+            CoverageState::Broken => "x",
+            CoverageState::Uncovered => "!",
+            CoverageState::Off => "-",
         }
     }
 }
@@ -636,8 +765,10 @@ pub fn render_health_text(health: &HealthVerdict) -> String {
             .unwrap_or(0);
         for row in &health.coverage {
             let pad = " ".repeat(width - row.group_name.chars().count());
+            // The glyph column is two characters wide ("ok" is the longest),
+            // so the group-name column stays aligned.
             out.push(format!(
-                "  {} {}{pad}   {}",
+                "  {:<2} {}{pad}   {}",
                 row.state.glyph(),
                 row.group_name,
                 row.summary
@@ -658,7 +789,7 @@ pub fn render_health_text(health: &HealthVerdict) -> String {
                 out.push(format!("    {}", item.why));
             }
             if let Some(action) = &item.action {
-                out.push(format!("    → {}", action.label));
+                out.push(format!("    -> {}", action.label));
                 // A manual capability has no recipe to run, so the step itself
                 // is the instruction — printed under the label, not instead of
                 // it, or the line reads "Install" for something already there.
@@ -674,7 +805,7 @@ pub fn render_health_text(health: &HealthVerdict) -> String {
         out.push(String::new());
         out.push("Updates available".to_string());
         for item in updates {
-            out.push(format!("  · {}", item.title));
+            out.push(format!("  - {}", item.title));
         }
     }
 
@@ -682,12 +813,12 @@ pub fn render_health_text(health: &HealthVerdict) -> String {
 }
 
 impl AttentionItem {
-    /// Terminal glyph for this item's severity.
+    /// Terminal glyph for this item's severity — plain ASCII (Phase F).
     pub fn level_glyph(&self) -> &'static str {
         match self.level {
-            FindingLevel::Error => "✖",
-            FindingLevel::Warn | FindingLevel::Degraded => "⚠",
-            _ => "·",
+            FindingLevel::Error => "x",
+            FindingLevel::Warn | FindingLevel::Degraded => "!",
+            _ => "-",
         }
     }
 }
@@ -714,6 +845,7 @@ mod tests {
             path: installed.then(|| format!("/opt/homebrew/bin/{id}")),
             version: (installed && working).then(|| "1.0.0".to_string()),
             reports_version: !def.version_args.is_empty(),
+            inactive: None,
             running: None,
             enabled: true,
             latest_version: None,
@@ -758,10 +890,70 @@ mod tests {
         );
         assert_eq!(verdict.action_items().count(), 0);
         assert_eq!(verdict.counts.groups_covered, CAPABILITY_GROUPS.len());
+        assert_eq!(verdict.counts.enabled, CAPABILITIES.len() as u32);
         assert!(verdict
             .coverage
             .iter()
             .all(|row| row.state == CoverageState::Covered));
+        // Every covered row leads with a concrete provider fact.
+        assert!(verdict.coverage.iter().all(|row| row.provider.is_some()));
+        let secrets = verdict
+            .coverage
+            .iter()
+            .find(|row| row.group_id == "secret-scanning")
+            .unwrap();
+        assert_eq!(secrets.provider.as_deref(), Some("TruffleHog"));
+        assert_eq!(secrets.provider_version.as_deref(), Some("1.0.0"));
+    }
+
+    #[test]
+    fn provider_facts_exist_only_where_a_group_is_actually_covered() {
+        let mut caps = all_healthy();
+        // A gap: no fact to state.
+        let hole = find(&mut caps, "nono");
+        hole.installed = false;
+        hole.version = None;
+        // A broken group: rtk is Token Efficiency's only provider.
+        let broken = find(&mut caps, "rtk");
+        broken.version = None;
+        broken.issues.push(Finding::error("probe failed"));
+        // A group covered by a tool with NO version command (ccc): the name is
+        // a fact, the version honestly is not.
+        let manual = find(&mut caps, "cocoindex");
+        manual.installed = false;
+        manual.version = None;
+        let ccc = find(&mut caps, "ccc");
+        ccc.version = None;
+        assert!(!ccc.reports_version, "ccc has no version command");
+        // An off group states nothing either.
+        let off = find(&mut caps, "openwiki");
+        off.enabled = false;
+        let verdict = build_verdict(&caps);
+        let row = |id: &str| {
+            verdict
+                .coverage
+                .iter()
+                .find(|row| row.group_id == id)
+                .unwrap()
+        };
+        assert_eq!(row("sandboxing").state, CoverageState::Uncovered);
+        assert_eq!(row("sandboxing").provider, None);
+        assert_eq!(row("sandboxing").provider_version, None);
+        assert_eq!(row("token-efficiency").state, CoverageState::Broken);
+        assert_eq!(row("token-efficiency").provider, None);
+        assert_eq!(row("codebase-wiki").state, CoverageState::Off);
+        assert_eq!(row("codebase-wiki").provider, None);
+        let search = row("semantic-search");
+        assert_eq!(search.state, CoverageState::Covered);
+        assert_eq!(search.provider.as_deref(), Some("CocoIndex Code CLI (ccc)"));
+        assert_eq!(
+            search.provider_version, None,
+            "a tool with no version command reports no version — absent, not zero"
+        );
+        // A covered group with a reporting provider carries the number.
+        let hooks = row("hook-orchestration");
+        assert_eq!(hooks.provider.as_deref(), Some("pre-commit"));
+        assert_eq!(hooks.provider_version.as_deref(), Some("1.0.0"));
     }
 
     #[test]
@@ -814,14 +1006,11 @@ mod tests {
         // particular tool is absent.
         assert!(items[0].capability_id.is_empty());
         assert!(items[0].why.starts_with("Coding agents run shell commands"));
-        // nono is manual, so the action offers guidance rather than a recipe.
+        // nono installs through Homebrew, so the gap offers a one-click recipe.
         let action = items[0].action.as_ref().unwrap();
-        assert_eq!(action.label, "How to install nono");
+        assert_eq!(action.label, "Install nono");
         assert_eq!(action.capability_id, "nono");
-        assert_eq!(
-            action.guidance.as_deref(),
-            Some("Install from https://nono.sh")
-        );
+        assert!(action.guidance.is_none());
     }
 
     #[test]
@@ -844,7 +1033,13 @@ mod tests {
                 .count(),
             1
         );
-        assert_eq!(gap.action.as_ref().unwrap().capability_id, "cocoindex");
+        let action = gap.action.as_ref().unwrap();
+        assert_eq!(action.capability_id, "cocoindex");
+        // CocoIndex is a Python framework nothing packages, so this gap really
+        // does need a human — the label says so rather than offering a button
+        // that cannot work.
+        assert_eq!(action.label, "How to install CocoIndex");
+        assert!(action.guidance.as_deref().unwrap().contains("cocoindex.io"));
     }
 
     #[test]
@@ -1057,6 +1252,7 @@ mod tests {
         missing.installed = false;
         missing.version = None;
         let verdict = build_verdict(&caps);
+        assert_eq!(verdict.counts.enabled, (CAPABILITIES.len() - 1) as u32);
         assert_eq!(verdict.counts.ok, (CAPABILITIES.len() - 2) as u32);
         assert_eq!(verdict.counts.missing, 1);
         assert_eq!(verdict.counts.errors, 0);
@@ -1077,17 +1273,27 @@ mod tests {
         assert_eq!(lines[0], "One thing needs your attention.");
         assert_eq!(lines[1], "Execution Sandboxing has no provider installed.");
         // Coverage list: one aligned row per capability, worst state visible.
-        assert!(text.contains("⚠ Execution Sandboxing"));
-        assert!(text.contains("✓ Secret Scanning"));
+        // The glyph column is two wide, so "!" carries a trailing pad space
+        // and the group names line up with "ok" rows.
+        assert!(text.contains("  !  Execution Sandboxing"));
+        assert!(text.contains("  ok Secret Scanning"));
         // The action block names the problem, the reason, and the next step.
         assert!(text.contains("Needs your attention"));
-        assert!(text.contains("    → How to install nono"));
-        assert!(text.contains("      Install from https://nono.sh"));
+        assert!(text.contains("    -> Install nono"));
+        // A capability nothing packages prints its documentation under the
+        // label instead of pretending a recipe exists.
+        let mut manual = all_healthy();
+        let ocean = find(&mut manual, "ocean");
+        ocean.installed = false;
+        ocean.version = None;
+        let manual_text = render_health_text(&build_verdict(&manual));
+        assert!(manual_text.contains("    -> How to install OCEAN"));
+        assert!(manual_text.contains("      Install from https://github.com/grcengineering/OCEAN"));
         // Updates are listed apart from the things that need doing.
         let attention_at = text.find("Needs your attention").unwrap();
         let updates_at = text.find("Updates available").unwrap();
         assert!(attention_at < updates_at);
-        assert!(text.contains("· TruffleHog can update to 3.96.0."));
+        assert!(text.contains("- TruffleHog can update to 3.96.0."));
     }
 
     #[test]
@@ -1104,11 +1310,12 @@ mod tests {
     }
 
     #[test]
-    fn every_state_and_severity_has_a_glyph() {
-        assert_eq!(CoverageState::Covered.glyph(), "✓");
-        assert_eq!(CoverageState::Broken.glyph(), "✖");
-        assert_eq!(CoverageState::Uncovered.glyph(), "⚠");
-        assert_eq!(CoverageState::Off.glyph(), "○");
+    fn every_state_and_severity_has_an_ascii_glyph() {
+        // ASCII only (Phase F): terminals render the old set as emoji.
+        assert_eq!(CoverageState::Covered.glyph(), "ok");
+        assert_eq!(CoverageState::Broken.glyph(), "x");
+        assert_eq!(CoverageState::Uncovered.glyph(), "!");
+        assert_eq!(CoverageState::Off.glyph(), "-");
         let mut caps = all_healthy();
         let broken = find(&mut caps, "rtk");
         broken.version = None;
@@ -1122,10 +1329,19 @@ mod tests {
             .iter()
             .map(|item| item.level_glyph())
             .collect();
-        assert!(glyphs.contains(&"✖"));
-        assert!(glyphs.contains(&"·"));
+        assert!(glyphs.contains(&"x"));
+        assert!(glyphs.contains(&"-"));
         // A broken tool renders with its error glyph in the action block.
-        assert!(render_health_text(&health).contains("  ✖ "));
+        assert!(render_health_text(&health).contains("  x "));
+        // Nothing outside printable ASCII in any glyph.
+        for glyph in [
+            CoverageState::Covered.glyph(),
+            CoverageState::Broken.glyph(),
+            CoverageState::Uncovered.glyph(),
+            CoverageState::Off.glyph(),
+        ] {
+            assert!(glyph.is_ascii(), "non-ASCII coverage glyph: {glyph}");
+        }
     }
 
     #[test]
@@ -1160,7 +1376,7 @@ mod tests {
         assert_eq!(verdict.verdict, Verdict::NotWorking);
         assert_eq!(verdict.counts.errors, 1);
         assert_eq!(items[0].level, FindingLevel::Error);
-        assert_eq!(items[0].level_glyph(), "✖");
+        assert_eq!(items[0].level_glyph(), "x");
         // A gap nobody has attempted stays amber.
         let mut untouched = all_healthy();
         let never_tried = find(&mut untouched, "nono");
@@ -1227,6 +1443,172 @@ mod tests {
             broken_item(&cap, "Token Efficiency", "why").title,
             "RTK is not working."
         );
+    }
+
+    #[test]
+    fn removing_the_last_working_provider_states_the_hole_it_leaves() {
+        let mut caps = all_healthy();
+        // nono is Execution Sandboxing's only provider.
+        assert_eq!(
+            removal_consequence(&caps, "nono"),
+            "Execution Sandboxing will have no working provider."
+        );
+        // With the sibling gone, TruffleHog is the last secret scanner too.
+        let spare = find(&mut caps, "gitleaks");
+        spare.installed = false;
+        spare.version = None;
+        assert_eq!(
+            removal_consequence(&caps, "trufflehog"),
+            "Secret Scanning will have no working provider."
+        );
+    }
+
+    #[test]
+    fn removing_a_provider_with_a_working_sibling_names_the_sibling() {
+        let caps = all_healthy();
+        assert_eq!(
+            removal_consequence(&caps, "gitleaks"),
+            "TruffleHog also covers Secret Scanning, so coverage remains."
+        );
+        assert_eq!(
+            removal_consequence(&caps, "trufflehog"),
+            "Gitleaks also covers Secret Scanning, so coverage remains."
+        );
+        // Several siblings pluralise the verb and keep taxonomy order.
+        assert_eq!(
+            removal_consequence(&caps, "claude-code"),
+            "Codex, Cursor, OpenCode, Antigravity, Hermes and Pi also cover \
+             Coding Harness, so coverage remains."
+        );
+    }
+
+    #[test]
+    fn removing_a_provider_that_covers_nothing_never_claims_a_new_gap() {
+        let mut caps = all_healthy();
+        // Broken sole provider: the gap predates the removal, and the
+        // sentence must not pretend the uninstall creates it.
+        let broken = find(&mut caps, "rtk");
+        broken.version = None;
+        broken.issues.push(Finding::error("probe failed"));
+        assert_eq!(
+            removal_consequence(&caps, "rtk"),
+            "Token Efficiency already has no working provider."
+        );
+        // Broken provider with a working sibling: coverage is elsewhere.
+        let sick = find(&mut caps, "gitleaks");
+        sick.version = None;
+        sick.issues.push(Finding::error("probe failed"));
+        assert_eq!(
+            removal_consequence(&caps, "gitleaks"),
+            "Secret Scanning remains covered by TruffleHog."
+        );
+        // A disabled provider is not covering anything either.
+        let mut off = all_healthy();
+        find(&mut off, "gitleaks").enabled = false;
+        assert_eq!(
+            removal_consequence(&off, "gitleaks"),
+            "Secret Scanning remains covered by TruffleHog."
+        );
+        // An id that resolves to nothing yields nothing — never a guess.
+        assert_eq!(removal_consequence(&all_healthy(), "no-such-tool"), "");
+        assert_eq!(removal_consequence(&[], "nono"), "");
+    }
+
+    #[test]
+    fn bulk_candidates_list_the_missing_with_their_real_install_commands() {
+        let mut caps = all_healthy();
+        for id in [
+            "nono",
+            "gitleaks",
+            "openwiki",
+            "codex",
+            "codeguard",
+            "ocean",
+        ] {
+            let gone = find(&mut caps, id);
+            gone.installed = false;
+            gone.version = None;
+        }
+        let candidates = bulk_install_candidates(&caps);
+        let ids: Vec<&str> = candidates
+            .iter()
+            .map(|candidate| candidate.capability_id.as_str())
+            .collect();
+        // Taxonomy order, independent of input order.
+        assert_eq!(
+            ids,
+            vec![
+                "gitleaks",
+                "ocean",
+                "nono",
+                "openwiki",
+                "codeguard",
+                "codex"
+            ]
+        );
+        let by_id = |id: &str| {
+            candidates
+                .iter()
+                .find(|candidate| candidate.capability_id == id)
+                .unwrap()
+        };
+        // Command facts are the recipe table's own argv, joined — one per
+        // method family, pinned so a recipe change breaks this test.
+        assert_eq!(by_id("nono").command.as_deref(), Some("brew install nono"));
+        assert_eq!(
+            by_id("openwiki").command.as_deref(),
+            Some("npm install -g openwiki")
+        );
+        assert_eq!(
+            by_id("codex").command.as_deref(),
+            Some("brew install --cask codex")
+        );
+        // Multi-step recipe: the fact is the final, installing command.
+        assert_eq!(
+            by_id("codeguard").command.as_deref(),
+            Some("claude plugin install codeguard-security@project-codeguard")
+        );
+        // Manual method: present, honest about having no recipe.
+        let manual = by_id("ocean");
+        assert_eq!(manual.command, None);
+        assert!(!manual.automatable());
+        assert_eq!(manual.group_name, "Repository Hygiene");
+        assert_eq!(by_id("nono").group_name, "Execution Sandboxing");
+        assert!(by_id("nono").automatable());
+    }
+
+    #[test]
+    fn bulk_candidates_exclude_the_installed_and_the_switched_off() {
+        let mut caps = all_healthy();
+        assert!(bulk_install_candidates(&caps).is_empty());
+        let hole = find(&mut caps, "nono");
+        hole.installed = false;
+        hole.version = None;
+        let off = find(&mut caps, "gitleaks");
+        off.installed = false;
+        off.version = None;
+        off.enabled = false;
+        let candidates = bulk_install_candidates(&caps);
+        // The owner's explicit off-switch is honoured: gitleaks is missing but
+        // deliberately so, and a bulk install must not override that choice.
+        assert_eq!(candidates.len(), 1);
+        assert_eq!(candidates[0].capability_id, "nono");
+    }
+
+    /// Phase H: `AttentionRank::Insight` sits strictly between `Uncovered`
+    /// and `Spare` — the "broken > uncovered > insight" placement rule
+    /// `insights.rs` relies on, held here against the one real ordinal table
+    /// rather than trusted from the enum's declaration order alone. Also:
+    /// an insight never counts toward `needs_action` — unchanged behaviour
+    /// for `action_items()`/nav badges/verdict counts, all of which must stay
+    /// exactly as they were before this variant existed.
+    #[test]
+    fn insight_rank_sits_between_uncovered_and_spare_and_never_needs_action() {
+        assert!(AttentionRank::Broken.ordinal() < AttentionRank::Uncovered.ordinal());
+        assert!(AttentionRank::Uncovered.ordinal() < AttentionRank::Insight.ordinal());
+        assert!(AttentionRank::Insight.ordinal() < AttentionRank::Spare.ordinal());
+        assert!(AttentionRank::Spare.ordinal() < AttentionRank::Update.ordinal());
+        assert!(!AttentionRank::Insight.needs_action());
     }
 
     #[test]
