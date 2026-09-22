@@ -14,7 +14,7 @@ use crate::nav::elided;
 use crate::theme;
 use ade_core::gui::views::{Badge, SidebarModel, SidebarRow, Tone};
 use egui::emath::GuiRounding;
-use egui::{Align, Color32, FontId, Layout, RichText, Sense, StrokeKind};
+use egui::{Color32, FontId, RichText, Sense, StrokeKind};
 
 /// Paints the sidebar; returns the scope the user clicked, if any.
 pub(crate) fn sidebar(
@@ -23,41 +23,30 @@ pub(crate) fn sidebar(
     model: &SidebarModel,
 ) -> Option<String> {
     let mut selected = None;
-    // The footer pins to the bottom; the sections fill the rest and scroll if
-    // the window is ever short enough to need it.
-    ui.with_layout(Layout::bottom_up(Align::Min), |ui| {
-        ui.add_space(theme::Space::S8.px());
-        ui.label(
-            RichText::new(&model.footer)
-                .color(p.faint_text)
-                .size(theme::SIZE_CAPTION),
-        );
-        ui.add_space(theme::Space::S4.px());
-        ui.with_layout(Layout::top_down(Align::Min), |ui| {
-            egui::ScrollArea::vertical()
-                .id_salt("sidebar")
-                .auto_shrink([false, false])
-                .show(ui, |ui| {
-                    for (index, section) in model.sections.iter().enumerate() {
-                        if let Some(title) = &section.title {
-                            ui.add_space(if index == 0 {
-                                theme::Space::S4.px()
-                            } else {
-                                theme::Space::S12.px()
-                            });
-                            section_eyebrow(ui, p, title);
-                        } else if index > 0 {
-                            ui.add_space(theme::Space::S12.px());
-                        }
-                        for row in &section.rows {
-                            if sidebar_row(ui, p, row).clicked() {
-                                selected = Some(row.scope.clone());
-                            }
-                        }
+    // The freshness line (`model.footer`) is painted by the shell's footer
+    // strip, not here: the sidebar is only the source list.
+    egui::ScrollArea::vertical()
+        .id_salt("sidebar")
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            for (index, section) in model.sections.iter().enumerate() {
+                if let Some(title) = &section.title {
+                    ui.add_space(if index == 0 {
+                        theme::Space::S4.px()
+                    } else {
+                        theme::Space::S12.px()
+                    });
+                    section_eyebrow(ui, p, title);
+                } else if index > 0 {
+                    ui.add_space(theme::Space::S12.px());
+                }
+                for row in &section.rows {
+                    if sidebar_row(ui, p, row).clicked() {
+                        selected = Some(row.scope.clone());
                     }
-                });
+                }
+            }
         });
-    });
     selected
 }
 

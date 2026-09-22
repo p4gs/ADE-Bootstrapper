@@ -33,18 +33,15 @@ pub(crate) fn provider_list(
 ) -> Option<ProviderListEvent> {
     let mut event = None;
 
+    // The toolbar already carries the group's name; the list leads with the
+    // coverage line only.
     ui.add_space(theme::Space::S4.px());
-    ui.label(
-        RichText::new(&model.title)
-            .font(theme::semibold(theme::SIZE_TITLE))
-            .color(p.text),
-    );
     ui.label(
         RichText::new(&model.subtitle)
             .color(p.muted)
             .size(theme::SIZE_CAPTION),
     );
-    ui.add_space(theme::Space::S12.px());
+    ui.add_space(theme::Space::S8.px());
 
     if let Some(filter) = segmented_filter(ui, p, model) {
         event = Some(ProviderListEvent::Filter(filter));

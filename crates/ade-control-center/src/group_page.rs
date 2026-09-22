@@ -65,6 +65,7 @@ pub(crate) fn group_page(
         verdict,
         local.filter,
         selected.as_deref(),
+        &local.query,
     );
 
     // Geometry: list | inspector on top, console drawer below both.

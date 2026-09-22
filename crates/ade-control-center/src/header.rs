@@ -1,55 +1,210 @@
-//! The slim toolbar at the top of the content area. The window titlebar
-//! already names the app, so this row carries only the two machine-wide
-//! controls, right-aligned.
+//! The unified toolbar across the top of the content area, in the reference
+//! apps' shape: a sidebar toggle at the left edge, the page title with a
+//! muted subtitle, and a right-hand cluster of a search field and circular
+//! icon buttons (Refresh, Check for updates). The window titlebar is melted
+//! into the window, so this row is the only header the owner sees.
 //!
 //! Known trap, paid for once already: inside a right-to-left layout a
 //! `ui.vertical` claims the entire remaining width and crushes everything to
-//! its left — this row is single-line labels only.
+//! its left — the title block is laid out first, in a left-to-right row.
 
-use crate::app::ax_button;
+use crate::icons;
+use crate::nav::elided;
 use crate::theme;
-use egui::{Align, Layout};
+use ade_core::gui::views::{Icon, ToolbarModel};
+use egui::emath::GuiRounding;
+use egui::{Align, CornerRadius, FontId, Layout, Sense, Stroke};
 
 /// What the owner did in the toolbar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum HeaderEvent {
     CheckUpdates,
     Refresh,
+    ToggleSidebar,
 }
+
+/// Everything the toolbar needs to draw itself.
+pub(crate) struct ToolbarState<'a> {
+    pub model: &'a ToolbarModel,
+    pub checking: bool,
+    /// The search text, owned by the shell; edited in place.
+    pub query: &'a mut String,
+}
+
+pub(crate) const TOOLBAR_HEIGHT: f32 = 48.0;
+const ICON_BUTTON: f32 = 28.0;
+const SEARCH_WIDTH: f32 = 180.0;
 
 pub(crate) fn toolbar(
     ui: &mut egui::Ui,
     p: &theme::Palette,
-    checking_updates: bool,
+    state: &mut ToolbarState<'_>,
 ) -> Option<HeaderEvent> {
     let mut event = None;
-    // The right-to-left cluster lives INSIDE a horizontal row: handed the
-    // panel's ui directly, `with_layout` claims ALL remaining height and the
-    // cross-axis centring floats the buttons into the middle of an otherwise
-    // empty content area (found by the whole-screen snapshot).
-    ui.horizontal(|ui| {
-        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            if ax_button(
+    let (rect, _) = ui.allocate_exact_size(
+        egui::vec2(ui.available_width(), TOOLBAR_HEIGHT),
+        Sense::hover(),
+    );
+    let mut row = ui.new_child(
+        egui::UiBuilder::new()
+            .max_rect(rect)
+            .layout(Layout::left_to_right(Align::Center)),
+    );
+    row.spacing_mut().item_spacing.x = theme::Space::S8.px();
+
+    // Left: the sidebar toggle, then the title block.
+    if circle_icon_button(&mut row, p, Icon::PanelLeft, "Toggle sidebar", false).clicked() {
+        event = Some(HeaderEvent::ToggleSidebar);
+    }
+    row.add_space(theme::Space::S4.px());
+    // Reserve the right cluster's width so the title elides instead of
+    // colliding with it.
+    let cluster_width = SEARCH_WIDTH + 2.0 * ICON_BUTTON + 4.0 * theme::Space::S8.px();
+    let title_width = (row.available_width() - cluster_width).max(80.0);
+    row.allocate_ui_with_layout(
+        egui::vec2(title_width, TOOLBAR_HEIGHT),
+        Layout::top_down(Align::Min),
+        |ui| {
+            ui.spacing_mut().item_spacing.y = theme::Space::S1.px();
+            ui.add_space((TOOLBAR_HEIGHT - 34.0) * 0.5);
+            let title = elided(
                 ui,
-                if checking_updates {
-                    "Checking…"
-                } else {
-                    "Check for updates"
-                },
-                "Check for updates",
-                Some(p.accent),
-                !checking_updates,
-            )
-            .clicked()
-            {
-                event = Some(HeaderEvent::CheckUpdates);
+                &state.model.title,
+                p.text,
+                theme::semibold(theme::SIZE_SECTION),
+                title_width,
+            );
+            let (r, _) = ui.allocate_exact_size(title.size(), Sense::hover());
+            ui.painter().galley(r.min, title, p.text);
+            if !state.model.subtitle.is_empty() {
+                let sub = elided(
+                    ui,
+                    &state.model.subtitle,
+                    p.muted,
+                    FontId::proportional(theme::SIZE_CAPTION),
+                    title_width,
+                );
+                let (r, _) = ui.allocate_exact_size(sub.size(), Sense::hover());
+                ui.painter().galley(r.min, sub, p.muted);
             }
-            if ax_button(ui, "Refresh", "Refresh state", None, true).clicked() {
-                event = Some(HeaderEvent::Refresh);
-            }
-        });
+        },
+    );
+
+    // Right: search, refresh, check for updates.
+    row.with_layout(Layout::right_to_left(Align::Center), |ui| {
+        ui.spacing_mut().item_spacing.x = theme::Space::S8.px();
+        if circle_icon_button(
+            ui,
+            p,
+            Icon::CloudDownload,
+            "Check for updates",
+            state.checking,
+        )
+        .clicked()
+            && !state.checking
+        {
+            event = Some(HeaderEvent::CheckUpdates);
+        }
+        if circle_icon_button(ui, p, Icon::RefreshCw, "Refresh state", false).clicked() {
+            event = Some(HeaderEvent::Refresh);
+        }
+        search_field(ui, p, state.query);
     });
     event
+}
+
+/// A 28pt circular icon button: resting widget fill with a hairline ring,
+/// lifts on hover, shows a spinner instead of its glyph while `busy`.
+pub(crate) fn circle_icon_button(
+    ui: &mut egui::Ui,
+    p: &theme::Palette,
+    icon: Icon,
+    ax_label: &str,
+    busy: bool,
+) -> egui::Response {
+    let (rect, response) =
+        ui.allocate_exact_size(egui::vec2(ICON_BUTTON, ICON_BUTTON), Sense::click());
+    let label = ax_label.to_string();
+    response.widget_info(move || {
+        egui::WidgetInfo::labeled(egui::WidgetType::Button, !busy, label.clone())
+    });
+    let ppp = ui.pixels_per_point();
+    let rect = rect.round_to_pixels(ppp);
+    let fill = if response.is_pointer_button_down_on() {
+        p.widget_active
+    } else if response.hovered() {
+        p.widget_hover
+    } else {
+        p.widget
+    };
+    let radius = ICON_BUTTON * 0.5;
+    ui.painter()
+        .circle(rect.center(), radius, fill, Stroke::new(1.0, p.line));
+    theme::focus_ring(ui, rect, ICON_BUTTON as u8 / 2, response.has_focus());
+    if busy {
+        egui::Spinner::new().size(14.0).color(p.muted).paint_at(
+            ui,
+            egui::Rect::from_center_size(rect.center(), egui::vec2(14.0, 14.0)),
+        );
+    } else {
+        let ink = if response.hovered() { p.text } else { p.muted };
+        let galley = ui.painter().layout_no_wrap(
+            icons::glyph(icon).to_string(),
+            theme::icon_font(14.0),
+            ink,
+        );
+        ui.painter()
+            .galley(rect.center() - galley.size() * 0.5, galley, ink);
+    }
+    response
+}
+
+/// The rounded search field with a magnifier glyph, macOS toolbar style.
+fn search_field(ui: &mut egui::Ui, p: &theme::Palette, query: &mut String) {
+    let height = ICON_BUTTON;
+    let (rect, _) = ui.allocate_exact_size(egui::vec2(SEARCH_WIDTH, height), Sense::hover());
+    let ppp = ui.pixels_per_point();
+    let rect = rect.round_to_pixels(ppp);
+    ui.painter().rect(
+        rect,
+        CornerRadius::same((height * 0.5) as u8),
+        p.widget,
+        Stroke::new(1.0, p.line),
+        egui::StrokeKind::Inside,
+    );
+    let glyph = ui.painter().layout_no_wrap(
+        icons::glyph(Icon::Search).to_string(),
+        theme::icon_font(13.0),
+        p.muted,
+    );
+    let glyph_x = rect.left() + theme::Space::S8.px();
+    ui.painter().galley(
+        egui::pos2(glyph_x, rect.center().y - glyph.size().y * 0.5),
+        glyph,
+        p.muted,
+    );
+    let field = egui::Rect::from_min_max(
+        egui::pos2(glyph_x + 13.0 + theme::Space::S6.px(), rect.top() + 4.0),
+        egui::pos2(rect.right() - theme::Space::S8.px(), rect.bottom() - 4.0),
+    );
+    let mut child = ui.new_child(
+        egui::UiBuilder::new()
+            .max_rect(field)
+            .layout(Layout::left_to_right(Align::Center)),
+    );
+    child.visuals_mut().extreme_bg_color = egui::Color32::TRANSPARENT;
+    child.visuals_mut().widgets.inactive.bg_stroke = Stroke::NONE;
+    child.visuals_mut().widgets.hovered.bg_stroke = Stroke::NONE;
+    child.visuals_mut().widgets.active.bg_stroke = Stroke::NONE;
+    child.visuals_mut().selection.stroke = Stroke::NONE;
+    child.add(
+        egui::TextEdit::singleline(query)
+            .id_salt("toolbar-search")
+            .hint_text("Search")
+            .font(FontId::proportional(theme::SIZE_BODY))
+            .desired_width(field.width())
+            .frame(egui::Frame::new()),
+    );
 }
 
 #[cfg(test)]
@@ -62,9 +217,20 @@ mod tests {
         checking: bool,
         sink: std::sync::Arc<std::sync::Mutex<Vec<HeaderEvent>>>,
     ) -> impl FnMut(&mut egui::Ui) + 'static {
+        let mut query = String::new();
         move |ui| {
             let p = crate::theme::palette(true);
-            if let Some(event) = toolbar(ui, &p, checking) {
+            let model = ToolbarModel {
+                title: "Secret Scanning".to_string(),
+                subtitle: "Leaked credentials in commits are among the most exploited failure modes of AI-assisted coding."
+                    .to_string(),
+            };
+            let mut state = ToolbarState {
+                model: &model,
+                checking,
+                query: &mut query,
+            };
+            if let Some(event) = toolbar(ui, &p, &mut state) {
                 sink.lock().expect("sink").push(event);
             }
         }
@@ -86,9 +252,15 @@ mod tests {
         h.run_steps(2);
         h.get_by_label("Check for updates").click();
         h.run_steps(2);
+        h.get_by_label("Toggle sidebar").click();
+        h.run_steps(2);
         assert_eq!(
             seen.lock().expect("sink").clone(),
-            vec![HeaderEvent::Refresh, HeaderEvent::CheckUpdates]
+            vec![
+                HeaderEvent::Refresh,
+                HeaderEvent::CheckUpdates,
+                HeaderEvent::ToggleSidebar
+            ]
         );
 
         // While a check runs the button is present but disabled — the AX tree

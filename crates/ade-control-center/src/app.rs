@@ -7,7 +7,7 @@
 
 use crate::activity::{activity_view, ActivityEvent};
 use crate::data::{lock_shared, Engine, Shared};
-use crate::header::{toolbar, HeaderEvent};
+use crate::header::{toolbar, HeaderEvent, ToolbarState};
 use crate::modals::{
     bulk_modal, confirm_modal, confirmed_ids, default_selection, BulkEvent, ConfirmEvent,
 };
@@ -18,7 +18,7 @@ use ade_core::gui::inventory::{get_group, LifecycleAction, CAPABILITY_GROUPS};
 use ade_core::gui::jobs::JobStatus;
 use ade_core::gui::state::{ade_home_from_env, SCOPE_ACTIVITY, SCOPE_PROJECTS};
 use ade_core::gui::verdict::{build_verdict, bulk_install_candidates};
-use ade_core::gui::views::{sidebar_model, SidebarFacts};
+use ade_core::gui::views::{sidebar_model, toolbar_model, SidebarFacts};
 use ade_core::types::{Finding, FindingLevel};
 use egui::{Align, Color32, CornerRadius, Layout, RichText, Stroke, StrokeKind};
 use std::collections::HashSet;
@@ -61,6 +61,10 @@ pub(crate) struct LocalState {
     pub console_hidden: bool,
     /// The console tab in front; `None` means the newest job.
     pub console_tab: Option<String>,
+    /// The toolbar's sidebar toggle.
+    pub sidebar_hidden: bool,
+    /// The toolbar search text; narrows the provider list.
+    pub query: String,
 }
 
 /// Everything the views can ask the engine to do. The frame is pure — it
@@ -189,6 +193,9 @@ impl eframe::App for ControlCenterApp {
 /// One whole frame: sidebar, toolbar, and the single scope the sidebar has
 /// selected. Pure — the same function the shell calls is the one the
 /// whole-screen snapshot renders.
+/// The footer strip's height (Updatest's bottom bar).
+pub(crate) const FOOTER_HEIGHT: f32 = 26.0;
+
 pub(crate) fn frame(
     ui: &mut egui::Ui,
     p: &theme::Palette,
@@ -281,44 +288,78 @@ pub(crate) fn frame(
     } else {
         p.panel
     };
-    egui::Panel::left("nav")
-        .exact_size(theme::SIDEBAR_WIDTH)
+    let facts = SidebarFacts {
+        scope: snapshot.scope.clone(),
+        running_jobs,
+        project_count: snapshot.projects.len(),
+        freshness: snapshot.last_detection_at.map(|at| at.elapsed()),
+        detecting: snapshot.detecting || snapshot.checking_updates,
+    };
+    let sidebar = sidebar_model(&CAPABILITY_GROUPS, &verdict, &snapshot.capabilities, &facts);
+
+    // The footer strip spans the whole window (Updatest's bottom bar): it is
+    // registered before the sidebar so it takes the full width, and it is
+    // where the freshness line lives now.
+    egui::Panel::bottom("footer")
+        .exact_size(FOOTER_HEIGHT)
         .resizable(false)
-        .frame(
-            egui::Frame::new()
-                .fill(sidebar_fill)
-                .inner_margin(theme::margin(theme::Space::S8, theme::Space::S8)),
-        )
+        .show_separator_line(false)
+        .frame(egui::Frame::new().fill(p.panel))
         .show(ui, |ui| {
-            // With the titlebar melted into the window (fullsize content
-            // view), the traffic lights float over the sidebar's top-left —
-            // the list starts below their zone.
-            ui.add_space(theme::TRAFFIC_LIGHT_INSET);
-            let facts = SidebarFacts {
-                scope: snapshot.scope.clone(),
-                running_jobs,
-                project_count: snapshot.projects.len(),
-                freshness: snapshot.last_detection_at.map(|at| at.elapsed()),
-                detecting: snapshot.detecting || snapshot.checking_updates,
-            };
-            let model = sidebar_model(&CAPABILITY_GROUPS, &verdict, &snapshot.capabilities, &facts);
-            if let Some(scope) = crate::sidebar::sidebar(ui, p, &model) {
-                cmds.push(EngineCmd::SetScope(scope));
-            }
+            let rect = ui.max_rect();
+            let ppp = ui.pixels_per_point();
+            ui.painter().hline(
+                rect.x_range(),
+                theme::snap_y(rect.top(), ppp),
+                egui::Stroke::new(1.0 / ppp, p.hairline),
+            );
+            let galley = ui.painter().layout_no_wrap(
+                sidebar.footer.clone(),
+                egui::FontId::proportional(theme::SIZE_CAPTION),
+                p.muted,
+            );
+            ui.painter()
+                .galley(rect.center() - galley.size() * 0.5, galley, p.muted);
         });
+
+    if !local.sidebar_hidden {
+        egui::Panel::left("nav")
+            .exact_size(theme::SIDEBAR_WIDTH)
+            .resizable(false)
+            .frame(
+                egui::Frame::new()
+                    .fill(sidebar_fill)
+                    .inner_margin(theme::margin(theme::Space::S8, theme::Space::S8)),
+            )
+            .show(ui, |ui| {
+                // With the titlebar melted into the window (fullsize content
+                // view), the traffic lights float over the sidebar's top-left —
+                // the list starts below their zone.
+                ui.add_space(theme::TRAFFIC_LIGHT_INSET);
+                if let Some(scope) = crate::sidebar::sidebar(ui, p, &sidebar) {
+                    cmds.push(EngineCmd::SetScope(scope));
+                }
+            });
+    }
 
     egui::CentralPanel::default_margins()
         .frame(
             egui::Frame::new()
                 .fill(p.bg)
-                .inner_margin(theme::margin(theme::Space::S16, theme::Space::S12)),
+                .inner_margin(theme::margin(theme::Space::S16, theme::Space::S4)),
         )
         .show(ui, |ui| {
-            if let Some(event) = toolbar(ui, p, snapshot.checking_updates) {
-                cmds.push(match event {
-                    HeaderEvent::CheckUpdates => EngineCmd::CheckUpdates,
-                    HeaderEvent::Refresh => EngineCmd::Refresh,
-                });
+            let title = toolbar_model(&snapshot.scope, &CAPABILITY_GROUPS, &verdict);
+            let mut state = ToolbarState {
+                model: &title,
+                checking: snapshot.checking_updates,
+                query: &mut local.query,
+            };
+            match toolbar(ui, p, &mut state) {
+                Some(HeaderEvent::CheckUpdates) => cmds.push(EngineCmd::CheckUpdates),
+                Some(HeaderEvent::Refresh) => cmds.push(EngineCmd::Refresh),
+                Some(HeaderEvent::ToggleSidebar) => local.sidebar_hidden = !local.sidebar_hidden,
+                None => {}
             }
             ui.add_space(theme::Space::S6.px());
 

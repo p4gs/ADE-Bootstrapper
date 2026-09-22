@@ -424,6 +424,47 @@ pub fn freshness_text(freshness: Option<Duration>, detecting: bool) -> String {
 }
 
 // ---------------------------------------------------------------------------
+// Toolbar (page title + subtitle, the reference apps' unified toolbar)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ToolbarModel {
+    pub title: String,
+    /// One muted line under the title; empty renders nothing.
+    pub subtitle: String,
+}
+
+/// The title pair for a scope: a group's name and its explainer, or the
+/// reserved sections' fixed names. An unknown scope reads as the Overview,
+/// the same fallback the shell uses for a scope that no longer resolves.
+pub fn toolbar_model(
+    scope: &str,
+    groups: &[CapabilityGroup],
+    verdict: &HealthVerdict,
+) -> ToolbarModel {
+    if let Some(group) = groups.iter().find(|g| g.id == scope) {
+        return ToolbarModel {
+            title: group.name.to_string(),
+            subtitle: group.why.to_string(),
+        };
+    }
+    match scope {
+        SCOPE_PROJECTS => ToolbarModel {
+            title: "Projects".to_string(),
+            subtitle: "Repositories ADE is applied to".to_string(),
+        },
+        SCOPE_ACTIVITY => ToolbarModel {
+            title: "Activity".to_string(),
+            subtitle: "Install and update jobs".to_string(),
+        },
+        _ => ToolbarModel {
+            title: "Overview".to_string(),
+            subtitle: verdict.headline.clone(),
+        },
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Provider list (Taphouse Installed list)
 // ---------------------------------------------------------------------------
 
@@ -492,10 +533,20 @@ pub fn provider_list_model(
     verdict: &HealthVerdict,
     filter: ProviderFilter,
     selected: Option<&str>,
+    query: &str,
 ) -> ProviderListModel {
+    // The toolbar search narrows the population BEFORE the segment counts,
+    // so "All 1 · Installed 1" always describes what the list can show.
+    let needle = query.trim().to_lowercase();
     let members: Vec<&CapabilityStatus> = capabilities
         .iter()
         .filter(|cap| cap.capability == group.id)
+        .filter(|cap| {
+            needle.is_empty()
+                || cap.name.to_lowercase().contains(&needle)
+                || cap.id.to_lowercase().contains(&needle)
+                || cap.description.to_lowercase().contains(&needle)
+        })
         .collect();
     let matches = |cap: &CapabilityStatus, filter: ProviderFilter| match filter {
         ProviderFilter::All => true,
@@ -1186,6 +1237,7 @@ mod tests {
             &verdict,
             ProviderFilter::All,
             Some("gitleaks"),
+            "",
         );
         assert_eq!(all.title, "Secret Scanning");
         assert_eq!(all.rows.len(), 2);
@@ -1211,7 +1263,7 @@ mod tests {
         );
 
         let installed =
-            provider_list_model(group, &caps, &verdict, ProviderFilter::Installed, None);
+            provider_list_model(group, &caps, &verdict, ProviderFilter::Installed, None, "");
         assert_eq!(installed.rows.len(), 1);
         assert_eq!(installed.rows[0].id, "trufflehog");
         assert!(!installed.rows[0].selected);
@@ -1219,14 +1271,20 @@ mod tests {
         let off = find(&mut caps, "gitleaks");
         off.enabled = false;
         let verdict = build_verdict(&caps);
-        let attention =
-            provider_list_model(group, &caps, &verdict, ProviderFilter::NeedsAttention, None);
+        let attention = provider_list_model(
+            group,
+            &caps,
+            &verdict,
+            ProviderFilter::NeedsAttention,
+            None,
+            "",
+        );
         assert_eq!(
             attention.rows.len(),
             1,
             "a disabled provider is the owner's call, not attention"
         );
-        let all = provider_list_model(group, &caps, &verdict, ProviderFilter::All, None);
+        let all = provider_list_model(group, &caps, &verdict, ProviderFilter::All, None, "");
         assert!(all.rows[1]
             .tags
             .iter()
@@ -1497,6 +1555,56 @@ mod tests {
         let model = console_model(&many, None);
         assert_eq!(model.tabs.len(), CONSOLE_TAB_LIMIT);
         assert_eq!(model.tabs[0].job_id, "j11");
+    }
+
+    #[test]
+    fn the_search_query_narrows_rows_before_the_counts() {
+        let caps = all_healthy();
+        let group = get_group("secret-scanning").unwrap();
+        let verdict = build_verdict(&caps);
+        let hit = provider_list_model(
+            group,
+            &caps,
+            &verdict,
+            ProviderFilter::All,
+            None,
+            " Truffle ",
+        );
+        assert_eq!(hit.rows.len(), 1);
+        assert_eq!(hit.rows[0].id, "trufflehog");
+        assert_eq!(hit.counts, [1, 0, 1]);
+        let by_description = provider_list_model(
+            group,
+            &caps,
+            &verdict,
+            ProviderFilter::All,
+            None,
+            "optional",
+        );
+        assert_eq!(by_description.rows[0].id, "gitleaks");
+        let none = provider_list_model(group, &caps, &verdict, ProviderFilter::All, None, "zzz");
+        assert!(none.rows.is_empty());
+        assert_eq!(none.counts, [0, 0, 0]);
+    }
+
+    #[test]
+    fn toolbar_titles_follow_the_scope() {
+        let caps = all_healthy();
+        let verdict = build_verdict(&caps);
+        let group = toolbar_model("sandboxing", &CAPABILITY_GROUPS, &verdict);
+        assert_eq!(group.title, "Execution Sandboxing");
+        assert_eq!(group.subtitle, get_group("sandboxing").unwrap().why);
+        assert_eq!(
+            toolbar_model(SCOPE_PROJECTS, &CAPABILITY_GROUPS, &verdict).title,
+            "Projects"
+        );
+        assert_eq!(
+            toolbar_model(SCOPE_ACTIVITY, &CAPABILITY_GROUPS, &verdict).title,
+            "Activity"
+        );
+        let overview = toolbar_model("no-such-scope", &CAPABILITY_GROUPS, &verdict);
+        assert_eq!(overview.title, "Overview");
+        assert_eq!(overview.subtitle, verdict.headline);
     }
 
     #[test]
