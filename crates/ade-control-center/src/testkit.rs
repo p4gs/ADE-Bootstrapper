@@ -22,28 +22,43 @@ pub(crate) fn harness(
 pub(crate) fn harness_themed(
     size: egui::Vec2,
     dark: bool,
+    paint: impl FnMut(&mut egui::Ui) + 'static,
+) -> Harness<'static> {
+    harness_themed_with_dt(size, dark, 0.25, paint)
+}
+
+/// As `harness_themed`, with an explicit simulated frame time — kittest's
+/// default 250 ms per step outruns every animation in the theme, so a test
+/// that wants to see a transition MID-FLIGHT needs a shorter step.
+pub(crate) fn harness_themed_with_dt(
+    size: egui::Vec2,
+    dark: bool,
+    step_dt: f32,
     mut paint: impl FnMut(&mut egui::Ui) + 'static,
 ) -> Harness<'static> {
     let mut frame = 0u32;
-    let mut built = Harness::builder().with_size(size).build_ui(move |ui| {
-        theme::apply(ui.ctx());
-        ui.ctx().set_theme(if dark {
-            egui::Theme::Dark
-        } else {
-            egui::Theme::Light
+    let mut built = Harness::builder()
+        .with_size(size)
+        .with_step_dt(step_dt)
+        .build_ui(move |ui| {
+            theme::apply(ui.ctx());
+            ui.ctx().set_theme(if dark {
+                egui::Theme::Dark
+            } else {
+                egui::Theme::Light
+            });
+            frame += 1;
+            if frame == 1 {
+                ui.ctx().request_repaint();
+                return;
+            }
+            let p = theme::palette(dark);
+            ui.visuals_mut().override_text_color = Some(p.text);
+            egui::Frame::new()
+                .fill(p.panel)
+                .inner_margin(egui::Margin::symmetric(14, 8))
+                .show(ui, |ui| paint(ui));
         });
-        frame += 1;
-        if frame == 1 {
-            ui.ctx().request_repaint();
-            return;
-        }
-        let p = theme::palette(dark);
-        ui.visuals_mut().override_text_color = Some(p.text);
-        egui::Frame::new()
-            .fill(p.panel)
-            .inner_margin(egui::Margin::symmetric(14, 8))
-            .show(ui, |ui| paint(ui));
-    });
     // A row with a job in flight paints a Spinner, which requests a repaint
     // every frame by design — so the UI never goes quiescent and `run()`
     // hits its step limit. A fixed number of frames is the right contract

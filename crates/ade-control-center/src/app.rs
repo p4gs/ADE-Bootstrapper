@@ -324,23 +324,47 @@ pub(crate) fn frame(
                 .galley(rect.center() - galley.size() * 0.5, galley, p.muted);
         });
 
-    if !local.sidebar_hidden {
+    // The sidebar slides: its panel width eases between 0 and full over
+    // DURATION_SIDEBAR while the list is painted at FULL width, anchored to
+    // the panel's right edge and clipped, so the rows glide out behind the
+    // content instead of re-flowing narrower; they fade with the width. The
+    // toggle used to cut instantly (owner, 2026-09-23). A first sighting of
+    // the animation id snaps to its target, so snapshots stay still.
+    let sidebar_open = ui.ctx().animate_bool_with_time_and_easing(
+        egui::Id::new("sidebar-open"),
+        !local.sidebar_hidden,
+        theme::DURATION_SIDEBAR,
+        egui::emath::easing::cubic_out,
+    );
+    let sidebar_width = (theme::SIDEBAR_WIDTH * sidebar_open).round();
+    if sidebar_width >= 1.0 {
         egui::Panel::left("nav")
-            .exact_size(theme::SIDEBAR_WIDTH)
+            .exact_size(sidebar_width)
             .resizable(false)
-            .frame(
-                egui::Frame::new()
-                    .fill(sidebar_fill)
-                    .inner_margin(theme::margin(theme::Space::S8, theme::Space::S8)),
-            )
+            .frame(egui::Frame::new().fill(sidebar_fill))
             .show(ui, |ui| {
+                let panel = ui.max_rect();
+                let pad = theme::Space::S8.px();
+                let full = egui::Rect::from_min_size(
+                    egui::pos2(panel.right() - theme::SIDEBAR_WIDTH, panel.top()),
+                    egui::vec2(theme::SIDEBAR_WIDTH, panel.height()),
+                )
+                .shrink(pad);
+                let mut inner = ui.new_child(
+                    egui::UiBuilder::new()
+                        .max_rect(full)
+                        .layout(Layout::top_down(Align::Min)),
+                );
+                inner.set_clip_rect(panel.intersect(ui.clip_rect()));
+                inner.set_opacity(sidebar_open);
                 // With the titlebar melted into the window (fullsize content
                 // view), the traffic lights float over the sidebar's top-left —
                 // the list starts below their zone.
-                ui.add_space(theme::TRAFFIC_LIGHT_INSET);
-                if let Some(scope) = crate::sidebar::sidebar(ui, p, &sidebar) {
+                inner.add_space(theme::TRAFFIC_LIGHT_INSET);
+                if let Some(scope) = crate::sidebar::sidebar(&mut inner, p, &sidebar) {
                     cmds.push(EngineCmd::SetScope(scope));
                 }
+                ui.allocate_rect(panel, egui::Sense::hover());
             });
     }
 
@@ -352,10 +376,19 @@ pub(crate) fn frame(
         )
         .show(ui, |ui| {
             let title = toolbar_model(&snapshot.scope, &CAPABILITY_GROUPS, &verdict);
+            // With the sidebar collapsed the floating traffic lights sit
+            // over the toolbar's left edge (owner screenshot, 2026-09-23):
+            // the row shifts right by whatever the sidebar no longer covers.
+            let left_inset = if cfg!(target_os = "macos") {
+                (theme::TRAFFIC_LIGHT_CLEARANCE - theme::Space::S16.px() - sidebar_width).max(0.0)
+            } else {
+                0.0
+            };
             let mut state = ToolbarState {
                 model: &title,
                 checking: snapshot.checking_updates,
                 query: &mut local.query,
+                left_inset,
             };
             match toolbar(ui, p, &mut state) {
                 Some(HeaderEvent::CheckUpdates) => cmds.push(EngineCmd::CheckUpdates),
@@ -1517,6 +1550,41 @@ mod tests {
     }
 
     /// The retired chrome stays retired: no tab strip, no grouping toggle,
+    /// The sidebar SLIDES shut: one 60 Hz frame after the toggle its rows
+    /// are still on screen, part-way off the left edge; a quarter second
+    /// later the panel is gone. The toggle used to cut instantly.
+    #[test]
+    fn the_sidebar_slides_shut_over_several_frames() {
+        use egui_kittest::kittest::NodeT;
+        let sink = std::sync::Arc::default();
+        let mut h = crate::testkit::harness_themed_with_dt(
+            egui::vec2(900.0, 560.0),
+            true,
+            1.0 / 60.0,
+            paint("overview", true, sink),
+        );
+        let at_rest = h
+            .get_by_label("Activity")
+            .accesskit_node()
+            .raw_bounds()
+            .expect("bounds")
+            .x0;
+        h.get_by_label("Toggle sidebar").click();
+        h.run_steps(2);
+        let mid = h
+            .get_by_label("Activity")
+            .accesskit_node()
+            .raw_bounds()
+            .expect("bounds")
+            .x0;
+        assert!(
+            mid < at_rest - 1.0 && mid > at_rest - theme::SIDEBAR_WIDTH as f64 + 1.0,
+            "row should be part-way off screen, was at {mid} (rest {at_rest})"
+        );
+        h.run_steps(30);
+        assert!(h.query_by_label("Activity").is_none());
+    }
+
     /// no in-window app title — the titlebar already names the app.
     #[test]
     fn the_retired_chrome_is_absent() {

@@ -99,6 +99,9 @@ pub const DURATION_HOVER: f32 = 0.1;
 pub const DURATION_VALUE: f32 = 0.26;
 pub const DURATION_ENTRANCE: f32 = 0.15;
 pub const DURATION_PAYOFF: f32 = 0.2;
+/// The sidebar sliding shut or open — the length of macOS's own sidebar
+/// collapse, eased out so it settles rather than stops.
+pub const DURATION_SIDEBAR: f32 = 0.24;
 
 /// Content rows: title + subtitle at a comfortable macOS height.
 pub const ROW_HEIGHT: f32 = 44.0;
@@ -113,6 +116,11 @@ pub const NAV_ROW_HEIGHT: f32 = 28.0;
 /// The zone the floating traffic lights occupy once the titlebar melts into
 /// the window (fullsize content view) — the nav list starts below it.
 pub const TRAFFIC_LIGHT_INSET: f32 = 34.0;
+/// How far from the window's left edge the floating traffic lights reach
+/// (three 12pt lights from x≈13 on 20pt centres, plus breathing room). With
+/// the sidebar collapsed nothing else covers that zone, so the toolbar
+/// starts to its right; with the sidebar open it is under the sidebar.
+pub const TRAFFIC_LIGHT_CLEARANCE: f32 = 84.0;
 
 /// Modal widths: one for a confirm dialog (a sentence and two buttons), one
 /// for a list modal (checkbox + name + command + group need the room).

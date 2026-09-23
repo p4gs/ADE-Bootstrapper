@@ -29,6 +29,9 @@ pub(crate) struct ToolbarState<'a> {
     pub checking: bool,
     /// The search text, owned by the shell; edited in place.
     pub query: &'a mut String,
+    /// Extra space before the sidebar toggle — the shell sets it while the
+    /// sidebar is collapsed so the row clears the floating traffic lights.
+    pub left_inset: f32,
 }
 
 pub(crate) const TOOLBAR_HEIGHT: f32 = 48.0;
@@ -51,6 +54,9 @@ pub(crate) fn toolbar(
             .layout(Layout::left_to_right(Align::Center)),
     );
     row.spacing_mut().item_spacing.x = theme::Space::S8.px();
+    if state.left_inset > 0.0 {
+        row.add_space(state.left_inset);
+    }
 
     // Left: the sidebar toggle, then the title block.
     if circle_icon_button(&mut row, p, Icon::PanelLeft, "Toggle sidebar", false).clicked() {
@@ -229,6 +235,7 @@ mod tests {
                 model: &model,
                 checking,
                 query: &mut query,
+                left_inset: 0.0,
             };
             if let Some(event) = toolbar(ui, &p, &mut state) {
                 sink.lock().expect("sink").push(event);
