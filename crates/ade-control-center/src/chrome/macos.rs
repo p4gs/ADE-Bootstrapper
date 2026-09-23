@@ -153,6 +153,11 @@ fn attach_effect_view(
             let glass = NSGlassEffectView::initWithFrame(NSGlassEffectView::alloc(mtm), inner);
             // Spike fact: the glass renders with an EMPTY contentView; the
             // sidebar's actual content stays egui-drawn on top.
+            // The glass rounds its own four corners by default; the strip is
+            // a full-height band whose left corners the window already clips,
+            // so its default radius showed as a notch at the top of the seam
+            // between sidebar and content (owner screenshot, 2026-09-23).
+            glass.setCornerRadius(0.0);
             glass.setAutoresizingMask(fill);
             host.addSubview(&glass);
         }
