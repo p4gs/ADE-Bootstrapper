@@ -19,7 +19,7 @@ github_repo = "p4gs/ADE-Bootstrapper"
 [controls.secrets]
 enabled = true
 trufflehog = true
-gitleaks = false
+gitleaks = true
 pre_push_range_scan = true
 
 # CommitSigningGuard: Hardware-backed, human-only signing enforced on protected branches at pre-push
