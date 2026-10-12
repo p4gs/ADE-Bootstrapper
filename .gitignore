@@ -6,6 +6,7 @@ coverage/
 .DS_Store
 .serena/
 /target/
+crates/*/target/
 crates/ade-control-center/bundles/
 /bundles/
 
@@ -21,3 +22,11 @@ id_ed25519
 .ade/logs/
 # CocoIndex Code (ccc)
 /.cocoindex_code/
+
+# sscsb: generated output (SBOMs, receipts, VEX), not policy
+.sscsb/out/
+
+# egui_kittest writes these beside a failing snapshot; goldens are the bare .png only
+crates/*/tests/snapshots/*.new.png
+crates/*/tests/snapshots/*.diff.png
+crates/*/tests/snapshots/*.old.png

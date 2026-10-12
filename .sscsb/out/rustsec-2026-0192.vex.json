@@ -1,0 +1,21 @@
+{
+  "@context": "https://openvex.dev/ns/v0.2.0",
+  "@id": "https://openvex.dev/docs/sscsb-2026-09-12",
+  "author": "https://github.com/p4gs/ADE-Bootstrapper",
+  "statements": [
+    {
+      "justification": "component_not_present",
+      "products": [
+        {
+          "@id": "pkg:cargo/ade-control-center@0.2.0"
+        }
+      ],
+      "status": "not_affected",
+      "vulnerability": {
+        "name": "RUSTSEC-2026-0192"
+      }
+    }
+  ],
+  "timestamp": "2026-09-12T14:27:05.845283+00:00",
+  "version": 1
+}

@@ -259,10 +259,10 @@ fn human_apply(verb: &str, report: &ApplyReport, created: bool) -> String {
     )];
     for module in &report.modules {
         let marker = match module.result.status {
-            ModuleStatus::Failed => "✗",
-            ModuleStatus::Degraded => "◐",
-            _ if module.enabled => "✓",
-            _ => "·",
+            ModuleStatus::Failed => "x",
+            ModuleStatus::Degraded => "~",
+            _ if module.enabled => "ok",
+            _ => "-",
         };
         let status = serde_json::to_value(module.result.status)
             .ok()
@@ -278,7 +278,7 @@ fn human_apply(verb: &str, report: &ApplyReport, created: bool) -> String {
             .unwrap_or_default();
         lines.push(format!(
             "  {} translate {}{error}",
-            if file.ok { "✓" } else { "✗" },
+            if file.ok { "ok" } else { "x" },
             file.path
         ));
     }
@@ -329,7 +329,7 @@ fn install_report_output(
             .unwrap_or_default();
         lines.push(format!(
             "  {} {}{detail}",
-            if step.ok { "✓" } else { "✗" },
+            if step.ok { "ok" } else { "x" },
             step.step
         ));
     }
@@ -498,7 +498,7 @@ fn run(argv: &[String]) -> i32 {
             for module in &report.modules {
                 human.push(format!(
                     "  {} {}\n{}",
-                    if module.ok { "✓" } else { "✗" },
+                    if module.ok { "ok" } else { "x" },
                     module.id,
                     summarize_findings("    ", &module.findings)
                 ));
@@ -553,7 +553,7 @@ fn run(argv: &[String]) -> i32 {
                     .unwrap_or_default();
                 human.push(format!(
                     "    {} {}{version}",
-                    if tool.present { "✓" } else { "✗" },
+                    if tool.present { "ok" } else { "x" },
                     tool.name
                 ));
             }
@@ -882,7 +882,7 @@ fn run(argv: &[String]) -> i32 {
                     let pid = agent.pid.map(|p| format!(" (pid {p})")).unwrap_or_default();
                     human.push(format!(
                         "  {} {}{state}{pid}",
-                        if agent.loaded { "✓" } else { "✗" },
+                        if agent.loaded { "ok" } else { "x" },
                         agent.label
                     ));
                 }

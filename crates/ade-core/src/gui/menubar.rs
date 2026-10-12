@@ -40,6 +40,23 @@ pub struct MenubarPayload {
     pub label: String,
     pub counts: MenubarCounts,
     pub items: Vec<MenubarItem>,
+    /// How many things need the owner's action — the verdict's own
+    /// action-item count, carried so the tray title can state it without
+    /// recounting.
+    pub attention: u32,
+}
+
+/// The status item's title text, next to the template icon — plain ASCII
+/// (Phase F; the old U+26A0-class glyphs render as emoji in the menu bar).
+/// Healthy is silent: no title at all. Needs-attention states the count;
+/// broken states "!", the strongest signal the bar carries — the dropdown
+/// and the AX label carry the numbers.
+pub fn tray_title(payload: &MenubarPayload) -> String {
+    match payload.status {
+        AggregateStatus::Ok => String::new(),
+        AggregateStatus::Warn => payload.attention.max(1).to_string(),
+        AggregateStatus::Error => "!".to_string(),
+    }
 }
 
 fn worst_level(issues: &[Finding]) -> FindingLevel {
@@ -98,23 +115,22 @@ pub fn build_menubar_from_verdict(
             } else {
                 FindingLevel::Info
             };
+            // Plain ASCII vocabulary (Phase F): the tray renders text, and
+            // macOS draws the old glyph set (U+26A0-class codepoints) as emoji.
             let glyph = if !cap.enabled {
-                "○"
+                "-"
             } else if !cap.installed {
-                "·"
+                "."
             } else {
                 match level {
-                    FindingLevel::Error => "✖",
-                    FindingLevel::Warn | FindingLevel::Degraded => "⚠",
-                    _ => "✓",
+                    FindingLevel::Error => "x",
+                    FindingLevel::Warn | FindingLevel::Degraded => "!",
+                    _ => "ok",
                 }
             };
             let mut bits: Vec<String> = vec![cap.name.clone()];
-            if let Some(version) = &cap.version {
-                let stripped = version
-                    .strip_prefix(&format!("{} ", cap.name.to_lowercase()))
-                    .unwrap_or(version.as_str());
-                bits.push(stripped.to_string());
+            if let Some(version) = cap.short_version() {
+                bits.push(version);
             }
             if cap.running == Some(true) {
                 bits.push("· running".to_string());
@@ -148,6 +164,7 @@ pub fn build_menubar_from_verdict(
             running_jobs,
         },
         items,
+        attention: health.action_items().count() as u32,
     }
 }
 
@@ -174,6 +191,7 @@ mod tests {
                 None
             },
             reports_version: true,
+            inactive: None,
             running: None,
             enabled,
             latest_version: None,
@@ -204,19 +222,27 @@ mod tests {
         assert_eq!(payload.counts.ok, 2);
         assert_eq!(payload.counts.running_jobs, 2);
         assert_eq!(payload.label, "2/4 healthy · 2 warn · 1 err");
-        // Errors sort first; disabled rows are info with ○.
+        // Errors sort first; disabled rows are info with the "-" glyph. The
+        // whole vocabulary is ASCII — the old glyph set rendered as emoji in
+        // the menu bar.
         assert_eq!(payload.items[0].id, "broken");
-        assert_eq!(payload.items[0].glyph, "✖");
+        assert_eq!(payload.items[0].glyph, "x");
         let off = payload.items.iter().find(|item| item.id == "off").unwrap();
-        assert_eq!(off.glyph, "○");
+        assert_eq!(off.glyph, "-");
         assert!(off.label.contains("· disabled"));
         let absent = payload
             .items
             .iter()
             .find(|item| item.id == "absent")
             .unwrap();
-        assert_eq!(absent.glyph, "·");
+        assert_eq!(absent.glyph, ".");
         assert!(absent.label.contains("· not installed"));
+        let warned = payload
+            .items
+            .iter()
+            .find(|item| item.id == "warned")
+            .unwrap();
+        assert_eq!(warned.glyph, "!");
     }
 
     #[test]
@@ -225,7 +251,42 @@ mod tests {
         let payload = build_menubar_payload(&caps, 0);
         assert_eq!(payload.status, AggregateStatus::Ok);
         assert_eq!(payload.label, "2/2 healthy · 0 warn · 0 err");
-        assert!(payload.items.iter().all(|item| item.glyph == "✓"));
+        assert!(payload.items.iter().all(|item| item.glyph == "ok"));
+    }
+
+    /// The tray title contract: silent when healthy, the action count when
+    /// attention is needed, "!" when something is broken.
+    #[test]
+    fn the_tray_title_is_silent_counted_or_bang() {
+        let healthy = build_menubar_payload(&[cap("a", true, true, vec![])], 0);
+        assert_eq!(healthy.status, AggregateStatus::Ok);
+        assert_eq!(tray_title(&healthy), "", "healthy is silent");
+
+        // A genuine coverage gap: needs-attention states the count.
+        let gap = build_menubar_payload(
+            &[cap(
+                "absent",
+                true,
+                false,
+                vec![Finding::warn("not installed", "install it")],
+            )],
+            0,
+        );
+        assert_eq!(gap.status, AggregateStatus::Warn);
+        assert_eq!(gap.attention, 1);
+        assert_eq!(tray_title(&gap), "1");
+
+        let broken = build_menubar_payload(
+            &[cap(
+                "broken",
+                true,
+                true,
+                vec![Finding::error("probe failed")],
+            )],
+            0,
+        );
+        assert_eq!(broken.status, AggregateStatus::Error);
+        assert_eq!(tray_title(&broken), "!");
     }
 
     #[test]
